@@ -13,25 +13,36 @@ const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 const url = require('url')
 
-let alwaysOnTop = false
-let menu
-// let incognito = false
 let settings = { incognito: false }
+let frames = []
+let pictures = []
+let menu
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
-let imageWindow
 let menuTemplate
-let win
 let firstFocus = true
+
 
 function setIncognito(value) {
   if (value != settings.incognito) {
     settings.incognito = value
     // settings.incognito = value
     // imageWindow.webContents.closeDevTools()
-    createWindow()
+    // createWindow()
+    for (var i = 0; i < frames.length; i++) {
+      frame = frames[i]
+      if (settings.incognito) {
+        frame.setIgnoreMouseEvents(true)
+        frame.setAlwaysOnTop(true)
+      } else {
+        frame.setIgnoreMouseEvents(false)
+        frame.setAlwaysOnTop(false)
+          // imageWindow.webContents.openDevTools({ mode:'bottom' })
+      }
+      frame.send('incognito', value)
+    }
   }
 }
 
@@ -50,7 +61,11 @@ function createMenu() {
         },
         {
           label: 'Reload',
-          role: 'reload'
+          accelerator: 'R',
+          click: () => {
+            imageWindow.reload()
+          }
+          // role: 'reload'
         },
         {
           label: 'Toggle Developer Tools',
@@ -62,7 +77,7 @@ function createMenu() {
             }
           })(),
           click: function (item, focusedWindow) {
-            imageWindow.toggleDevTools()
+            mainWindow.toggleDevTools()
           }
         }
       ]
@@ -110,90 +125,107 @@ function createMenu() {
 }
 
 
-function createWindow () {
+function startup() {
   if (!mainWindow) {
-    mainWindow = new BrowserWindow({ width: 320, height: 240 })
-    mainWindow.hide()
-    createMenu()
-  }
-
-  let bounds
-
-  if (imageWindow) {
-    bounds = imageWindow.getBounds()
-    // imageWindow.hide()
-    // imageWindow.close()
-  }
-
-  if (!imageWindow) {
-
-    options = {}
-    if (bounds) {
-      options.x = bounds.x
-      options.y = bounds.y
-      options.width = bounds.width
-      options.height = bounds.height
-    } else {
-      options.width = 640
-      options.height = 480
-    }
-    options.minimizable = false
-    options.maximizable = false
-    options.transparent = true
-    options.hasShadow = false
-    // options.backgroundColor = '#10101010'
-    // options.frame = (process.platform === 'darwin' ? true : false)
-    options.frame = false
-    options.disableAutoHideCursor = true
-    // options.show = false
-
-    if (settings.incognito) {
-      options.frame = false
-      // options.backgroundColor = '#00000000'
-      options.alwaysOnTop = true
-    }
-
-    // alwaysOnTop: true,
-    // acceptFirstMouse: false,
-    // focusable: false,
-    // disableAutoHideCursor: true,
-    // resizable: true,
-    // titleBarStyle: 'hidden',
-
-    imageWindow = new BrowserWindow(options)
-    imageWindow.firstFocus = true
-    imageWindow.on('focus', () => {
-      if (!imageWindow.firstFocus) {
-        setIncognito(false)
-      }
-      imageWindow.firstFocus = false
+    mainWindow = new BrowserWindow({
+      width: 320,
+      height: 320,
+      minWidth: 320,
+      minHeight: 320,
+      frame: false,
+      transparent: true,
+      alwaysOnTop: true,
+      // resizable: false,
+      hasShadow: false
     })
 
-    // and load the index.html of the app.
-    imageWindow.loadURL(url.format({
-      pathname: path.join(__dirname, 'setup.html'),
+    mainWindow.loadURL(url.format({
+      pathname: path.join(__dirname, 'drop.html'),
       protocol: 'file:',
       slashes: true
     }))
-  }
+    createMenu()
 
-  if (settings.incognito) {
-    imageWindow.setIgnoreMouseEvents(true)
-    imageWindow.setAlwaysOnTop(true)
-  } else {
-    imageWindow.setIgnoreMouseEvents(false)
-    imageWindow.setAlwaysOnTop(false)
-    // imageWindow.webContents.openDevTools({ mode:'bottom' })
+    // mainWindow.webContents.openDevTools({ mode:'bottom' })
   }
+}
 
-  imageWindow.send('incognito', settings.incognito)
+
+
+function createWindow(imagePath) {
+  console.log('createWindow');
+  let bounds
+
+  // if (imageWindow) {
+  //   bounds = imageWindow.getBounds()
+  //   // imageWindow.hide()
+  //   // imageWindow.close()
+  // }
+
+  options = {}
+  options.width = 640
+  options.height = 480
+  options.minimizable = false
+  options.maximizable = false
+  options.transparent = true
+  options.hasShadow = false
+  // options.backgroundColor = '#10101010'
+  // options.frame = (process.platform === 'darwin' ? true : false)
+  options.frame = false
+  options.disableAutoHideCursor = true
+  options.parent = mainWindow
+  // options.show = false
+
+  // alwaysOnTop: true,
+  // acceptFirstMouse: false,
+  // focusable: false,
+  // disableAutoHideCursor: true,
+  // resizable: true,
+  // titleBarStyle: 'hidden',
+
+  frame = new BrowserWindow(options)
+  frame.firstFocus = true
+  frame.imagePath = imagePath
+
+  frame.on('focus', () => {
+    // console.log('focus');
+    if (!frame.firstFocus) {
+      // setIncognito(false)
+    } else {
+    }
+    // frame.send('initialise', imagePath)
+    frame.firstFocus = false
+  })
+
+  frame.loadURL(url.format({
+    pathname: path.join(__dirname, 'display.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+  // console.log('ass');
+
+  // frame.webContents.openDevTools({ mode:'bottom' })
+
+  frames.push(frame)
+  // pictures.push(imagePath)
+
+  // if (settings.incognito) {
+  //   imageWindow.setIgnoreMouseEvents(true)
+  //   imageWindow.setAlwaysOnTop(true)
+  // } else {
+  //   imageWindow.setIgnoreMouseEvents(false)
+  //   imageWindow.setAlwaysOnTop(false)
+  //   // imageWindow.webContents.openDevTools({ mode:'bottom' })
+  // }
+  //
+  // imageWindow.send('incognito', settings.incognito)
 
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', startup)
 
 // Quit when all windows are closed.
 // app.on('window-all-closed', function () {
@@ -218,30 +250,47 @@ app.on('activate', function () {
 // code. You can also put them in separate files and require them here.
 
 ipc.on('move-window-by', function (event, x, y) {
-  bounds = imageWindow.getBounds()
+
+  handle = BrowserWindow.fromWebContents(event.sender)
+
+  bounds = handle.getBounds()
   bounds.x += x
   bounds.y += y
-  imageWindow.setBounds(bounds)
+  handle.setBounds(bounds)
+
+  // console.log('moveWindowBy', x, y);
 })
 
-ipc.on('size-window-by', function (event, x, y) {
-  bounds = imageWindow.getBounds()
-  bounds.width += x
-  bounds.height += y
-  bounds.width = bounds.width < 128 ? 128 : bounds.width;
-  bounds.height = bounds.height < 128 ? 128 : bounds.height;
-  imageWindow.setBounds(bounds)
-})
+// ipc.on('size-window-by', function (event, x, y) {
+//   bounds = event.sender.getBounds()
+//   bounds.width += x
+//   bounds.height += y
+//   bounds.width = bounds.width < 128 ? 128 : bounds.width;
+//   bounds.height = bounds.height < 128 ? 128 : bounds.height;
+//   event.sender.setBounds(bounds)
+// })
 
 ipc.on('request-settings', function(event) {
   event.sender.send('settings', settings)
 })
 
-ipc.on('image-update', function(event, arg1) {
-  settings.src = arg1;
 
-  // win.send('image', arg1);
+ipc.on('request-image', function(event) {
+  handle = BrowserWindow.fromWebContents(event.sender)
+  event.sender.send('image', handle.imagePath)
 })
+
+
+ipc.on('image-drop', function(event, path) {
+  // image = new Image()
+  // image.src = src
+
+  // settings.src = arg1;
+  // win.send('image', arg1);
+  console.log('image-drop', path);
+  createWindow(path)
+})
+
 
 ipc.on('save-settings', function(event, arg1) {
   for (i in arg1) {
