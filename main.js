@@ -172,12 +172,16 @@ function createWindow(imagePath) {
   // options.backgroundColor = '#10101010'
   // options.frame = (process.platform === 'darwin' ? true : false)
   options.frame = false
-  options.disableAutoHideCursor = true
-  options.parent = mainWindow
+  // options.disableAutoHideCursor = true
+
+  if (process.platform !== 'darwin') {
+    options.parent = mainWindow
+  }
+
   // options.show = false
 
   // alwaysOnTop: true,
-  // acceptFirstMouse: false,
+  options.acceptFirstMouse = true
   // focusable: false,
   // disableAutoHideCursor: true,
   // resizable: true,
