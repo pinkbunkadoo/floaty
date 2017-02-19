@@ -1,6 +1,7 @@
 const BrowserWindow = require('electron').remote.BrowserWindow
 const ipc = require('electron').ipcRenderer
-
+const fs = require('fs')
+// const app =  require('electron').app
 const Point = require('./point')
 const Picture = require('./picture')
 
@@ -13,6 +14,8 @@ let image
 
 
 window.onload = function (event) {
+  console.log('dropWindow')
+
   container = document.createElement('div')
   container.style['-webkit-user-select'] = 'none'
   container.style.position = 'absolute'
@@ -31,8 +34,8 @@ window.onload = function (event) {
 
   hint = document.createElement('div')
   hint.style.color = 'white'
-  hint.style.font = '24px Tahoma, sans-serif'
-  hint.innerHTML = 'floatz'
+  // hint.style.font = '24px Tahoma, sans-serif'
+  // hint.innerHTML = 'floatz'
   hint.style['-webkit-user-select'] = 'none'
   hint.style.cursor = 'default'
   container.appendChild(hint)
@@ -40,6 +43,20 @@ window.onload = function (event) {
   document.body.appendChild(container)
 
   initEventListeners()
+
+  // fs.readFile('file:///c:/users/dave/github/floatz/images/balloon.png', null, function(err, data) {
+  //     image = new Image()
+  //     image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
+  //     container.appendChild(image)
+  //     console.log(image.src);
+  //     // pictures[0] = new Picture(image, 0, 0)
+  //     // draw()
+  // });
+
+  image = new Image()
+  image.src = './images/drop.png'
+  container.appendChild(image)
+
 }
 
 

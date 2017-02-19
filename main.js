@@ -14,7 +14,11 @@ const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 const url = require('url')
 
-let settings = { incognito: false }
+const appName = 'Floatz'
+
+app.setName(appName)
+
+let incognito = false
 let frames = []
 let pictures = []
 let menu
@@ -22,34 +26,40 @@ let menu
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+let dropWindow
 let menuTemplate
 let firstFocus = true
 
 
 function setIncognito(value) {
-  if (value != settings.incognito) {
-    settings.incognito = value
-    // settings.incognito = value
-    // imageWindow.webContents.closeDevTools()
-    // createWindow()
+  // console.log('setIncognito', incognito, value);
+  if (value != incognito) {
+    if (value == true && frames.length == 0) return;
+
+    incognito = value
+
+    if (incognito) {
+      dropWindow.hide()
+      // if (process.platform === 'darwin')
+      //   mainWindow.hide()
+      // else
+      //   mainWindow.minimize()
+    } else {
+      dropWindow.show()
+      // if (process.platform === 'darwin')
+      //   mainWindow.show()
+      // else
+      //   mainWindow.restore()
+    }
+
     for (var i = 0; i < frames.length; i++) {
       frame = frames[i]
-      if (settings.incognito) {
+      if (incognito) {
         frame.setIgnoreMouseEvents(true)
-        // frame.setAlwaysOnTop(true)
       } else {
         frame.setIgnoreMouseEvents(false)
-        // frame.setAlwaysOnTop(false)
-          // imageWindow.webContents.openDevTools({ mode:'bottom' })
       }
       frame.send('incognito', value)
-    }
-    if (settings.incognito) {
-      // mainWindow.minimize()
-      mainWindow.hide()
-    } else {
-      // mainWindow.restore()
-      mainWindow.show()
     }
   }
 }
@@ -64,7 +74,7 @@ function createMenu() {
           label: 'Transparent',
           accelerator: '/',
           click: function (item, focusedWindow) {
-            setIncognito(!settings.incognito)
+            setIncognito(!incognito)
             // mainWindow.hide()
           }
         },
@@ -72,7 +82,7 @@ function createMenu() {
           label: 'Reload',
           accelerator: 'R',
           click: () => {
-            mainWindow.reload()
+            // mainWindow.reload()
           }
           // role: 'reload'
         },
@@ -86,7 +96,7 @@ function createMenu() {
             }
           })(),
           click: function (item, focusedWindow) {
-            mainWindow.toggleDevTools()
+            dropWindow.toggleDevTools()
           }
         }
       ]
@@ -136,42 +146,59 @@ function createMenu() {
 
 function startup() {
   if (!mainWindow) {
+
     mainWindow = new BrowserWindow({
+      width: 320,
+      height: 320,
+      transparent: true,
+      alwaysOnTop: true,
+      title: 'Main',
+      hasShadow: false,
+      frame: false
+    })
+
+    mainWindow.on('focus', () => {
+      setIncognito(false)
+    })
+
+
+    dropWindow = new BrowserWindow({
       width: 320,
       height: 320,
       minWidth: 320,
       minHeight: 320,
       transparent: true,
       alwaysOnTop: true,
+      title: 'Drop',
+      parent: mainWindow,
       // resizable: false,
       hasShadow: false,
       frame: false
     })
 
-    mainWindow.loadURL(url.format({
+    dropWindow.loadURL(url.format({
       pathname: path.join(__dirname, 'drop.html'),
       protocol: 'file:',
       slashes: true
     }))
-    createMenu()
 
-    mainWindow.on('focus', () => {
-      setIncognito(false)
-    })
+    // dropWindow.on('focus', () => {
+    //   setIncognito(false)
+    // })
 
-    // let icon = new Tray('C:\\Users\\dave\\github\\floatz\\images\\icon.png')
-    // let icon = nativeImage.createFromPath('C:\\Users\\dave\\github\\floatz\\images\\icon.png')
 
-    let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
-    if (process.platform === 'darwin') {
-      app.dock.setIcon(icon)
-    } else {
-      mainWindow.setIcon(icon)
-    }
-
-    // console.log('path:', app.getAppPath())
+    // let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
+    //
+    // if (process.platform === 'darwin') {
+    //   app.dock.setIcon(icon)
+    // } else {
+    //   mainWindow.setIcon(icon)
+    // }
 
     // mainWindow.webContents.openDevTools({ mode:'bottom' })
+    // app.setName(appName)
+
+    createMenu()
   }
 }
 
@@ -189,11 +216,12 @@ function createWindow(imagePath) {
   options.frame = false
   // options.disableAutoHideCursor = true
 
-  if (process.platform !== 'darwin') {
+  // if (process.platform !== 'darwin') {
     // options.parent = mainWindow
-  }
-
+  // }
   // options.show = false
+
+  options.parent = mainWindow
 
   options.alwaysOnTop = true
   options.acceptFirstMouse = true
@@ -203,7 +231,6 @@ function createWindow(imagePath) {
   frame.imagePath = imagePath
 
   frame.on('focus', () => {
-    // setIncognito(false)
     if (!frame.firstFocus) {
       setIncognito(false)
     }
