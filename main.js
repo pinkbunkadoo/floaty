@@ -58,7 +58,7 @@ function setIncognito(value) {
       //   mainWindow.minimize()
     } else {
       dropWindow.show()
-      mainWindow.focus()
+      // mainWindow.focus()
       // if (process.platform === 'darwin')
       //   mainWindow.show()
       // else
@@ -161,10 +161,14 @@ function startup() {
     })
 
     mainWindow.setIgnoreMouseEvents(true)
+    mainWindow.firstFocus = true
 
-    // mainWindow.on('focus', () => {
-    //   setIncognito(false)
-    // })
+    mainWindow.on('focus', () => {
+      if (!mainWindow.firstFocus) {
+        setIncognito(false)
+      }
+      mainWindow.firstFocus = false
+    })
 
 
     dropWindow = new BrowserWindow({
