@@ -15,6 +15,8 @@ let image
 window.onload = function (event) {
   console.log('dropWindow')
 
+  // document.body.style.padding = '8px'
+
   container = document.createElement('div')
   container.style['-webkit-user-select'] = 'none'
   container.style.position = 'absolute'
@@ -94,34 +96,6 @@ function onDrop(e) {
   file = e.dataTransfer.files[0]
   ipc.send('image-drop', file.path)
 
-  // var reader = new FileReader()
-  //
-  // reader.addEventListener("load", function (event) {
-  //     image = new Image()
-  //     image.src = this.result
-  //     image.title = file.name
-  //     // console.log(this.result);
-  //
-  //     // settings.path = file.path
-  //     // settings.name = file.name
-  //     // settings.left = 0
-  //     // settings.top = 0
-  //     //
-  //     // canvas.width = window.innerWidth
-  //     // canvas.height = window.innerHeight
-  //     // overlayCanvas.width = window.innerWidth
-  //     // overlayCanvas.height = window.innerHeight
-  //     //
-  //     // p = canvasToWorld(e.clientX, e.clientY)
-  //     // picture = new Picture(image, 0, 0)
-  //     // pictures[0] = picture
-  //     //
-  //     // ipc.send('image-drop', file.path)
-  //     //
-  //     // saveSettings()
-  //   }, false)
-  //
-  // reader.readAsDataURL(file)
 }
 
 

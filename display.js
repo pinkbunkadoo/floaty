@@ -214,7 +214,7 @@ function onKeyDown(event) {
     scale = (scale > 8.0 ? 8.0 : scale)
     settings.scale = scale
 
-  } else if (event.key == 'Delete' && !event.repeat) {
+  } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
     ipc.send('close-image')
 
   }

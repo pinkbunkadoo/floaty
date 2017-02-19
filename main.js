@@ -180,6 +180,7 @@ function startup() {
       alwaysOnTop: true,
       title: 'Drop',
       parent: mainWindow,
+      disableAutoHideCursor: true,
       hasShadow: false,
       acceptFirstMouse: true,
       frame: false
@@ -223,7 +224,7 @@ function createWindow(imagePath) {
   options.transparent = true
   options.hasShadow = false
   options.frame = false
-  // options.disableAutoHideCursor = true
+  options.disableAutoHideCursor = true
 
   // if (process.platform !== 'darwin') {
     // options.parent = mainWindow
@@ -326,4 +327,3 @@ ipc.on('close-image', (event) => {
 
   handle.close()
 })
-
