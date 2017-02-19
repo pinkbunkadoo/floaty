@@ -1,11 +1,12 @@
 const electron = require('electron')
 // Module to control application life.
 const app = electron.app
-
+const Tray = electron.Tray
+const nativeImage = electron.nativeImage
 const Menu = electron.Menu
-const ipc = require('electron').ipcMain
+const ipc = electron.ipcMain
 
-const { globalShortcut } = require('electron')
+const globalShortcut = electron.globalShortcut
 
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
@@ -157,6 +158,15 @@ function startup() {
     mainWindow.on('focus', () => {
       setIncognito(false)
     })
+
+    // let icon = new Tray('C:\\Users\\dave\\github\\floatz\\images\\icon.png')
+    // let icon = nativeImage.createFromPath('C:\\Users\\dave\\github\\floatz\\images\\icon.png')
+
+    let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
+    mainWindow.setIcon(icon)
+
+    console.log('path:', app.getAppPath())
+
     // mainWindow.webContents.openDevTools({ mode:'bottom' })
   }
 }
@@ -189,12 +199,11 @@ function createWindow(imagePath) {
   frame.imagePath = imagePath
 
   frame.on('focus', () => {
-    // if (!frame.firstFocus) {
-    //   // setIncognito(false)
-    // } else {
-    // }
-    // // frame.send('initialise', imagePath)
-    // frame.firstFocus = false
+    // setIncognito(false)
+    if (!frame.firstFocus) {
+      setIncognito(false)
+    }
+    frame.firstFocus = false
   })
 
   frame.loadURL(url.format({
