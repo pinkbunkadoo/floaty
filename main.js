@@ -44,11 +44,11 @@ function setIncognito(value) {
       frame.send('incognito', value)
     }
     if (settings.incognito) {
-      mainWindow.minimize()
-      // mainWindow.hide()
+      // mainWindow.minimize()
+      mainWindow.hide()
     } else {
-      mainWindow.restore()
-      // mainWindow.show()
+      // mainWindow.restore()
+      mainWindow.show()
     }
   }
 }
@@ -71,7 +71,7 @@ function createMenu() {
           label: 'Reload',
           accelerator: 'R',
           click: () => {
-            imageWindow.reload()
+            mainWindow.reload()
           }
           // role: 'reload'
         },
@@ -140,8 +140,8 @@ function startup() {
       height: 320,
       minWidth: 320,
       minHeight: 320,
-      // transparent: true,
-      // alwaysOnTop: true,
+      transparent: true,
+      alwaysOnTop: true,
       // resizable: false,
       hasShadow: false,
       frame: false
@@ -164,16 +164,8 @@ function startup() {
 
 
 function createWindow(imagePath) {
-  console.log('createWindow');
-  let bounds
-
-  // if (imageWindow) {
-  //   bounds = imageWindow.getBounds()
-  //   // imageWindow.hide()
-  //   // imageWindow.close()
-  // }
-
   options = {}
+  options.title = imagePath
   options.width = 640
   options.height = 480
   options.minimizable = false
@@ -191,21 +183,18 @@ function createWindow(imagePath) {
 
   options.alwaysOnTop = true
   options.acceptFirstMouse = true
-  // focusable: false,
-  // titleBarStyle: 'hidden',
 
   frame = new BrowserWindow(options)
   frame.firstFocus = true
   frame.imagePath = imagePath
 
   frame.on('focus', () => {
-    // console.log('focus');
-    if (!frame.firstFocus) {
-      // setIncognito(false)
-    } else {
-    }
-    // frame.send('initialise', imagePath)
-    frame.firstFocus = false
+    // if (!frame.firstFocus) {
+    //   // setIncognito(false)
+    // } else {
+    // }
+    // // frame.send('initialise', imagePath)
+    // frame.firstFocus = false
   })
 
   frame.loadURL(url.format({
@@ -213,24 +202,8 @@ function createWindow(imagePath) {
     protocol: 'file:',
     slashes: true
   }))
-  // console.log('ass');
-
-  // frame.webContents.openDevTools({ mode:'bottom' })
 
   frames.push(frame)
-  // pictures.push(imagePath)
-
-  // if (settings.incognito) {
-  //   imageWindow.setIgnoreMouseEvents(true)
-  //   imageWindow.setAlwaysOnTop(true)
-  // } else {
-  //   imageWindow.setIgnoreMouseEvents(false)
-  //   imageWindow.setAlwaysOnTop(false)
-  //   // imageWindow.webContents.openDevTools({ mode:'bottom' })
-  // }
-  //
-  // imageWindow.send('incognito', settings.incognito)
-
 }
 
 // This method will be called when Electron has finished
@@ -239,23 +212,25 @@ function createWindow(imagePath) {
 app.on('ready', startup)
 
 // Quit when all windows are closed.
-// app.on('window-all-closed', function () {
-//   // On OS X it is common for applications and their menu bar
-//   // to stay active until the user quits explicitly with Cmd + Q
-//   if (process.platform !== 'darwin') {
-//     // app.exit()
-//   }
-// })
+app.on('window-all-closed', function () {
+  // On OS X it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== 'darwin') {
+    app.exit()
+  }
+})
 
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    // createWindow()
+    startup()
+  } else {
+    // mainWindow.show()
+    setIncognito(false)
   }
 })
 
-// app.on('quit')
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
@@ -268,21 +243,6 @@ ipc.on('move-window-by', function (event, x, y) {
   bounds.x += x
   bounds.y += y
   handle.setBounds(bounds)
-
-  // console.log('moveWindowBy', x, y);
-})
-
-// ipc.on('size-window-by', function (event, x, y) {
-//   bounds = event.sender.getBounds()
-//   bounds.width += x
-//   bounds.height += y
-//   bounds.width = bounds.width < 128 ? 128 : bounds.width;
-//   bounds.height = bounds.height < 128 ? 128 : bounds.height;
-//   event.sender.setBounds(bounds)
-// })
-
-ipc.on('request-settings', function(event) {
-  event.sender.send('settings', settings)
 })
 
 
@@ -293,21 +253,6 @@ ipc.on('request-image', function(event) {
 
 
 ipc.on('image-drop', function(event, path) {
-  // image = new Image()
-  // image.src = src
-
-  // settings.src = arg1;
-  // win.send('image', arg1);
-  console.log('image-drop', path);
+  console.log('image-drop', path)
   createWindow(path)
-})
-
-
-ipc.on('save-settings', function(event, arg1) {
-  for (i in arg1) {
-    settings[i] = arg1[i]
-  }
-
-  // win.send('settings-changed', settings)
-
 })

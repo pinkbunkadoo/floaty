@@ -11,20 +11,6 @@ let mode = null
 let incognito = false
 let image
 
-function update() {
-}
-
-
-function draw() {
-}
-
-
-function frame() {
-  // requestAnimationFrame(frame)
-  // update()
-  // draw()
-}
-
 
 window.onload = function (event) {
   container = document.createElement('div')
@@ -53,8 +39,7 @@ window.onload = function (event) {
 
   document.body.appendChild(container)
 
-  // requestAnimationFrame(frame)
-  requestSettings()
+  initEventListeners()
 }
 
 
@@ -124,14 +109,14 @@ function onDrop(e) {
 
 
 function onDragEnter(e) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault()
+  e.stopPropagation()
 }
 
 
 function onDragOver(e) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault()
+  e.stopPropagation()
 }
 
 
@@ -171,13 +156,12 @@ function handleEvent(e) {
   else if (e.type == 'dragstart') onDragStart(e);
   else if (e.type == 'drag') onDrag(e);
   else if (e.type == 'drop') onDrop(e);
-  else if (e.type == 'dragenter') onDragEnter(e);
-  else if (e.type == 'dragover') onDragOver(e);
-  else if (e.type == 'blur') onBlur(e);
-  else if (e.type == 'focus') onFocus(e);
-  // else if (e.type == 'resize') onResize(e);
-  else if (e.type == 'scroll') onScroll(e);
-  else if (e.type == 'contextmenu') onContextMenu(e);
+  else if (e.type == 'dragenter') onDragEnter(e)
+  else if (e.type == 'dragover') onDragOver(e)
+  else if (e.type == 'blur') onBlur(e)
+  else if (e.type == 'focus') onFocus(e)
+  else if (e.type == 'scroll') onScroll(e)
+  else if (e.type == 'contextmenu') onContextMenu(e)
 }
 
 
@@ -200,47 +184,6 @@ function initEventListeners() {
 }
 
 
-function requestSettings() {
-  ipc.send('request-settings');
-}
-
-
-function saveSettings() {
-  ipc.send('save-settings', settings);
-}
-
-
-ipc.on('settings', function(event, arg1) {
-  for (i in arg1) {
-    settings[i] = arg1[i];
-  }
-  container.style.opacity = settings.opacity;
-
-  if (settings.incognito) {
-    // container.style.backgroundColor = '';
-    // outline.style.opacity = 0.0;
-    // info.style.opacity = 0.0;
-  } else {
-    // container.style.backgroundColor = 'white';
-    // info.style.opacity = 1.0;
-    // outline.style.opacity = 1.0;
-  }
-
-  if (isInitialised == false && !settings.incognito) {
-    initEventListeners()
-  }
-
-  isInitialised = true
-})
-
-
 ipc.on('incognito', function(event, arg1) {
-  // if (arg1) {
-  //   overlayContainer.style.display = 'none'
-  // } else {
-  //   overlayContainer.style.display = 'block'
-  // }
-  settings.incognito = arg1
   incognito = arg1
 })
-
