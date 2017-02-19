@@ -213,6 +213,10 @@ function onKeyDown(event) {
     scale = scale + 0.5
     scale = (scale > 8.0 ? 8.0 : scale)
     settings.scale = scale
+
+  } else if (event.key == 'Delete' && !event.repeat) {
+    ipc.send('close-image')
+
   }
 }
 

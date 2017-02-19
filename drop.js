@@ -27,6 +27,7 @@ window.onload = function (event) {
   container.style.border = '4px dashed white'
   container.style.borderRadius = '16px'
   container.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'
+  // container.style.backgroundColor = 'rgba(0, 255, 255, 0.25)'
   container.style.display = 'flex'
   container.style.alignItems = 'center'
   container.style.justifyContent = 'center'
@@ -204,10 +205,10 @@ ipc.on('incognito', function(event, arg1) {
   incognito = arg1
 
   if (incognito) {
-    container.style.display = 'none'
+    container.style.opacity = 0
     // stop()
   } else {
-    container.style.display = 'block'
+    container.style.opacity = 1.0
     // start()
   }
 })

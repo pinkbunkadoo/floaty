@@ -54,6 +54,7 @@ function setIncognito(value) {
 
 
     dropWindow.send('incognito', incognito)
+    dropWindow.setAlwaysOnTop(true)
 
     if (incognito) {
       dropWindow.setIgnoreMouseEvents(true)
@@ -305,3 +306,24 @@ ipc.on('image-drop', function(event, path) {
   console.log('image-drop', path)
   createWindow(path)
 })
+
+
+ipc.on('close-image', (event) => {
+  let handle = BrowserWindow.fromWebContents(event.sender)
+  let index = -1
+
+  for (var i = 0; i < frames.length; i++) {
+    frame = frames[i]
+    if (frame === handle) {
+      index = i
+      break;
+    }
+  }
+
+  if (index != -1) {
+    frames.splice(index, 1)
+  }
+
+  handle.close()
+})
+
