@@ -163,9 +163,13 @@ function startup() {
     // let icon = nativeImage.createFromPath('C:\\Users\\dave\\github\\floatz\\images\\icon.png')
 
     let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
-    mainWindow.setIcon(icon)
+    if (process.platform === 'darwin') {
+      app.dock.setIcon(icon)
+    } else {
+      mainWindow.setIcon(icon)
+    }
 
-    console.log('path:', app.getAppPath())
+    // console.log('path:', app.getAppPath())
 
     // mainWindow.webContents.openDevTools({ mode:'bottom' })
   }
