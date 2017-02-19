@@ -44,8 +44,10 @@ function setIncognito(value) {
       frame = frames[i]
       if (incognito) {
         frame.setIgnoreMouseEvents(true)
+        frame.setAlwaysOnTop(true)
       } else {
         frame.setIgnoreMouseEvents(false)
+        frame.setAlwaysOnTop(false)
       }
       frame.send('incognito', value)
     }
@@ -151,6 +153,7 @@ function startup() {
       width: 320,
       height: 320,
       transparent: true,
+      // alwaysOnTop: true,
       frame: false,
       hasShadow: false
     })
@@ -177,6 +180,7 @@ function startup() {
       title: 'Drop',
       parent: mainWindow,
       hasShadow: false,
+      acceptFirstMouse: true,
       frame: false
     })
 
@@ -188,6 +192,8 @@ function startup() {
 
     dropWindow.on('focus', () => {
       setIncognito(false)
+      // console.log('drop');
+      // dropWindow.setAlwaysOnTop(true)
     })
 
     // let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
@@ -225,7 +231,7 @@ function createWindow(imagePath) {
 
   options.parent = mainWindow
 
-  options.alwaysOnTop = true
+  // options.alwaysOnTop = true
   options.acceptFirstMouse = true
 
   frame = new BrowserWindow(options)
