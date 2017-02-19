@@ -16,7 +16,7 @@ const url = require('url')
 
 const appName = 'Floatz'
 
-app.setName(appName)
+// app.setName(appName)
 
 let incognito = false
 let frames = []
@@ -33,24 +33,12 @@ let firstFocus = true
 
 function setIncognito(value) {
   // console.log('setIncognito', incognito, value);
-  if (value != incognito) {
+  // if (value != incognito) {
     if (value == true && frames.length == 0) return;
 
     incognito = value
 
-    if (incognito) {
-      dropWindow.hide()
-      // if (process.platform === 'darwin')
-      //   mainWindow.hide()
-      // else
-      //   mainWindow.minimize()
-    } else {
-      dropWindow.show()
-      // if (process.platform === 'darwin')
-      //   mainWindow.show()
-      // else
-      //   mainWindow.restore()
-    }
+    console.log('incognito', incognito)
 
     for (var i = 0; i < frames.length; i++) {
       frame = frames[i]
@@ -61,7 +49,23 @@ function setIncognito(value) {
       }
       frame.send('incognito', value)
     }
-  }
+
+    if (incognito) {
+      dropWindow.hide()
+      // if (process.platform === 'darwin')
+      //   mainWindow.hide()
+      // else
+      //   mainWindow.minimize()
+    } else {
+      dropWindow.show()
+      mainWindow.focus()
+      // if (process.platform === 'darwin')
+      //   mainWindow.show()
+      // else
+      //   mainWindow.restore()
+    }
+
+  // }
 }
 
 
@@ -75,7 +79,6 @@ function createMenu() {
           accelerator: '/',
           click: function (item, focusedWindow) {
             setIncognito(!incognito)
-            // mainWindow.hide()
           }
         },
         {
@@ -151,15 +154,17 @@ function startup() {
       width: 320,
       height: 320,
       transparent: true,
-      alwaysOnTop: true,
-      title: 'Main',
+      // alwaysOnTop: true,
+      // title: 'Main',
       hasShadow: false,
       frame: false
     })
 
-    mainWindow.on('focus', () => {
-      setIncognito(false)
-    })
+    mainWindow.setIgnoreMouseEvents(true)
+
+    // mainWindow.on('focus', () => {
+    //   setIncognito(false)
+    // })
 
 
     dropWindow = new BrowserWindow({
@@ -231,9 +236,9 @@ function createWindow(imagePath) {
   frame.imagePath = imagePath
 
   frame.on('focus', () => {
-    if (!frame.firstFocus) {
-      setIncognito(false)
-    }
+    // if (!frame.firstFocus) {
+    //   setIncognito(false)
+    // }
     frame.firstFocus = false
   })
 
