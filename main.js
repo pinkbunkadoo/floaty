@@ -35,13 +35,20 @@ function setIncognito(value) {
       frame = frames[i]
       if (settings.incognito) {
         frame.setIgnoreMouseEvents(true)
-        frame.setAlwaysOnTop(true)
+        // frame.setAlwaysOnTop(true)
       } else {
         frame.setIgnoreMouseEvents(false)
-        frame.setAlwaysOnTop(false)
+        // frame.setAlwaysOnTop(false)
           // imageWindow.webContents.openDevTools({ mode:'bottom' })
       }
       frame.send('incognito', value)
+    }
+    if (settings.incognito) {
+      mainWindow.minimize()
+      // mainWindow.hide()
+    } else {
+      mainWindow.restore()
+      // mainWindow.show()
     }
   }
 }
@@ -57,6 +64,7 @@ function createMenu() {
           accelerator: '/',
           click: function (item, focusedWindow) {
             setIncognito(!settings.incognito)
+            // mainWindow.hide()
           }
         },
         {
@@ -132,11 +140,11 @@ function startup() {
       height: 320,
       minWidth: 320,
       minHeight: 320,
-      frame: false,
-      transparent: true,
-      alwaysOnTop: true,
+      // transparent: true,
+      // alwaysOnTop: true,
       // resizable: false,
-      hasShadow: false
+      hasShadow: false,
+      frame: false
     })
 
     mainWindow.loadURL(url.format({
@@ -146,6 +154,9 @@ function startup() {
     }))
     createMenu()
 
+    mainWindow.on('focus', () => {
+      setIncognito(false)
+    })
     // mainWindow.webContents.openDevTools({ mode:'bottom' })
   }
 }
@@ -169,22 +180,18 @@ function createWindow(imagePath) {
   options.maximizable = false
   options.transparent = true
   options.hasShadow = false
-  // options.backgroundColor = '#10101010'
-  // options.frame = (process.platform === 'darwin' ? true : false)
   options.frame = false
   // options.disableAutoHideCursor = true
 
   if (process.platform !== 'darwin') {
-    options.parent = mainWindow
+    // options.parent = mainWindow
   }
 
   // options.show = false
 
-  // alwaysOnTop: true,
+  options.alwaysOnTop = true
   options.acceptFirstMouse = true
   // focusable: false,
-  // disableAutoHideCursor: true,
-  // resizable: true,
   // titleBarStyle: 'hidden',
 
   frame = new BrowserWindow(options)

@@ -16,6 +16,7 @@ let frameNo = 0
 let incognito = false
 let pictures = []
 let hasFocus = true
+let active = true
 
 
 function update() {
@@ -108,11 +109,23 @@ function draw() {
 
 
 function frame() {
-  requestAnimationFrame(frame)
+  if (active) {
+    requestAnimationFrame(frame)
+    update()
+    draw()
+    frameNo++
+  }
+}
 
-  update()
-  draw()
-  frameNo++
+
+function start() {
+  active = true
+  requestAnimationFrame(frame)
+}
+
+
+function stop() {
+  active = false
 }
 
 
@@ -153,7 +166,7 @@ window.onload = function (event) {
 
   document.body.appendChild(overlayContainer)
 
-  requestAnimationFrame(frame)
+  start()
   initEventListeners()
 
   ipc.send('request-image')
@@ -469,6 +482,8 @@ ipc.on('image', function(event, imagePath) {
       // container.appendChild(image)
       pictures[0] = new Picture(image, 0, 0)
 
+      draw()
+
       // blob = new Blob([contents], { type: 'text' })
 
       // var reader = new FileReader()
@@ -511,16 +526,19 @@ ipc.on('image', function(event, imagePath) {
 
 
 ipc.on('incognito', function(event, arg1) {
-  if (arg1) {
+  settings.incognito = arg1
+  incognito = arg1
+
+  if (incognito) {
     overlayContainer.style.display = 'none'
+    stop()
     // container.style.backgroundColor = null;
     // info.style.opacity = 0.0;
   } else {
     overlayContainer.style.display = 'block'
+    start()
     // container.style.backgroundColor = 'black';
     // info.style.opacity = 1.0;
   }
-  settings.incognito = arg1
-  incognito = arg1
   // console.log(settings.incognito);
 })

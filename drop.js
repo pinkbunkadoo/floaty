@@ -20,10 +20,9 @@ function draw() {
 
 
 function frame() {
-  requestAnimationFrame(frame)
-
-  update()
-  draw()
+  // requestAnimationFrame(frame)
+  // update()
+  // draw()
 }
 
 
@@ -54,7 +53,7 @@ window.onload = function (event) {
 
   document.body.appendChild(container)
 
-  requestAnimationFrame(frame)
+  // requestAnimationFrame(frame)
   requestSettings()
 }
 
