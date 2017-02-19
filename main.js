@@ -33,7 +33,7 @@ let firstFocus = true
 
 function setIncognito(value) {
   // console.log('setIncognito', incognito, value);
-  // if (value != incognito) {
+  if (value != incognito) {
     if (value == true && frames.length == 0) return;
 
     incognito = value
@@ -50,22 +50,16 @@ function setIncognito(value) {
       frame.send('incognito', value)
     }
 
+
+    dropWindow.send('incognito', incognito)
+
     if (incognito) {
-      dropWindow.hide()
-      // if (process.platform === 'darwin')
-      //   mainWindow.hide()
-      // else
-      //   mainWindow.minimize()
+      dropWindow.setIgnoreMouseEvents(true)
     } else {
-      dropWindow.show()
-      // mainWindow.focus()
-      // if (process.platform === 'darwin')
-      //   mainWindow.show()
-      // else
-      //   mainWindow.restore()
+      dropWindow.setIgnoreMouseEvents(false)
     }
 
-  // }
+  }
 }
 
 
@@ -78,6 +72,7 @@ function createMenu() {
           label: 'Transparent',
           accelerator: '/',
           click: function (item, focusedWindow) {
+            // console.log('/');
             setIncognito(!incognito)
           }
         },
@@ -150,20 +145,21 @@ function createMenu() {
 function startup() {
   if (!mainWindow) {
 
+    createMenu()
+
     mainWindow = new BrowserWindow({
       width: 320,
       height: 320,
       transparent: true,
-      // alwaysOnTop: true,
-      // title: 'Main',
-      hasShadow: false,
-      frame: false
+      frame: false,
+      hasShadow: false
     })
 
     mainWindow.setIgnoreMouseEvents(true)
     mainWindow.firstFocus = true
 
     mainWindow.on('focus', () => {
+      // console.log('mainWindow focus');
       if (!mainWindow.firstFocus) {
         setIncognito(false)
       }
@@ -180,7 +176,6 @@ function startup() {
       alwaysOnTop: true,
       title: 'Drop',
       parent: mainWindow,
-      // resizable: false,
       hasShadow: false,
       frame: false
     })
@@ -191,10 +186,9 @@ function startup() {
       slashes: true
     }))
 
-    // dropWindow.on('focus', () => {
-    //   setIncognito(false)
-    // })
-
+    dropWindow.on('focus', () => {
+      setIncognito(false)
+    })
 
     // let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
     //
@@ -207,7 +201,6 @@ function startup() {
     // mainWindow.webContents.openDevTools({ mode:'bottom' })
     // app.setName(appName)
 
-    createMenu()
   }
 }
 
@@ -240,9 +233,9 @@ function createWindow(imagePath) {
   frame.imagePath = imagePath
 
   frame.on('focus', () => {
-    // if (!frame.firstFocus) {
-    //   setIncognito(false)
-    // }
+    if (!frame.firstFocus) {
+      setIncognito(false)
+    }
     frame.firstFocus = false
   })
 
@@ -278,6 +271,7 @@ app.on('activate', function () {
     // mainWindow.show()
     setIncognito(false)
   }
+  // console.log('activate')
 })
 
 

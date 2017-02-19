@@ -6,7 +6,6 @@ const Point = require('./point')
 const Picture = require('./picture')
 
 let container
-let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
 let isInitialised = false
 let mode = null
 let incognito = false
@@ -94,34 +93,34 @@ function onDrop(e) {
   file = e.dataTransfer.files[0]
   ipc.send('image-drop', file.path)
 
-  var reader = new FileReader()
-
-  reader.addEventListener("load", function (event) {
-      image = new Image()
-      image.src = this.result
-      image.title = file.name
-      // console.log(this.result);
-
-      // settings.path = file.path
-      // settings.name = file.name
-      // settings.left = 0
-      // settings.top = 0
-      //
-      // canvas.width = window.innerWidth
-      // canvas.height = window.innerHeight
-      // overlayCanvas.width = window.innerWidth
-      // overlayCanvas.height = window.innerHeight
-      //
-      // p = canvasToWorld(e.clientX, e.clientY)
-      // picture = new Picture(image, 0, 0)
-      // pictures[0] = picture
-      //
-      // ipc.send('image-drop', file.path)
-      //
-      // saveSettings()
-    }, false)
-
-  reader.readAsDataURL(file)
+  // var reader = new FileReader()
+  //
+  // reader.addEventListener("load", function (event) {
+  //     image = new Image()
+  //     image.src = this.result
+  //     image.title = file.name
+  //     // console.log(this.result);
+  //
+  //     // settings.path = file.path
+  //     // settings.name = file.name
+  //     // settings.left = 0
+  //     // settings.top = 0
+  //     //
+  //     // canvas.width = window.innerWidth
+  //     // canvas.height = window.innerHeight
+  //     // overlayCanvas.width = window.innerWidth
+  //     // overlayCanvas.height = window.innerHeight
+  //     //
+  //     // p = canvasToWorld(e.clientX, e.clientY)
+  //     // picture = new Picture(image, 0, 0)
+  //     // pictures[0] = picture
+  //     //
+  //     // ipc.send('image-drop', file.path)
+  //     //
+  //     // saveSettings()
+  //   }, false)
+  //
+  // reader.readAsDataURL(file)
 }
 
 
@@ -203,4 +202,12 @@ function initEventListeners() {
 
 ipc.on('incognito', function(event, arg1) {
   incognito = arg1
+
+  if (incognito) {
+    container.style.display = 'none'
+    // stop()
+  } else {
+    container.style.display = 'block'
+    // start()
+  }
 })
