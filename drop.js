@@ -24,7 +24,7 @@ window.onload = function (event) {
   container.style.margin = '0px'
   container.style.padding = '8px'
   container.style.boxSizing = 'border-box'
-  container.style.border = '4px solid white'
+  // container.style.border = '2px solid white'
   container.style.borderRadius = '24px'
   container.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'
   // container.style.backgroundColor = 'rgba(0, 255, 255, 0.25)'
@@ -109,6 +109,8 @@ function onDragEnter(e) {
 function onDragOver(e) {
   e.preventDefault()
   e.stopPropagation()
+
+  // e.dataTransfer.dropEffect = "none"
 }
 
 

@@ -78,17 +78,17 @@ function draw() {
 
   ctx.clearRect(0, 0, width, height)
 
-  if (!hasFocus) {
-    ctx.globalAlpha = 0.5
-  }
-  // ctx.strokeStyle = 'rgba(64, 255, 255, 0.5)'
-  ctx.strokeStyle = 'rgba(255, 255, 255, 1)'
-  ctx.lineWidth = 8
-  ctx.beginPath()
-  ctx.rect(0, 0, width, height)
-  ctx.stroke()
-
-  ctx.globalAlpha = 1
+  // if (!hasFocus) {
+  //   ctx.globalAlpha = 0.5
+  // }
+  // // ctx.strokeStyle = 'rgba(64, 255, 255, 0.5)'
+  // ctx.strokeStyle = 'rgba(255, 255, 255, 1)'
+  // ctx.lineWidth = 8
+  // ctx.beginPath()
+  // ctx.rect(0, 0, width, height)
+  // ctx.stroke()
+  //
+  // ctx.globalAlpha = 1
 
   // s = (settings.left >> 0) + ',' + (settings.top>>0)
   s = hasFocus.toString()
@@ -138,6 +138,9 @@ window.onload = function (event) {
   container.style.overflow = 'hidden'
   container.style.margin = '0px'
   container.style.padding = '0px'
+  container.style.border = '2px solid white'
+  container.style.borderRadius = '6px'
+  container.style.boxSizing = 'border-box'
 
   document.body.appendChild(container)
 
@@ -413,10 +416,20 @@ ipc.on('incognito', function(event, arg1) {
   incognito = arg1
 
   if (incognito) {
-    overlayContainer.style.display = 'none'
+    container.style.border = '2px solid rgba(255, 255, 255, 0)'
+    container.style.borderRadius = '0px'
+
+    overlayContainer.style.opacity = 0
     stop()
   } else {
-    overlayContainer.style.display = 'block'
+    container.style.border = '2px solid white'
+    container.style.borderRadius = '6px'
+    overlayContainer.style.opacity = 1
+
+    // container.style.border = 'unset'
+    // container.style.borderRadius = 'unset'
+
+    // overlayContainer.style.display = 'block'
     start()
   }
 })

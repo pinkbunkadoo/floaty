@@ -198,6 +198,10 @@ function startup() {
       // dropWindow.setAlwaysOnTop(true)
     })
 
+    dropWindow.on('close', () => {
+      app.exit()
+    })
+
     // let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
     //
     // if (process.platform === 'darwin') {
