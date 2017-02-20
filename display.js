@@ -266,6 +266,7 @@ function onDragEnter(e) {
 function onDragOver(e) {
   e.preventDefault()
   e.stopPropagation()
+  e.dataTransfer.dropEffect = 'none'
 }
 
 

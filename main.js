@@ -151,13 +151,13 @@ function startup() {
 
     mainWindow = new BrowserWindow({
       width: 320,
-      height: 320,
+      height: 240,
       transparent: true,
       alwaysOnTop: true,
       title: appName,
       frame: false,
       // skipTaskbar: true,
-      focusable: false,
+      focusable: process.plaftorm !== 'darwin' ? true : false,
       // modal: true,
       hasShadow: false
     })
