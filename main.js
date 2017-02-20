@@ -231,6 +231,7 @@ function createWindow(imagePath) {
   options.hasShadow = false
   options.frame = false
   options.disableAutoHideCursor = true
+  options.modal = true
 
   if (process.platform !== 'darwin') {
     options.parent = mainWindow
