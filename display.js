@@ -107,8 +107,12 @@ function draw() {
   // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
   // ctx.fillRect(width * 0.5 - (tm.width + 8) * 0.5, 8, tm.width + 8, 24)
 
-  ctx.lineWidth = 4
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)'
+  ctx.lineWidth = 2.5
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+  ctx.strokeText(s, 12.5, 24.5)
+
+  ctx.lineWidth = 2.5
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
   ctx.strokeText(s, 12, 24)
 
   // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
