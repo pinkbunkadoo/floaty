@@ -60,6 +60,9 @@ function draw() {
   if (!incognito) {
     // ctx.fillStyle = 'rgb(64, 64, 64)'
     // ctx.fillRect(0, 0, width, height)
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
+    ctx.fillRect(0, 0, width, height)
   }
 
   for (var i = 0; i < pictures.length; i++) {
@@ -101,28 +104,29 @@ function draw() {
   // ctx.fillText(s, (width * 0.5 - tm.width * 0.5) >> 0, 24)
 
   s = filename
-  ctx.font = '18px Tahoma, Verdana, sans-serif'
+  ctx.font = '18px sans-serif'
   tm = ctx.measureText(s)
 
-  // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
-  // ctx.fillRect(width * 0.5 - (tm.width + 8) * 0.5, 8, tm.width + 8, 24)
+  // ctx.lineWidth = 4
+  // ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'
+  // ctx.strokeText(s, 12.5, 25.5)
+  //
+  // ctx.lineWidth = 4
+  // ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'
+  // ctx.strokeText(s, 13.5, 26.5)
+  //
+  // ctx.fillStyle = 'rgba(255, 255, 255, 1)'
+  // ctx.fillText(s, 12.5, 25.5)
 
-  ctx.lineWidth = 3
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'
-  ctx.strokeText(s, 12.5, 24.5)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
+  ctx.fillRect(0, 0, width, 32)
 
-  ctx.lineWidth = 3
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'
-  ctx.strokeText(s, 13.5, 25.5)
-
-  // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
-  // ctx.fillText(s, 13, 25)
-
-  // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
-  // ctx.fillText(s, 14, 26)
+  // ctx.lineWidth = 6
+  // ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'
+  // ctx.strokeText(s, 12, 26)
 
   ctx.fillStyle = 'rgba(255, 255, 255, 1)'
-  ctx.fillText(s, 12.5, 24.5)
+  ctx.fillText(s, 12, 24)
 
 }
 
@@ -187,6 +191,7 @@ window.onload = function (event) {
   overlayContainer.style.overflow = 'hidden'
   overlayContainer.style.margin = '0px';
   overlayContainer.style.padding = '0px';
+  overlayContainer.style.borderRadius = '6px'
 
   overlayContainer.appendChild(overlayCanvas)
 
@@ -417,7 +422,7 @@ ipc.on('settings', function(event, arg1) {
 
 ipc.on('initialise', function(event, imagePath) {
   isInitialised = true
-  console.log('initialise')
+  // console.log('initialise')
 })
 
 
@@ -430,8 +435,16 @@ ipc.on('image', function(event, imagePath) {
       pictures[0] = new Picture(image, 0, 0)
       draw()
   })
-  filename = imagePath
+  index1 = imagePath.lastIndexOf('/')
+  index2 = imagePath.lastIndexOf('\\')
+  if (index1 > index2) {
+    filename = imagePath.substring(index1 + 1)
+  } else {
+    if (index2 != -1)
+      filename = imagePath.substring(index2 + 1)
+  }
 
+  // overlayContainer.title = imagePath
 })
 
 
@@ -445,6 +458,7 @@ ipc.on('incognito', function(event, arg1) {
 
     overlayContainer.style.opacity = 0
     stop()
+    draw()
   } else {
     // container.style.border = '2px solid white'
     container.style.borderRadius = '6px'

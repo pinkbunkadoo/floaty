@@ -44,17 +44,16 @@ function setIncognito(value) {
       frame = frames[i]
       if (incognito) {
         frame.setIgnoreMouseEvents(true)
-        frame.setAlwaysOnTop(true)
+        // frame.setAlwaysOnTop(true)
       } else {
         frame.setIgnoreMouseEvents(false)
-        frame.setAlwaysOnTop(false)
+        // frame.setAlwaysOnTop(false)
       }
       frame.send('incognito', value)
     }
 
 
     dropWindow.send('incognito', incognito)
-    dropWindow.setAlwaysOnTop(true)
 
     if (incognito) {
       dropWindow.setIgnoreMouseEvents(true)
@@ -238,7 +237,7 @@ function createWindow(imagePath) {
 
   options.parent = mainWindow
 
-  // options.alwaysOnTop = true
+  options.alwaysOnTop = true
   options.acceptFirstMouse = true
 
   frame = new BrowserWindow(options)
@@ -259,6 +258,8 @@ function createWindow(imagePath) {
   }))
 
   frames.push(frame)
+
+  dropWindow.setAlwaysOnTop(true)
 }
 
 // This method will be called when Electron has finished
