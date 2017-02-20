@@ -182,6 +182,8 @@ function startup() {
       alwaysOnTop: true,
       title: appName,
       // parent: mainWindow,
+      // focusable: process.plaftorm !== 'darwin' ? true : false,
+      // focusable: false,
       disableAutoHideCursor: true,
       hasShadow: false,
       acceptFirstMouse: true,
@@ -196,6 +198,7 @@ function startup() {
 
     dropWindow.on('focus', () => {
       setIncognito(false)
+      // console.log('focus');
       // console.log('drop');
       // dropWindow.setAlwaysOnTop(true)
     })
@@ -233,7 +236,7 @@ function createWindow(imagePath) {
   options.hasShadow = false
   options.frame = false
   options.disableAutoHideCursor = true
-  options.modal = true
+  options.modal = process.plaftorm !== 'darwin' ? false : true,
   options.skipTaskbar = true
 
   if (process.platform !== 'darwin') {
