@@ -15,8 +15,6 @@ let image
 window.onload = function (event) {
   console.log('dropWindow')
 
-  // document.body.style.padding = '8px'
-
   container = document.createElement('div')
   container.style['-webkit-user-select'] = 'none'
   container.style.position = 'absolute'
@@ -24,41 +22,44 @@ window.onload = function (event) {
   container.style.height = '100%'
   container.style.overflow = 'hidden'
   container.style.margin = '0px'
-  container.style.padding = '0px'
+  container.style.padding = '8px'
   container.style.boxSizing = 'border-box'
-  container.style.border = '4px dashed white'
-  container.style.borderRadius = '16px'
+  container.style.border = '4px solid white'
+  container.style.borderRadius = '24px'
   container.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'
   // container.style.backgroundColor = 'rgba(0, 255, 255, 0.25)'
   container.style.display = 'flex'
   container.style.alignItems = 'center'
   container.style.justifyContent = 'center'
 
-  hint = document.createElement('div')
-  hint.style.color = 'white'
+  // hint = document.createElement('div')
+  // hint.style.color = 'white'
   // hint.style.font = '24px Tahoma, sans-serif'
   // hint.innerHTML = 'floatz'
-  hint.style['-webkit-user-select'] = 'none'
-  hint.style.cursor = 'default'
-  container.appendChild(hint)
+  // hint.style['-webkit-user-select'] = 'none'
+  // hint.style.cursor = 'default'
+  // container.appendChild(hint)
 
   document.body.appendChild(container)
 
-  initEventListeners()
+  // inner = document.createElement('div')
+  // // inner.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'
+  // inner.style.boxSizing = 'border-box'
+  // inner.style.border = '4px solid white'
+  // inner.style.borderRadius = '16px'
+  // // inner.style.margin = '8px'
+  // inner.style.width = '100%'
+  // inner.style.height = '100%'
+  // inner.style.display = 'flex'
+  // inner.style.alignItems = 'center'
+  // inner.style.justifyContent = 'center'
+  // container.appendChild(inner)
 
-  // fs.readFile('file:///c:/users/dave/github/floatz/images/balloon.png', null, function(err, data) {
-  //     image = new Image()
-  //     image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
-  //     container.appendChild(image)
-  //     console.log(image.src);
-  //     // pictures[0] = new Picture(image, 0, 0)
-  //     // draw()
-  // });
+  initEventListeners()
 
   image = new Image()
   image.src = './images/drop.png'
   container.appendChild(image)
-
 }
 
 
@@ -157,7 +158,7 @@ function handleEvent(e) {
 
 
 function initEventListeners() {
-  document.body.addEventListener("wheel", handleEvent); //add the event
+  document.body.addEventListener("wheel", handleEvent);
   window.addEventListener('keydown', handleEvent);
   window.addEventListener('dragstart', handleEvent);
   window.addEventListener('drag', handleEvent);
