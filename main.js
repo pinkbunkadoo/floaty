@@ -153,7 +153,7 @@ function startup() {
       width: 320,
       height: 320,
       transparent: true,
-      // alwaysOnTop: true,
+      alwaysOnTop: true,
       title: appName,
       frame: false,
       hasShadow: false
@@ -163,7 +163,6 @@ function startup() {
     mainWindow.firstFocus = true
 
     mainWindow.on('focus', () => {
-      // console.log('mainWindow focus');
       if (!mainWindow.firstFocus) {
         setIncognito(false)
       }
@@ -230,12 +229,11 @@ function createWindow(imagePath) {
   options.frame = false
   options.disableAutoHideCursor = true
 
-  // if (process.platform !== 'darwin') {
-    // options.parent = mainWindow
-  // }
+  if (process.platform !== 'darwin') {
+    options.parent = mainWindow
+  }
   // options.show = false
-
-  options.parent = mainWindow
+  // options.parent = mainWindow
 
   options.alwaysOnTop = true
   options.acceptFirstMouse = true
@@ -249,6 +247,7 @@ function createWindow(imagePath) {
       setIncognito(false)
     }
     frame.firstFocus = false
+    // frame.setAlwaysOnTop(true)
   })
 
   frame.loadURL(url.format({
