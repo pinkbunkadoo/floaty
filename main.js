@@ -149,28 +149,28 @@ function startup() {
 
     createMenu()
 
-    mainWindow = new BrowserWindow({
-      width: 320,
-      height: 240,
-      transparent: true,
-      alwaysOnTop: true,
-      title: appName,
-      frame: false,
-      // skipTaskbar: true,
-      focusable: process.plaftorm !== 'darwin' ? true : false,
-      // modal: true,
-      hasShadow: false
-    })
-
-    mainWindow.setIgnoreMouseEvents(true)
-    mainWindow.firstFocus = true
-
-    mainWindow.on('focus', () => {
-      if (!mainWindow.firstFocus) {
-        setIncognito(false)
-      }
-      mainWindow.firstFocus = false
-    })
+    // mainWindow = new BrowserWindow({
+    //   width: 320,
+    //   height: 240,
+    //   transparent: true,
+    //   alwaysOnTop: true,
+    //   title: appName,
+    //   frame: false,
+    //   // skipTaskbar: true,
+    //   focusable: process.plaftorm !== 'darwin' ? true : false,
+    //   // modal: true,
+    //   hasShadow: false
+    // })
+    //
+    // mainWindow.setIgnoreMouseEvents(true)
+    // mainWindow.firstFocus = true
+    //
+    // mainWindow.on('focus', () => {
+    //   if (!mainWindow.firstFocus) {
+    //     setIncognito(false)
+    //   }
+    //   mainWindow.firstFocus = false
+    // })
 
 
     dropWindow = new BrowserWindow({
@@ -180,8 +180,8 @@ function startup() {
       minHeight: 320,
       transparent: true,
       alwaysOnTop: true,
-      title: 'Drop',
-      parent: mainWindow,
+      title: appName,
+      // parent: mainWindow,
       disableAutoHideCursor: true,
       hasShadow: false,
       acceptFirstMouse: true,
@@ -203,6 +203,8 @@ function startup() {
     dropWindow.on('close', () => {
       app.exit()
     })
+
+    mainWindow = dropWindow
 
     // let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
     //
@@ -232,6 +234,7 @@ function createWindow(imagePath) {
   options.frame = false
   options.disableAutoHideCursor = true
   options.modal = true
+  options.skipTaskbar = true
 
   if (process.platform !== 'darwin') {
     options.parent = mainWindow
