@@ -14,7 +14,7 @@ const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 const url = require('url')
 
-const appName = 'Floatz'
+const appName = 'Floaty'
 
 // app.setName(appName)
 
@@ -155,6 +155,7 @@ function startup() {
       height: 320,
       transparent: true,
       // alwaysOnTop: true,
+      title: appName,
       frame: false,
       hasShadow: false
     })
