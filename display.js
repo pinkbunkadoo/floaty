@@ -107,26 +107,11 @@ function draw() {
   ctx.font = '18px sans-serif'
   tm = ctx.measureText(s)
 
-  // ctx.lineWidth = 4
-  // ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'
-  // ctx.strokeText(s, 12.5, 25.5)
-  //
-  // ctx.lineWidth = 4
-  // ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'
-  // ctx.strokeText(s, 13.5, 26.5)
-  //
-  // ctx.fillStyle = 'rgba(255, 255, 255, 1)'
-  // ctx.fillText(s, 12.5, 25.5)
-
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
-  ctx.fillRect(0, 0, width, 32)
-
-  // ctx.lineWidth = 6
-  // ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'
-  // ctx.strokeText(s, 12, 26)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'
+  ctx.fillRect(8, 8, tm.width + 16, 32)
 
   ctx.fillStyle = 'rgba(255, 255, 255, 1)'
-  ctx.fillText(s, 12, 24)
+  ctx.fillText(s, 16, 30)
 
 }
 
@@ -165,7 +150,7 @@ window.onload = function (event) {
   container.style.overflow = 'hidden'
   container.style.margin = '0px'
   container.style.padding = '0px'
-  // container.style.border = '2px solid white'
+  // container.style.border = '4px solid rgba(255, 255, 255, 1)'
   container.style.borderRadius = '6px'
   container.style.boxSizing = 'border-box'
 
@@ -191,7 +176,10 @@ window.onload = function (event) {
   overlayContainer.style.overflow = 'hidden'
   overlayContainer.style.margin = '0px';
   overlayContainer.style.padding = '0px';
+  overlayContainer.style.border = '4px solid rgba(255, 255, 255, 1)'
   overlayContainer.style.borderRadius = '6px'
+  overlayContainer.style.boxSizing = 'border-box'
+
 
   overlayContainer.appendChild(overlayCanvas)
 
@@ -328,12 +316,16 @@ function onMouseUp(e) {
 function onBlur(e) {
   mode = null
   hasFocus = false
+  // container.style.border = '2px solid rgba(0, 0, 0, 0)'
+  overlayContainer.style.border = '4px solid rgba(255, 255, 255, 0)'
 }
 
 
 function onFocus(e) {
   mode = null
   hasFocus = true
+  // container.style.border = '2px solid green'
+  overlayContainer.style.border = '4px solid rgba(255, 255, 255, 1)'
 }
 
 let resizeTimeout
@@ -455,7 +447,6 @@ ipc.on('incognito', function(event, arg1) {
   if (incognito) {
     // container.style.border = '2px solid rgba(255, 255, 255, 0)'
     container.style.borderRadius = '0px'
-
     overlayContainer.style.opacity = 0
     stop()
     draw()

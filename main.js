@@ -156,6 +156,9 @@ function startup() {
       alwaysOnTop: true,
       title: appName,
       frame: false,
+      // skipTaskbar: true,
+      focusable: false,
+      // modal: true,
       hasShadow: false
     })
 
