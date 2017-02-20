@@ -174,10 +174,10 @@ function startup() {
 
 
     dropWindow = new BrowserWindow({
-      width: 320,
-      height: 320,
-      minWidth: 320,
-      minHeight: 320,
+      width: 300,
+      height: 300,
+      minWidth: 300,
+      minHeight: 300,
       transparent: true,
       alwaysOnTop: true,
       title: appName,
@@ -200,6 +200,7 @@ function startup() {
       setIncognito(false)
       // console.log('focus');
       // console.log('drop');
+      // dropWindow.setAlwaysOnTop(false)
       // dropWindow.setAlwaysOnTop(true)
     })
 
@@ -240,10 +241,9 @@ function createWindow(imagePath) {
   options.skipTaskbar = true
 
   if (process.platform !== 'darwin') {
-    options.parent = mainWindow
+    // options.parent = mainWindow
   }
   // options.show = false
-  // options.parent = mainWindow
 
   options.alwaysOnTop = true
   options.acceptFirstMouse = true
