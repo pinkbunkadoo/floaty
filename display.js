@@ -107,13 +107,13 @@ function draw() {
   // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
   // ctx.fillRect(width * 0.5 - (tm.width + 8) * 0.5, 8, tm.width + 8, 24)
 
-  ctx.lineWidth = 2.5
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'
+  ctx.lineWidth = 3
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'
   ctx.strokeText(s, 12.5, 24.5)
 
-  ctx.lineWidth = 2.5
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'
-  ctx.strokeText(s, 12, 24)
+  ctx.lineWidth = 3
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)'
+  ctx.strokeText(s, 13.5, 25.5)
 
   // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
   // ctx.fillText(s, 13, 25)
@@ -122,7 +122,7 @@ function draw() {
   // ctx.fillText(s, 14, 26)
 
   ctx.fillStyle = 'rgba(255, 255, 255, 1)'
-  ctx.fillText(s, 12, 24)
+  ctx.fillText(s, 12.5, 24.5)
 
 }
 
