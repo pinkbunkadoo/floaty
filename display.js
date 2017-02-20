@@ -90,16 +90,35 @@ function draw() {
   //
   // ctx.globalAlpha = 1
 
-  // s = (settings.left >> 0) + ',' + (settings.top>>0)
-  s = hasFocus.toString()
-  ctx.font = '12px sans-serif'
+  // s = hasFocus.toString()
+  // ctx.font = '12px sans-serif'
+  // tm = ctx.measureText(s)
+  //
+  // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+  // ctx.fillRect(width * 0.5 - (tm.width + 8) * 0.5, 8, tm.width + 8, 24)
+  //
+  // ctx.fillStyle = 'rgba(255, 255, 255, 1)'
+  // ctx.fillText(s, (width * 0.5 - tm.width * 0.5) >> 0, 24)
+
+  s = filename
+  ctx.font = '18px Tahoma, Verdana, sans-serif'
   tm = ctx.measureText(s)
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 1)'
-  ctx.fillRect(width * 0.5 - (tm.width + 8) * 0.5, 8, tm.width + 8, 24)
+  // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+  // ctx.fillRect(width * 0.5 - (tm.width + 8) * 0.5, 8, tm.width + 8, 24)
+
+  ctx.lineWidth = 4
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)'
+  ctx.strokeText(s, 12, 24)
+
+  // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+  // ctx.fillText(s, 13, 25)
+
+  // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
+  // ctx.fillText(s, 14, 26)
 
   ctx.fillStyle = 'rgba(255, 255, 255, 1)'
-  ctx.fillText(s, (width * 0.5 - tm.width * 0.5) >> 0, 24)
+  ctx.fillText(s, 12, 24)
 
 }
 
@@ -138,7 +157,7 @@ window.onload = function (event) {
   container.style.overflow = 'hidden'
   container.style.margin = '0px'
   container.style.padding = '0px'
-  container.style.border = '2px solid white'
+  // container.style.border = '2px solid white'
   container.style.borderRadius = '6px'
   container.style.boxSizing = 'border-box'
 
@@ -406,7 +425,8 @@ ipc.on('image', function(event, imagePath) {
       image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
       pictures[0] = new Picture(image, 0, 0)
       draw()
-  });
+  })
+  filename = imagePath
 
 })
 
@@ -416,13 +436,13 @@ ipc.on('incognito', function(event, arg1) {
   incognito = arg1
 
   if (incognito) {
-    container.style.border = '2px solid rgba(255, 255, 255, 0)'
+    // container.style.border = '2px solid rgba(255, 255, 255, 0)'
     container.style.borderRadius = '0px'
 
     overlayContainer.style.opacity = 0
     stop()
   } else {
-    container.style.border = '2px solid white'
+    // container.style.border = '2px solid white'
     container.style.borderRadius = '6px'
     overlayContainer.style.opacity = 1
 
