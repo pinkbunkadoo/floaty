@@ -99,6 +99,7 @@ function onDrop(e) {
 
 }
 
+// <video class="wp-video-shortcode" id="video-1853-1" width="860" height="493" poster="http://www.b99.tv/wp-content/uploads/2015/01/From-Hare-to-Heir.jpg" preload="metadata" src="http://www.b99.tv/wp-content/uploads/2015/01/Bugs-Bunny-From-Hare-to-Heir.mp4?_=1" style="width: 100%; height: 100%;"><source type="video/mp4" src="http://www.b99.tv/wp-content/uploads/2015/01/Bugs-Bunny-From-Hare-to-Heir.mp4?_=1"><a href="http://www.b99.tv/wp-content/uploads/2015/01/Bugs-Bunny-From-Hare-to-Heir.mp4">http://www.b99.tv/wp-content/uploads/2015/01/Bugs-Bunny-From-Hare-to-Heir.mp4</a></video>
 
 function onDragEnter(e) {
   e.preventDefault()
