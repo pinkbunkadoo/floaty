@@ -1,1 +1,14 @@
-Floatz readme
+Floaty is an app for displaying images, transparently, above other desktop windows.
+
+- Drag and drop images onto the receptacle window (dashed border).
+
+- Images can be resized as you would a standard window
+
+- The opacity of the images can be adjusted using '+' or '-'
+
+- Use '/' to fix the images in place, making them non-interactive. To
+  unfix the images simply click on the Floaty program icon
+
+- Supports PNG, JPEG and other standard web browser compatible formats
+
+Floaty requires Electron https://electronjs.org/

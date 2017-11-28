@@ -174,10 +174,10 @@ function startup() {
 
 
     dropWindow = new BrowserWindow({
-      width: 300,
-      height: 300,
-      minWidth: 300,
-      minHeight: 300,
+      width: 280,
+      height: 280,
+      minWidth: 280,
+      minHeight: 280,
       transparent: true,
       alwaysOnTop: true,
       title: appName,

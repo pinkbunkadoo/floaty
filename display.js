@@ -176,7 +176,7 @@ window.onload = function (event) {
   overlayContainer.style.overflow = 'hidden'
   overlayContainer.style.margin = '0px';
   overlayContainer.style.padding = '0px';
-  overlayContainer.style.border = '4px solid rgba(255, 255, 255, 1)'
+  overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
   overlayContainer.style.borderRadius = '6px'
   overlayContainer.style.boxSizing = 'border-box'
 
@@ -318,7 +318,7 @@ function onBlur(e) {
   mode = null
   hasFocus = false
   // container.style.border = '2px solid rgba(0, 0, 0, 0)'
-  overlayContainer.style.border = '4px solid rgba(255, 255, 255, 0)'
+  overlayContainer.style.border = '3px solid rgba(255, 255, 255, 0)'
 }
 
 
@@ -326,7 +326,7 @@ function onFocus(e) {
   mode = null
   hasFocus = true
   // container.style.border = '2px solid green'
-  overlayContainer.style.border = '4px solid rgba(255, 255, 255, 1)'
+  overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
 }
 
 let resizeTimeout
