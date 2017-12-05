@@ -186,11 +186,7 @@ function startup() {
     })
 
     dropWindow.on('close', () => {
-      if (process.platform !== 'darwin') {
-        app.exit()
-      } else {
-        mainWindow.close()
-      }
+      app.quit()
     })
 
     dropWindow.on('minimize', function() {
@@ -227,10 +223,10 @@ function startup() {
 
     tray = new Tray(file)
     const contextMenu = Menu.buildFromTemplate([
-      {label: 'Item1', type: 'radio'},
-      {label: 'Item2', type: 'radio'},
-      {label: 'Item3', type: 'radio', checked: true},
-      {label: 'Item4', type: 'radio'}
+      // {label: 'Item1', type: 'radio'},
+      // {label: 'Item2', type: 'radio'},
+      // {label: 'Item3', type: 'radio', checked: true},
+      // {label: 'Item4', type: 'radio'}
     ])
     tray.setToolTip('This is my application.')
     tray.setContextMenu(contextMenu)
@@ -243,8 +239,21 @@ function startup() {
 
 function createWindow(imagePath) {
   options = {}
-  // options.title = imagePath
-  options.title = null
+
+  let imageFilename = null
+
+  index1 = imagePath.lastIndexOf('/')
+  index2 = imagePath.lastIndexOf('\\')
+
+  if (index1 > index2) {
+    imageFilename = imagePath.substring(index1 + 1)
+  } else {
+    if (index2 != -1)
+      imageFilename = imagePath.substring(index2 + 1)
+  }
+
+  options.title = imageFilename
+  // options.title = null
   options.width = 640
   options.height = 480
   options.minimizable = false
@@ -253,14 +262,15 @@ function createWindow(imagePath) {
   options.hasShadow = false
   options.frame = false
   options.disableAutoHideCursor = true
-  options.modal = process.plaftorm !== 'darwin' ? false : true,
+  // options.modal = process.plaftorm !== 'darwin' ? false : true,
+  // options.modal = true
   options.skipTaskbar = true
   options.alwaysOnTop = true
   options.acceptFirstMouse = true
 
-  if (process.platform !== 'darwin') {
-    // options.parent = mainWindow
-  }
+  // if (process.platform !== 'darwin') {
+    options.parent = mainWindow
+  // }
   // options.show = false
 
 
@@ -269,13 +279,11 @@ function createWindow(imagePath) {
   frame.imagePath = imagePath
 
   frame.on('focus', () => {
-    // console.log('focus')
-
+    // console.log('framefocus', incognito)
     // if (!frame.firstFocus) {
-    //   setIncognito(false)
+      // setIncognito(false)
     // }
     // frame.firstFocus = false
-
     // frame.setAlwaysOnTop(true)
   })
 
@@ -302,7 +310,7 @@ app.on('window-all-closed', function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-    app.exit()
+    app.quit()
   }
 })
 
