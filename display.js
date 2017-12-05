@@ -14,10 +14,94 @@ let isInitialised = false
 let mode = null
 let frameNo = 0
 let incognito = false
-let pictures = []
+let picture
+let focusFrame
 let hasFocus = true
+let focused = true
 let active = true
+let message
 
+
+window.onload = function (event) {
+  container = document.createElement('div')
+  container.style['-webkit-user-select'] = 'none'
+  container.style.position = 'absolute'
+  container.style.width = '100%'
+  container.style.height = '100%'
+  container.style.overflow = 'hidden'
+  container.style.margin = '0px'
+  container.style.padding = '0px'
+  // container.style.borderRadius = '6px'
+  container.style.boxSizing = 'border-box'
+  // container.style.border = '3px solid rgba(255, 255, 255, 1)'
+
+  document.body.appendChild(container)
+
+  canvas = document.createElement('canvas')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  ctx = canvas.getContext('2d')
+
+  container.appendChild(canvas)
+
+  overlayCanvas = document.createElement('canvas')
+  overlayCanvas.width = window.innerWidth
+  overlayCanvas.height = window.innerHeight
+
+  overlayContainer = document.createElement('div')
+  overlayContainer.style['-webkit-user-select'] = 'none'
+  overlayContainer.style.position = 'absolute'
+  overlayContainer.style.width = '100%'
+  overlayContainer.style.height = '100%'
+  overlayContainer.style.overflow = 'hidden'
+  overlayContainer.style.margin = '0px'
+  overlayContainer.style.padding = '0px'
+  // overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
+  // overlayContainer.style.borderRadius = '6px'
+  overlayContainer.style.boxSizing = 'border-box'
+
+  overlayContainer.appendChild(overlayCanvas)
+
+  close = document.createElement('div')
+  close.style.position = 'fixed'
+  close.style.right = '10px'
+  close.style.top = '10px'
+  close.style['-webkit-user-select'] = 'none'
+  close.style.cursor = 'default'
+  close.style.width = '32px'
+  close.style.height = '32px'
+  close.style.textAlign = 'center'
+  close.style.color = 'white'
+  close.style.fontSize = '24px'
+  close.style.fontFamily = 'sans-serif'
+  // close.style.border = '1px solid red'
+  close.style.boxSizing = 'border-box'
+
+  close.addEventListener('click', (event) => {
+    ipc.send('close-image')
+  })
+
+  overlayContainer.appendChild(close)
+
+  // focusFrame = document.createElement('div')
+  // focusFrame.style.position = 'absolute'
+  // focusFrame.style.left = '16px'
+  // focusFrame.style.top = '16px'
+  // focusFrame.style.border = '6px solid white'
+  // focusFrame.style.width = '80%'
+  // focusFrame.style.height = '80%'
+  // focusFrame.style.borderRadius = '16px'
+  //
+  // overlayContainer.appendChild(focusFrame)
+
+  document.body.appendChild(overlayContainer)
+
+  start()
+  initEventListeners()
+
+  ipc.send('request-image')
+}
 
 function worldToCanvas(x, y) {
   var tx = x - settings.left
@@ -58,61 +142,60 @@ function draw() {
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
-    // ctx.fillStyle = 'rgb(64, 64, 64)'
-    // ctx.fillRect(0, 0, width, height)
-
     ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
     ctx.fillRect(0, 0, width, height)
   }
 
-  for (var i = 0; i < pictures.length; i++) {
-    picture = pictures[i]
+  p = worldToCanvas(picture.x, picture.y)
 
-    p = worldToCanvas(picture.x, picture.y)
+  w = picture.image.width * settings.scale
+  h = picture.image.height * settings.scale
 
-    w = picture.image.width * settings.scale
-    h = picture.image.height * settings.scale
-
-    ctx.drawImage(picture.image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
-    // ctx.drawImage(picture.image, p.x, p.y, w >> 0, h >> 0)
-  }
+  ctx.drawImage(picture.image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
 
   ctx = overlayCanvas.getContext('2d')
 
   ctx.clearRect(0, 0, width, height)
 
-  // if (!hasFocus) {
-  //   ctx.globalAlpha = 0.5
-  // }
-  // // ctx.strokeStyle = 'rgba(64, 255, 255, 0.5)'
+  // close icon
+
+  ctx.fillStyle = focused ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.25)'
+  ctx.beginPath()
+  ctx.arc(width - 26, 26, 16, 0, 2 * Math.PI, false)
+  // ctx.closePath()
+  ctx.fill()
+
+  ctx.lineWidth = 4
+  ctx.strokeStyle = focused ? 'white' : 'rgba(255, 255, 255, 0.5)'
+  ctx.beginPath()
+  ctx.moveTo(width - 26 - 6, 26 - 6)
+  ctx.lineTo(width - 26 + 6, 26 + 6)
+  ctx.moveTo(width - 26 + 6, 26 - 6)
+  ctx.lineTo(width - 26 - 6, 26 + 6)
+  ctx.stroke()
+
+  if (focused) {
+    // ctx.lineWidth = 6
+    // ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)'
+    // ctx.beginPath()
+    // ctx.arc(width / 2, height / 2, 16, 0, 2 * Math.PI)
+    // ctx.stroke()
+  }
+
   // ctx.strokeStyle = 'rgba(255, 255, 255, 1)'
   // ctx.lineWidth = 8
   // ctx.beginPath()
   // ctx.rect(0, 0, width, height)
   // ctx.stroke()
-  //
-  // ctx.globalAlpha = 1
 
-  // s = hasFocus.toString()
-  // ctx.font = '12px sans-serif'
-  // tm = ctx.measureText(s)
-  //
-  // ctx.fillStyle = 'rgba(0, 0, 0, 1)'
-  // ctx.fillRect(width * 0.5 - (tm.width + 8) * 0.5, 8, tm.width + 8, 24)
-  //
-  // ctx.fillStyle = 'rgba(255, 255, 255, 1)'
-  // ctx.fillText(s, (width * 0.5 - tm.width * 0.5) >> 0, 24)
-
-  s = filename
   ctx.font = '18px sans-serif'
-  tm = ctx.measureText(s)
+  tm = ctx.measureText(filename)
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'
-  ctx.fillRect(8, 8, tm.width + 16, 32)
+  ctx.fillStyle = focused ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.25)'
+  ctx.fillRect(8, height - 8 - 32, tm.width + 16, 32)
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 1)'
-  ctx.fillText(s, 16, 30)
-
+  ctx.fillStyle = focused ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.5)'
+  ctx.fillText(filename, 16, height - 18)
 }
 
 
@@ -141,59 +224,6 @@ function stop() {
 }
 
 
-window.onload = function (event) {
-  container = document.createElement('div')
-  container.style['-webkit-user-select'] = 'none'
-  container.style.position = 'absolute'
-  container.style.width = '100%'
-  container.style.height = '100%'
-  container.style.overflow = 'hidden'
-  container.style.margin = '0px'
-  container.style.padding = '0px'
-  // container.style.border = '4px solid rgba(255, 255, 255, 1)'
-  container.style.borderRadius = '6px'
-  container.style.boxSizing = 'border-box'
-
-  document.body.appendChild(container)
-
-  canvas = document.createElement('canvas')
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
-
-  ctx = canvas.getContext('2d')
-
-  container.appendChild(canvas)
-
-  overlayCanvas = document.createElement('canvas')
-  overlayCanvas.width = window.innerWidth
-  overlayCanvas.height = window.innerHeight
-
-  overlayContainer = document.createElement('div');
-  overlayContainer.style['-webkit-user-select'] = 'none';
-  overlayContainer.style.position = 'absolute';
-  overlayContainer.style.width = '100%';
-  overlayContainer.style.height = '100%';
-  overlayContainer.style.overflow = 'hidden'
-  overlayContainer.style.margin = '0px';
-  overlayContainer.style.padding = '0px';
-  overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
-  overlayContainer.style.borderRadius = '6px'
-  overlayContainer.style.boxSizing = 'border-box'
-
-
-  overlayContainer.appendChild(overlayCanvas)
-
-  document.body.appendChild(overlayContainer)
-
-  start()
-  initEventListeners()
-
-  ipc.send('request-image')
-  // console.log(window.imagePath);
-  // requestSettings()
-}
-
-
 function updateOpacity() {
   container.style.opacity = settings.opacity
 }
@@ -205,7 +235,8 @@ function onWheel(e) {
 
 
 function onKeyDown(event) {
-  if (event.key == '=' && !event.repeat) {
+  // console.log(event.key);
+  if ((event.key == '=' || event.key == '+') && !event.repeat) {
     opacity = settings.opacity
     opacity = opacity + 0.1
     opacity = (opacity <= 1.0 ? opacity : 1.0)
@@ -235,8 +266,10 @@ function onKeyDown(event) {
 
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
     ipc.send('close-image')
-
   }
+
+  // message = event.key
+  // draw()
 }
 
 function onDragStart(e) {
@@ -317,16 +350,18 @@ function onMouseUp(e) {
 function onBlur(e) {
   mode = null
   hasFocus = false
-  // container.style.border = '2px solid rgba(0, 0, 0, 0)'
-  overlayContainer.style.border = '3px solid rgba(255, 255, 255, 0)'
+  // overlayContainer.style.border = '3px solid rgba(255, 255, 255, 0.5)'
+  // active = false
+  focused = false
 }
 
 
 function onFocus(e) {
   mode = null
   hasFocus = true
-  // container.style.border = '2px solid green'
-  overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
+  // overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
+  // active = true
+  focused = true
 }
 
 let resizeTimeout
@@ -342,7 +377,7 @@ function onResize(e) {
       overlayCanvas.height = window.innerHeight
 
      // The actualResizeHandler will execute at a rate of 15fps
-    }, 66);
+   }, 66)
   }
 }
 
@@ -425,11 +460,13 @@ ipc.on('image', function(event, imagePath) {
   fs.readFile(imagePath, null, function(err, data) {
       image = new Image()
       image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
-      pictures[0] = new Picture(image, 0, 0)
+      picture = new Picture(image, 0, 0)
       draw()
   })
+
   index1 = imagePath.lastIndexOf('/')
   index2 = imagePath.lastIndexOf('\\')
+
   if (index1 > index2) {
     filename = imagePath.substring(index1 + 1)
   } else {
@@ -446,20 +483,13 @@ ipc.on('incognito', function(event, arg1) {
   incognito = arg1
 
   if (incognito) {
-    // container.style.border = '2px solid rgba(255, 255, 255, 0)'
-    container.style.borderRadius = '0px'
+    // container.style.borderRadius = '0px'
     overlayContainer.style.opacity = 0
     stop()
     draw()
   } else {
-    // container.style.border = '2px solid white'
-    container.style.borderRadius = '6px'
+    // container.style.borderRadius = '6px'
     overlayContainer.style.opacity = 1
-
-    // container.style.border = 'unset'
-    // container.style.borderRadius = 'unset'
-
-    // overlayContainer.style.display = 'block'
     start()
   }
 })

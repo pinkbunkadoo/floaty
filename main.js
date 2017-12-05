@@ -32,13 +32,19 @@ let firstFocus = true
 
 
 function setIncognito(value) {
-  // console.log('setIncognito', incognito, value);
   if (value != incognito) {
     if (value == true && frames.length == 0) return;
 
     incognito = value
 
-    console.log('incognito', incognito)
+    if (incognito) {
+      dropWindow.setIgnoreMouseEvents(true)
+      dropWindow.minimize()
+    } else {
+      dropWindow.setIgnoreMouseEvents(false)
+      dropWindow.restore()
+    }
+
 
     for (var i = 0; i < frames.length; i++) {
       frame = frames[i]
@@ -47,19 +53,14 @@ function setIncognito(value) {
         // frame.setAlwaysOnTop(true)
       } else {
         frame.setIgnoreMouseEvents(false)
-        // frame.setAlwaysOnTop(false)
       }
       frame.send('incognito', value)
     }
 
+    // dropWindow.send('incognito', incognito)
 
-    dropWindow.send('incognito', incognito)
+    // console.log(value)
 
-    if (incognito) {
-      dropWindow.setIgnoreMouseEvents(true)
-    } else {
-      dropWindow.setIgnoreMouseEvents(false)
-    }
 
   }
 }
@@ -74,17 +75,16 @@ function createMenu() {
           label: 'Transparent',
           accelerator: '/',
           click: function (item, focusedWindow) {
-            // console.log('/');
             setIncognito(!incognito)
           }
         },
         {
           label: 'Reload',
-          accelerator: 'R',
+          role: 'reload',
+          accelerator: 'CommandOrControl+R',
           click: () => {
-            // mainWindow.reload()
+            mainWindow.reload()
           }
-          // role: 'reload'
         },
         {
           label: 'Toggle Developer Tools',
@@ -149,45 +149,29 @@ function startup() {
 
     createMenu()
 
-    // mainWindow = new BrowserWindow({
-    //   width: 320,
-    //   height: 240,
-    //   transparent: true,
-    //   alwaysOnTop: true,
-    //   title: appName,
-    //   frame: false,
-    //   // skipTaskbar: true,
-    //   focusable: process.plaftorm !== 'darwin' ? true : false,
-    //   // modal: true,
-    //   hasShadow: false
-    // })
-    //
-    // mainWindow.setIgnoreMouseEvents(true)
-    // mainWindow.firstFocus = true
-    //
-    // mainWindow.on('focus', () => {
-    //   if (!mainWindow.firstFocus) {
-    //     setIncognito(false)
-    //   }
-    //   mainWindow.firstFocus = false
-    // })
-
+    mainWindow = new BrowserWindow({ show: false })
 
     dropWindow = new BrowserWindow({
       width: 280,
       height: 280,
       minWidth: 280,
       minHeight: 280,
-      transparent: true,
+      // transparent: true,
       alwaysOnTop: true,
+      // resizable: false,
       title: appName,
+      // titleBarStyle: 'hidden',
       // parent: mainWindow,
       // focusable: process.plaftorm !== 'darwin' ? true : false,
       // focusable: false,
       disableAutoHideCursor: true,
       hasShadow: false,
       acceptFirstMouse: true,
-      frame: false
+      frame: false,
+      // show: false,
+      parent: mainWindow,
+      backgroundColor: '#20A0FF',
+      autoHideMenuBar: true
     })
 
     dropWindow.loadURL(url.format({
@@ -198,17 +182,29 @@ function startup() {
 
     dropWindow.on('focus', () => {
       setIncognito(false)
-      // console.log('focus');
-      // console.log('drop');
-      // dropWindow.setAlwaysOnTop(false)
-      // dropWindow.setAlwaysOnTop(true)
     })
 
     dropWindow.on('close', () => {
       app.exit()
     })
 
-    mainWindow = dropWindow
+    dropWindow.on('minimize', function() {
+      if (!incognito) {
+        for (var i = 0; i < frames.length; i++) {
+          frame = frames[i]
+          frame.minimize()
+        }
+      }
+    })
+
+    dropWindow.on('restore', function() {
+      for (var i = 0; i < frames.length; i++) {
+        frame = frames[i]
+        frame.restore()
+      }
+    })
+
+    // mainWindow = dropWindow
 
     // let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
     //
@@ -221,14 +217,29 @@ function startup() {
     // mainWindow.webContents.openDevTools({ mode:'bottom' })
     // app.setName(appName)
 
+    // console.log()
+    file = app.getAppPath() + '/images/tray.png'
+
+    tray = new Tray(file)
+    const contextMenu = Menu.buildFromTemplate([
+      {label: 'Item1', type: 'radio'},
+      {label: 'Item2', type: 'radio'},
+      {label: 'Item3', type: 'radio', checked: true},
+      {label: 'Item4', type: 'radio'}
+    ])
+    tray.setToolTip('This is my application.')
+    tray.setContextMenu(contextMenu)
+    tray.on('click', () => {
+      // console.log('hi');
+      setIncognito(false)
+    })
   }
 }
 
-
-
 function createWindow(imagePath) {
   options = {}
-  options.title = imagePath
+  // options.title = imagePath
+  options.title = null
   options.width = 640
   options.height = 480
   options.minimizable = false
@@ -239,24 +250,27 @@ function createWindow(imagePath) {
   options.disableAutoHideCursor = true
   options.modal = process.plaftorm !== 'darwin' ? false : true,
   options.skipTaskbar = true
+  options.alwaysOnTop = true
+  options.acceptFirstMouse = true
 
   if (process.platform !== 'darwin') {
     // options.parent = mainWindow
   }
   // options.show = false
 
-  options.alwaysOnTop = true
-  options.acceptFirstMouse = true
 
   frame = new BrowserWindow(options)
   frame.firstFocus = true
   frame.imagePath = imagePath
 
   frame.on('focus', () => {
-    if (!frame.firstFocus) {
-      setIncognito(false)
-    }
-    frame.firstFocus = false
+    // console.log('focus')
+
+    // if (!frame.firstFocus) {
+    //   setIncognito(false)
+    // }
+    // frame.firstFocus = false
+
     // frame.setAlwaysOnTop(true)
   })
 
@@ -265,6 +279,8 @@ function createWindow(imagePath) {
     protocol: 'file:',
     slashes: true
   }))
+
+  // frame.webContents.openDevTools({ mode: 'bottom' })
 
   frames.push(frame)
 
@@ -285,9 +301,14 @@ app.on('window-all-closed', function () {
   }
 })
 
+app.on('show', function() {
+  app.dock.show()
+})
+
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
+
   if (mainWindow === null) {
     startup()
   } else {
@@ -318,8 +339,17 @@ ipc.on('request-image', function(event) {
 })
 
 
+ipc.on('request-incognito', function(event) {
+  setIncognito(true)
+})
+
+
+ipc.on('request-quit', function(event) {
+  dropWindow.close()
+})
+
+
 ipc.on('image-drop', function(event, path) {
-  console.log('image-drop', path)
   createWindow(path)
 })
 

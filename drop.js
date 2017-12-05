@@ -10,59 +10,109 @@ let isInitialised = false
 let mode = null
 let incognito = false
 let image
-
+let icons = {}
 
 window.onload = function (event) {
-  console.log('dropWindow')
+  // container = document.createElement('div')
+  // container.style['-webkit-user-select'] = 'none'
+  // container.style.position = 'absolute'
+  // container.style.width = '100%'
+  // container.style.height = '100%'
+  // container.style.overflow = 'hidden'
+  // container.style.margin = '0px'
+  // container.style.padding = '8px'
+  // container.style.boxSizing = 'border-box'
+  // container.style.borderRadius = '24px'
+  // container.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
+  // container.style.display = 'flex'
+  // container.style.alignItems = 'center'
+  // container.style.justifyContent = 'center'
+  //
+  // document.body.appendChild(container)
 
-  container = document.createElement('div')
-  container.style['-webkit-user-select'] = 'none'
-  container.style.position = 'absolute'
-  container.style.width = '100%'
-  container.style.height = '100%'
-  container.style.overflow = 'hidden'
-  container.style.margin = '0px'
-  container.style.padding = '8px'
-  container.style.boxSizing = 'border-box'
-  // container.style.border = '2px solid white'
-  container.style.borderRadius = '24px'
-  // container.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'
-  container.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
-  // container.style.backgroundColor = 'rgba(160, 160, 160, 1)'
-  container.style.display = 'flex'
-  container.style.alignItems = 'center'
-  container.style.justifyContent = 'center'
+  svg = document.getElementById('icons')
+  for (var i = 0; i < svg.children.length; i++) {
+    icon = svg.children[i]
+    icons[icon.id] = { id: icon.id, width: icon.viewBox.baseVal.width, height: icon.viewBox.baseVal.height}
+    // console.log(icons[icon.id])
+  }
 
-  // hint = document.createElement('div')
-  // hint.style.color = 'white'
-  // hint.style.font = '24px Tahoma, sans-serif'
-  // hint.innerHTML = 'floatz'
-  // hint.style['-webkit-user-select'] = 'none'
-  // hint.style.cursor = 'default'
-  // container.appendChild(hint)
+  settings = createIcon('settings', icons['settings'].width, icons['settings'].height)
+  eye = createIcon('eye', icons['eye'].width, icons['eye'].height)
 
-  document.body.appendChild(container)
+  eye.onclick = function() {
+    ipc.send('request-incognito')
+  }
 
-  // inner = document.createElement('div')
-  // // inner.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'
-  // inner.style.boxSizing = 'border-box'
-  // inner.style.border = '4px solid white'
-  // inner.style.borderRadius = '16px'
-  // // inner.style.margin = '8px'
-  // inner.style.width = '100%'
-  // inner.style.height = '100%'
-  // inner.style.display = 'flex'
-  // inner.style.alignItems = 'center'
-  // inner.style.justifyContent = 'center'
-  // container.appendChild(inner)
+  settings.onclick = function() {
+    ipc.send('request-quit')
+  }
+
+  container = document.getElementById('container')
+
+  svgcontainer = document.createElement('div')
+  svgcontainer.style.display = 'flex'
+  svgcontainer.style.alignItems = 'center'
+  svgcontainer.style.justifyContent = 'flex-end'
+  svgcontainer.style.width = '100%'
+  // svgcontainer.style.height = '32px'
+  svgcontainer.style.padding = '8px'
+  svgcontainer.style.position = 'fixed'
+  svgcontainer.style.boxSizing = 'border-box'
+
+  svgcontainer.appendChild(eye)
+  svgcontainer.appendChild(settings)
+
+  document.body.appendChild(svgcontainer)
 
   initEventListeners()
-
-  image = new Image()
-  image.src = './images/drop.png'
-  container.appendChild(image)
 }
 
+function createIcon(name, width, height) {
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink')
+  svg.setAttribute('width', width)
+  svg.setAttribute('height', height)
+  svg.setAttribute('fill', 'white')
+
+  var svguse = document.createElementNS('http://www.w3.org/2000/svg', 'use')
+  svguse.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + name)
+
+  svg.appendChild(svguse)
+
+  svgcontainer = document.createElement('div')
+  svgcontainer.style.display = 'flex'
+  svgcontainer.style.alignItems = 'center'
+  svgcontainer.style.justifyContent = 'center'
+  svgcontainer.style.width = '24px'
+  svgcontainer.style.minWidth = '24px'
+  svgcontainer.style.height = '24px'
+  svgcontainer.style.minHeight = '24px'
+  svgcontainer.style.marginLeft = '8px'
+  // svgcontainer.style.marginRight = '8px'
+  // svgcontainer.style.border = '1px solid black'
+
+  svgcontainer.appendChild(svg)
+
+  return svgcontainer
+}
+
+function startup() {
+
+}
+
+function loadImages() {
+  // icons = []
+  // Loader.load('./images/icons.svg', function(event) {
+  //   var svg = event.target.responseXML.documentElement
+  //   for (var i = 0; i < svg.children.length; i++) {
+  //     var child = svg.children[i]
+  //     app.icons[child.id] = { width: child.viewBox.baseVal.width, height: child.viewBox.baseVal.height }
+  //   }
+  //   document.body.appendChild(svg)
+  //   app.startup()
+  // })
+}
 
 function onWheel(e) {
   e.preventDefault();
@@ -79,17 +129,13 @@ function onDragStart(e) {
   e.stopPropagation();
 }
 
-
 function onDrag(e) {
   e.preventDefault();
   e.stopPropagation();
 }
 
-
 function onImageLoad(e) {
-
 }
-
 
 function onDrop(e) {
   e.preventDefault()
@@ -97,7 +143,6 @@ function onDrop(e) {
 
   file = e.dataTransfer.files[0]
   ipc.send('image-drop', file.path)
-
 }
 
 function onDragEnter(e) {
@@ -105,12 +150,10 @@ function onDragEnter(e) {
   e.stopPropagation()
 }
 
-
 function onDragOver(e) {
   e.preventDefault()
   e.stopPropagation()
 }
-
 
 function onMouseMove(e) {
   if (e.buttons & 1) {
@@ -118,27 +161,23 @@ function onMouseMove(e) {
   }
 }
 
-
 function onMouseUp(e) {
 }
 
-
 function onBlur(e) {
+  // console.log('blur');
 }
-
 
 function onFocus(e) {
+  // console.log('focus');
 }
-
 
 function onScroll(e) {
 }
 
-
 function onContextMenu(e) {
-  console.log('contextmenu');
+  // console.log('contextmenu');
 }
-
 
 function handleEvent(e) {
   if (e.type == 'keydown') onKeyDown(e);
@@ -155,7 +194,6 @@ function handleEvent(e) {
   else if (e.type == 'scroll') onScroll(e)
   else if (e.type == 'contextmenu') onContextMenu(e)
 }
-
 
 function initEventListeners() {
   document.body.addEventListener("wheel", handleEvent);
@@ -175,9 +213,10 @@ function initEventListeners() {
   window.addEventListener('resize', handleEvent);
 }
 
-
 ipc.on('incognito', function(event, arg1) {
   incognito = arg1
+
+  // console.log(event)
 
   if (incognito) {
     container.style.opacity = 0
