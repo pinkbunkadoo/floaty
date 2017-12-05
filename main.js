@@ -186,7 +186,11 @@ function startup() {
     })
 
     dropWindow.on('close', () => {
-      app.exit()
+      if (process.platform !== 'darwin') {
+        app.exit()
+      } else {
+        mainWindow.close()
+      }
     })
 
     dropWindow.on('minimize', function() {
