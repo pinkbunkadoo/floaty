@@ -169,6 +169,7 @@ function startup() {
       acceptFirstMouse: true,
       frame: false,
       // show: false,
+      modal: process.plaftorm !== 'darwin' ? false : true,
       parent: mainWindow,
       backgroundColor: '#20A0FF',
       autoHideMenuBar: true
