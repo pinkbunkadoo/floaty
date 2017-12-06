@@ -171,8 +171,8 @@ function startup() {
       // show: false,
       // modal: process.plaftorm !== 'darwin' ? false : true,
       // modal: true,
-      parent: mainWindow,
-      backgroundColor: '#20A0FF',
+      parent: mainWindow
+      // backgroundColor: '#20A0FF',
       // autoHideMenuBar: true
     }
 
@@ -344,7 +344,7 @@ function createWindow(imagePath) {
 
   frames.push(frame)
 
-  dropWindow.setAlwaysOnTop(true)
+  // dropWindow.setAlwaysOnTop(true)
 }
 
 // This method will be called when Electron has finished

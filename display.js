@@ -7,23 +7,26 @@ const Icon = require('./icon')
 
 const fs = require('fs')
 
-let image, container, holder, outline, info
+let image, container
+let overlayContainer
 let canvas, ctx, overlayCanvas
 let title
 let width, height
-let overlayContainer
-let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
 let isInitialised = false
 let mode = null
-let frameNo = 0
+
 let incognito = false
 let picture
 let focusFrame
-let hasFocus = true
+
 let focused = true
 let active = true
 let message
+
+let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
 let icons = {}
+
+let mousedown = false
 
 
 window.onload = function (event) {
@@ -58,14 +61,21 @@ window.onload = function (event) {
   overlayContainer.style.height = '100%'
   overlayContainer.style.padding = '6px'
   overlayContainer.style.position = 'fixed'
+  // overlayContainer.style.borderRadius = '6px'
   // overlayContainer.style.border = '1px solid blue'
+  // overlayContainer.style.border = '2px solid rgba(255, 255, 255, 1)'
   overlayContainer.style.boxSizing = 'border-box'
+
+  overlayContainer.classList.add('border')
+  overlayContainer.classList.add('selected')
 
   dragContainer = document.createElement('div')
   dragContainer.style['-webkit-user-select'] = 'none'
-  dragContainer.style['-webkit-app-region'] = 'drag'
+  // dragContainer.style['-webkit-app-region'] = 'drag'
   dragContainer.style.flex = 'auto'
   // dragContainer.style.border = '1px solid blue'
+
+  dragContainer.classList.add('draggable')
 
   overlayContainer.appendChild(dragContainer)
 
@@ -74,8 +84,8 @@ window.onload = function (event) {
   close = document.createElement('div')
   close.style.position = 'fixed'
   close.style.display = 'flex'
-  close.style.right = '6px'
-  close.style.top = '6px'
+  close.style.right = '8px'
+  close.style.top = '8px'
   close.style.width = '32px'
   close.style.height = '32px'
   close.style.cursor = 'default'
@@ -84,8 +94,9 @@ window.onload = function (event) {
   close.style['-webkit-user-select'] = 'none'
   close.style['-webkit-app-region'] = 'no-drag'
   close.style.boxSizing = 'border-box'
-  close.style.borderRadius = '4px'
-  close.style.background = 'rgba(0, 0, 0, 0.65)'
+  close.style.borderRadius = '16px'
+  close.style.background = 'rgba(32, 160, 255, 1)' //'rgba(0, 0, 0, 0.65)'
+
 
   let closeElement = (new Icon('close', icons['close'].width, icons['close'].height)).element()
   close.appendChild(closeElement)
@@ -98,8 +109,8 @@ window.onload = function (event) {
 
   title = document.createElement('div')
   title.style.position = 'fixed'
-  title.style.left = '6px'
-  title.style.bottom = '6px'
+  title.style.left = '8px'
+  title.style.bottom = '8px'
   title.style.padding = '6px'
   title.style.height = '32px'
   title.style.color = 'white'
@@ -107,7 +118,7 @@ window.onload = function (event) {
   title.style.fontFamily =  'sans-serif'
   // title.style.border = '1px solid yellow'
   title.style.boxSizing = 'border-box'
-  title.style.background = 'rgba(0, 0, 0, 0.65)'
+  title.style.background = 'rgba(32, 160, 255, 1)'//'rgba(0, 0, 0, 0.65)'
   title.style.borderRadius = '4px'
   title.innerHTML = ''
 
@@ -201,7 +212,7 @@ function frame() {
     requestAnimationFrame(frame)
     update()
     draw()
-    frameNo++
+    // frameNo++
   }
 }
 
@@ -263,10 +274,27 @@ function onKeyDown(event) {
 
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
     ipc.send('close-image')
+
+  } else if ((event.key == 'Shift') && !event.repeat) {
+    // ipc.send('console', 'shift')
+    dragContainer.classList.remove('draggable')
+
+  } else if ((event.key == 'Control') && !event.repeat) {
+    dragContainer.classList.remove('draggable')
   }
 
   // message = event.key
   // draw()
+}
+
+function onKeyUp(event) {
+  if ((event.key == 'Shift') && !event.repeat) {
+    // ipc.send('console', 'shiftup')
+    dragContainer.classList.add('draggable')
+  } else if ((event.key == 'Control') && !event.repeat) {
+
+    dragContainer.classList.add('draggable')
+  }
 }
 
 function onDragStart(e) {
@@ -301,10 +329,12 @@ function onDragOver(e) {
 
 
 function onMouseMove(e) {
+  // ipc.send('console', 'move')
+
   if (e.buttons & 1) {
     if (e.shiftKey) {
-      if (mode !== 'drag') {
-        mode = 'drag'
+      if (mode !== 'pan') {
+        mode = 'pan'
       }
     } else if (e.ctrlKey) {
       if (mode !== 'zoom') {
@@ -317,7 +347,7 @@ function onMouseMove(e) {
       }
     }
 
-    if (mode === 'drag') {
+    if (mode === 'pan') {
       settings.left = settings.left - e.movementX / settings.scale
       settings.top = settings.top - e.movementY / settings.scale
       // saveSettings()
@@ -338,26 +368,42 @@ function onMouseMove(e) {
   }
 }
 
+function onMouseDown(e) {
+  if (e.shiftKey) {
+    mode = 'pan'
+    dragContainer.classList.remove('draggable')
+  } else if (e.ctrlKey) {
+    mode = 'zoom'
+    dragContainer.classList.remove('draggable')
+  }
+  // if (!e.shiftKey)
+  //   dragContainer.classList.add('draggable')
+}
 
 function onMouseUp(e) {
   mode = null
+  // if (!e.shiftKey) dragContainer.classList.add('draggable')
 }
 
 
 function onBlur(e) {
   mode = null
-  hasFocus = false
   // overlayContainer.style.border = '3px solid rgba(255, 255, 255, 0.5)'
-  // active = false
+  // overlayContainer.style.border = '2px solid rgba(128, 128, 128, 1)'
+  overlayContainer.classList.remove('selected')
+  dragContainer.classList.add('draggable')
+  // overlayContainer.addClass('border')
   focused = false
 }
 
 
 function onFocus(e) {
   mode = null
-  hasFocus = true
   // overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
-  // active = true
+  // overlayContainer.style.border = '2px solid rgba(255, 255, 255, 1)'
+  // overlayContainer.removeClass('border')
+  overlayContainer.classList.add('selected')
+  dragContainer.classList.add('draggable')
   focused = true
 }
 
@@ -373,8 +419,8 @@ function onResize(e) {
 
       canvas.width = width
       canvas.height = height
-      overlayCanvas.width = width - 16
-      overlayCanvas.height = height - 16
+      // overlayCanvas.width = width - 16
+      // overlayCanvas.height = height - 16
 
      // The actualResizeHandler will execute at a rate of 15fps
    }, 66)
@@ -383,19 +429,21 @@ function onResize(e) {
 
 
 function onScroll(e) {
-  console.log('scroll')
+  // console.log('scroll')
 }
 
 
 function onContextMenu(e) {
-  console.log('contextmenu')
+  // console.log('contextmenu')
 }
 
 
 function handleEvent(e) {
   if (e.type == 'keydown') onKeyDown(e)
+  else if (e.type == 'keyup') onKeyUp(e)
   else if (e.type == 'wheel') onWheel(e)
   else if (e.type == 'mouseup') onMouseUp(e)
+  else if (e.type == 'mousedown') onMouseDown(e)
   else if (e.type == 'mousemove') onMouseMove(e)
   else if (e.type == 'dragstart') onDragStart(e)
   else if (e.type == 'drag') onDrag(e)
@@ -413,6 +461,7 @@ function handleEvent(e) {
 function initEventListeners() {
   document.body.addEventListener("wheel", handleEvent)
   window.addEventListener('keydown', handleEvent)
+  window.addEventListener('keyup', handleEvent)
   window.addEventListener('dragstart', handleEvent)
   window.addEventListener('drag', handleEvent)
   window.addEventListener('drop', handleEvent)
@@ -455,7 +504,7 @@ ipc.on('initialise', function(event, imagePath) {
 
 
 ipc.on('image', function(event, imagePath) {
-  console.log('image:', imagePath)
+  // console.log('image:', imagePath)
 
   fs.readFile(imagePath, null, function(err, data) {
       image = new Image()
@@ -486,11 +535,16 @@ ipc.on('incognito', function(event, arg1) {
   if (incognito) {
     // container.style.borderRadius = '0px'
     overlayContainer.style.opacity = 0
+    // overlayContainer.style.border = '2px solid rgba(0, 0, 0, 0)'
+    overlayContainer.classList.remove('border')
     stop()
     draw()
   } else {
+    overlayContainer.classList.add('border')
+    // overlayContainer.classList.add('selected')
     // container.style.borderRadius = '6px'
     overlayContainer.style.opacity = 1
+    // overlayContainer.style.border = '2px solid rgba(0, 0, 0, 0.5)'
     start()
   }
 })
