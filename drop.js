@@ -4,6 +4,7 @@ const fs = require('fs')
 // const app =  require('electron').app
 const Point = require('./point')
 const Picture = require('./picture')
+const Icon = require('./icon')
 
 let container
 let isInitialised = false
@@ -11,34 +12,21 @@ let mode = null
 let incognito = false
 let image
 let icons = {}
+let mx = 0
+let my = 0
+let previousmx = 0
+let previousmy = 0
 
 window.onload = function (event) {
-  // container = document.createElement('div')
-  // container.style['-webkit-user-select'] = 'none'
-  // container.style.position = 'absolute'
-  // container.style.width = '100%'
-  // container.style.height = '100%'
-  // container.style.overflow = 'hidden'
-  // container.style.margin = '0px'
-  // container.style.padding = '8px'
-  // container.style.boxSizing = 'border-box'
-  // container.style.borderRadius = '24px'
-  // container.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
-  // container.style.display = 'flex'
-  // container.style.alignItems = 'center'
-  // container.style.justifyContent = 'center'
-  //
-  // document.body.appendChild(container)
 
   svg = document.getElementById('icons')
   for (var i = 0; i < svg.children.length; i++) {
     icon = svg.children[i]
     icons[icon.id] = { id: icon.id, width: icon.viewBox.baseVal.width, height: icon.viewBox.baseVal.height}
-    // console.log(icons[icon.id])
   }
 
-  settings = createIcon('settings', icons['settings'].width, icons['settings'].height)
-  eye = createIcon('eye', icons['eye'].width, icons['eye'].height)
+  settings = (new Icon('settings', icons['settings'].width, icons['settings'].height)).element()
+  eye = (new Icon('eye', icons['eye'].width, icons['eye'].height)).element()
 
   eye.onclick = function() {
     ipc.send('request-incognito')
@@ -61,57 +49,15 @@ window.onload = function (event) {
   svgcontainer.style.boxSizing = 'border-box'
 
   svgcontainer.appendChild(eye)
-  svgcontainer.appendChild(settings)
+  // svgcontainer.appendChild(settings)
 
   document.body.appendChild(svgcontainer)
 
   initEventListeners()
 }
 
-function createIcon(name, width, height) {
-  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink')
-  svg.setAttribute('width', width)
-  svg.setAttribute('height', height)
-  svg.setAttribute('fill', 'white')
-
-  var svguse = document.createElementNS('http://www.w3.org/2000/svg', 'use')
-  svguse.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + name)
-
-  svg.appendChild(svguse)
-
-  svgcontainer = document.createElement('div')
-  svgcontainer.style.display = 'flex'
-  svgcontainer.style.alignItems = 'center'
-  svgcontainer.style.justifyContent = 'center'
-  svgcontainer.style.width = '24px'
-  svgcontainer.style.minWidth = '24px'
-  svgcontainer.style.height = '24px'
-  svgcontainer.style.minHeight = '24px'
-  svgcontainer.style.marginLeft = '8px'
-  // svgcontainer.style.marginRight = '8px'
-  // svgcontainer.style.border = '1px solid black'
-
-  svgcontainer.appendChild(svg)
-
-  return svgcontainer
-}
-
 function startup() {
 
-}
-
-function loadImages() {
-  // icons = []
-  // Loader.load('./images/icons.svg', function(event) {
-  //   var svg = event.target.responseXML.documentElement
-  //   for (var i = 0; i < svg.children.length; i++) {
-  //     var child = svg.children[i]
-  //     app.icons[child.id] = { width: child.viewBox.baseVal.width, height: child.viewBox.baseVal.height }
-  //   }
-  //   document.body.appendChild(svg)
-  //   app.startup()
-  // })
 }
 
 function onWheel(e) {
@@ -156,12 +102,39 @@ function onDragOver(e) {
 }
 
 function onMouseMove(e) {
+  mx = e.clientX
+  my = e.clientY
+  let dx = mx - previousmx
+  let dy = my - previousmy
+
   if (e.buttons & 1) {
-    ipc.send('move-window-by', e.movementX, e.movementY)
+    // if (e.movementX < 100 && e.movementY < 100) {
+      // ipc.send('move-window-by', e.movementX, e.movementY)
+    // }
+      // ipc.send('move-window-by', dx, dy)
+
+    // console.log(e.movementX, e.movementY)
   }
+  previousmx = mx
+  previousmy = my
+
+  // ipc.send('console', e.clientX + ',' + e.clientY)
+}
+
+function onMouseDown(e) {
+  // ipc.send('console', e.clientX + ',' + e.clientY)
+  // console.log();
+  // mx = 0
+  // my = 0
+  // previousmx = 0
+  // previousmy = 0
 }
 
 function onMouseUp(e) {
+  mx = 0
+  my = 0
+  previousmx = 0
+  previousmy = 0
 }
 
 function onBlur(e) {
@@ -182,6 +155,7 @@ function onContextMenu(e) {
 function handleEvent(e) {
   if (e.type == 'keydown') onKeyDown(e);
   else if (e.type == 'wheel') onWheel(e);
+  else if (e.type == 'mousedown') onMouseDown(e);
   else if (e.type == 'mouseup') onMouseUp(e);
   else if (e.type == 'mousemove') onMouseMove(e);
   else if (e.type == 'dragstart') onDragStart(e);
@@ -215,14 +189,9 @@ function initEventListeners() {
 
 ipc.on('incognito', function(event, arg1) {
   incognito = arg1
-
-  // console.log(event)
-
   if (incognito) {
     container.style.opacity = 0
-    // stop()
   } else {
     container.style.opacity = 1.0
-    // start()
   }
 })

@@ -3,11 +3,14 @@ const ipc = require('electron').ipcRenderer
 
 const Point = require('./point')
 const Picture = require('./picture')
+const Icon = require('./icon')
 
 const fs = require('fs')
 
 let image, container, holder, outline, info
 let canvas, ctx, overlayCanvas
+let title
+let width, height
 let overlayContainer
 let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
 let isInitialised = false
@@ -20,63 +23,68 @@ let hasFocus = true
 let focused = true
 let active = true
 let message
+let icons = {}
 
 
 window.onload = function (event) {
-  container = document.createElement('div')
-  container.style['-webkit-user-select'] = 'none'
-  container.style.position = 'absolute'
-  container.style.width = '100%'
-  container.style.height = '100%'
-  container.style.overflow = 'hidden'
-  container.style.margin = '0px'
-  container.style.padding = '0px'
-  // container.style.borderRadius = '6px'
-  container.style.boxSizing = 'border-box'
-  // container.style.border = '3px solid rgba(255, 255, 255, 1)'
 
-  document.body.appendChild(container)
+  svg = document.getElementById('icons')
+  for (var i = 0; i < svg.children.length; i++) {
+    icon = svg.children[i]
+    icons[icon.id] = { id: icon.id, width: icon.viewBox.baseVal.width, height: icon.viewBox.baseVal.height}
+  }
+
+  container = document.getElementById('container')
+
+  width = window.innerWidth
+  height = window.innerHeight
 
   canvas = document.createElement('canvas')
-  canvas.width = window.innerWidth
-  canvas.height = window.innerHeight
+  canvas.width = width
+  canvas.height = height
 
-  ctx = canvas.getContext('2d')
-
+  // ctx = canvas.getContext('2d')
   container.appendChild(canvas)
 
-  overlayCanvas = document.createElement('canvas')
-  overlayCanvas.width = window.innerWidth
-  overlayCanvas.height = window.innerHeight
+  // overlayCanvas = document.createElement('canvas')
+  // overlayCanvas.width = width - 16
+  // overlayCanvas.height = height - 16
 
   overlayContainer = document.createElement('div')
   overlayContainer.style['-webkit-user-select'] = 'none'
-  overlayContainer.style.position = 'absolute'
+  overlayContainer.style.overflow = 'hidden'
+  overlayContainer.style.display = 'flex'
   overlayContainer.style.width = '100%'
   overlayContainer.style.height = '100%'
-  overlayContainer.style.overflow = 'hidden'
-  overlayContainer.style.margin = '0px'
-  overlayContainer.style.padding = '0px'
-  // overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
-  // overlayContainer.style.borderRadius = '6px'
+  overlayContainer.style.padding = '6px'
+  overlayContainer.style.position = 'fixed'
+  // overlayContainer.style.border = '1px solid blue'
   overlayContainer.style.boxSizing = 'border-box'
 
-  overlayContainer.appendChild(overlayCanvas)
+  dragContainer = document.createElement('div')
+  dragContainer.style['-webkit-user-select'] = 'none'
+  dragContainer.style['-webkit-app-region'] = 'drag'
+  dragContainer.style.flex = 'auto'
+  // dragContainer.style.border = '1px solid blue'
+
+  overlayContainer.appendChild(dragContainer)
+
+  // overlayContainer.appendChild(overlayCanvas)
 
   close = document.createElement('div')
   close.style.position = 'fixed'
-  close.style.right = '10px'
-  close.style.top = '10px'
-  close.style['-webkit-user-select'] = 'none'
+  close.style.right = '6px'
+  close.style.top = '6px'
   close.style.cursor = 'default'
-  close.style.width = '32px'
-  close.style.height = '32px'
-  close.style.textAlign = 'center'
-  close.style.color = 'white'
-  close.style.fontSize = '24px'
-  close.style.fontFamily = 'sans-serif'
-  // close.style.border = '1px solid red'
+  close.style.alignItems = 'center'
+  close.style.justifyContent = 'center'
+  close.style['-webkit-user-select'] = 'none'
+  close.style['-webkit-app-region'] = 'no-drag'
   close.style.boxSizing = 'border-box'
+  close.style.background = 'rgba(0, 0, 0, 0.65)'
+
+  let closeElement = (new Icon('close', icons['close'].width, icons['close'].height)).element()
+  close.appendChild(closeElement)
 
   close.addEventListener('click', (event) => {
     ipc.send('close-image')
@@ -84,16 +92,21 @@ window.onload = function (event) {
 
   overlayContainer.appendChild(close)
 
-  // focusFrame = document.createElement('div')
-  // focusFrame.style.position = 'absolute'
-  // focusFrame.style.left = '16px'
-  // focusFrame.style.top = '16px'
-  // focusFrame.style.border = '6px solid white'
-  // focusFrame.style.width = '80%'
-  // focusFrame.style.height = '80%'
-  // focusFrame.style.borderRadius = '16px'
-  //
-  // overlayContainer.appendChild(focusFrame)
+  title = document.createElement('div')
+  title.style.position = 'fixed'
+  title.style.left = '6px'
+  title.style.bottom = '6px'
+  title.style.padding = '6px'
+  title.style.height = '32px'
+  title.style.color = 'white'
+  title.style.fontSize = '18px'
+  title.style.fontFamily =  'sans-serif'
+  // title.style.border = '1px solid yellow'
+  title.style.boxSizing = 'border-box'
+  title.style.background = 'rgba(0, 0, 0, 0.65)'
+  title.innerHTML = ''
+
+  overlayContainer.appendChild(title)
 
   document.body.appendChild(overlayContainer)
 
@@ -110,16 +123,16 @@ function worldToCanvas(x, y) {
   var sx = (tx * settings.scale)
   var sy = (ty * settings.scale)
 
-  var widthHalf = (canvas.width * 0.5) >> 0
-  var heightHalf = (canvas.height * 0.5) >> 0
+  var widthHalf = (width * 0.5) >> 0
+  var heightHalf = (height * 0.5) >> 0
 
   return new Point(sx + widthHalf, sy + heightHalf)
 }
 
 
 function canvasToWorld(x, y) {
-  var widthHalf = (canvas.width / 2) >> 0
-  var heightHalf = (canvas.height / 2) >> 0
+  var widthHalf = (width / 2) >> 0
+  var heightHalf = (height / 2) >> 0
 
   var px = x - widthHalf
   var py = y - heightHalf
@@ -135,8 +148,8 @@ function canvasToWorld(x, y) {
 
 
 function draw() {
-  width = canvas.width
-  height = canvas.height
+  // width = canvas.width
+  // height = canvas.height
 
   ctx = canvas.getContext('2d')
   ctx.clearRect(0, 0, width, height)
@@ -153,49 +166,24 @@ function draw() {
 
   ctx.drawImage(picture.image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
 
-  ctx = overlayCanvas.getContext('2d')
-
-  ctx.clearRect(0, 0, width, height)
-
-  // close icon
-
-  ctx.fillStyle = focused ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.25)'
-  ctx.beginPath()
-  ctx.arc(width - 26, 26, 16, 0, 2 * Math.PI, false)
-  // ctx.closePath()
-  ctx.fill()
-
-  ctx.lineWidth = 4
-  ctx.strokeStyle = focused ? 'white' : 'rgba(255, 255, 255, 0.5)'
-  ctx.beginPath()
-  ctx.moveTo(width - 26 - 6, 26 - 6)
-  ctx.lineTo(width - 26 + 6, 26 + 6)
-  ctx.moveTo(width - 26 + 6, 26 - 6)
-  ctx.lineTo(width - 26 - 6, 26 + 6)
-  ctx.stroke()
-
-  if (focused) {
-    // ctx.lineWidth = 6
-    // ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)'
-    // ctx.beginPath()
-    // ctx.arc(width / 2, height / 2, 16, 0, 2 * Math.PI)
-    // ctx.stroke()
-  }
-
-  // ctx.strokeStyle = 'rgba(255, 255, 255, 1)'
-  // ctx.lineWidth = 8
+  // ctx = overlayCanvas.getContext('2d')
+  // ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
+  //
+  // // close icon
+  //
+  // ctx.fillStyle = focused ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.25)'
   // ctx.beginPath()
-  // ctx.rect(0, 0, width, height)
-  // ctx.stroke()
-
-  ctx.font = '18px sans-serif'
-  tm = ctx.measureText(filename)
-
-  ctx.fillStyle = focused ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.25)'
-  ctx.fillRect(8, height - 8 - 32, tm.width + 16, 32)
-
-  ctx.fillStyle = focused ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.5)'
-  ctx.fillText(filename, 16, height - 18)
+  // ctx.arc(overlayCanvas.width - 16, 16, 16, 0, 2 * Math.PI, false)
+  // ctx.fill()
+  //
+  // ctx.font = '18px sans-serif'
+  // tm = ctx.measureText(filename)
+  //
+  // ctx.fillStyle = focused ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.25)'
+  // ctx.fillRect(0, overlayCanvas.height - 32, tm.width + 16, 32)
+  //
+  // ctx.fillStyle = focused ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.5)'
+  // ctx.fillText(filename, 8, overlayCanvas.height - 10)
 }
 
 
@@ -226,6 +214,10 @@ function stop() {
 
 function updateOpacity() {
   container.style.opacity = settings.opacity
+}
+
+function setTitle(name) {
+  title.innerHTML = name
 }
 
 
@@ -316,7 +308,7 @@ function onMouseMove(e) {
     } else {
       if (!mode) {
         // console.log('move', e.movementX)
-        ipc.send('move-window-by', e.movementX, e.movementY)
+        // ipc.send('move-window-by', e.movementX, e.movementY)
       }
     }
 
@@ -371,10 +363,13 @@ function onResize(e) {
     resizeTimeout = setTimeout(function() {
       resizeTimeout = null
 
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      overlayCanvas.width = window.innerWidth
-      overlayCanvas.height = window.innerHeight
+      width = window.innerWidth
+      height = window.innerHeight
+
+      canvas.width = width
+      canvas.height = height
+      overlayCanvas.width = width - 16
+      overlayCanvas.height = height - 16
 
      // The actualResizeHandler will execute at a rate of 15fps
    }, 66)
@@ -461,6 +456,7 @@ ipc.on('image', function(event, imagePath) {
       image = new Image()
       image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
       picture = new Picture(image, 0, 0)
+      setTitle(filename)
       draw()
   })
 

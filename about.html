@@ -7,47 +7,50 @@
     html, body {
       padding: 0px;
       margin: 0px;
-      /*margin: 4px;*/
+      background: lightgray;
+      color: rgba(0, 0, 0, 0.75);
+      font-family: sans-serif;
       -webkit-user-select: none;
       -ms-user-select:none;
       -moz-user-select: none;
       user-select: none;
       cursor: default;
-      /*background: black;*/
     }
-    #outer {
-      padding: 0px;
-      box-sizing: border-box;
-      overflow: hidden;
-      background: red;
-      width: 100%;
-      height: 100%;
-      margin: 0px;
-      /*border: 1px solid yellow;*/
+    .main {
+      padding: 16px;
+      margin-top: 32px;
     }
-    #container {
-      -webkit-scrollbar: none;
-      /*-webkit-app-region: drag;*/
-      /*-webkit-user-select: none;*/
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      /*margin-right: -4px;*/
-      /*margin-bottom: -4px;*/
-      margin: 0px;
-      padding: 0px;
-      box-sizing: border-box;
-      /*border: 1px solid blue;*/
+    .heading {
+      font-size: 32px;
+      margin-bottom: 16px;
+      font-weight: bold;
+    }
+    .sub-heading {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .content {
+      font-size: 12px;
+
     }
     </style>
   </head>
-  <body><div id="container"></div></body>
+  <body>
+    <div class='main'>
+      <div class='heading'>Floaty</div>
+      <div class='sub-heading'>Instructions</div>
+      <div class='content'>
+        <div>SHIFT + Left Mouse Drag - Pan image frame</div>
+        <div>CONTROL + Left Mouse Drag - Zoom image frame</div>
+      </div>
+    </div>
+  </body>
   <svg id="icons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: none;">
     <symbol id="close" viewBox="0 0 14 14">
       <path fill-rule="evenodd" d="M13.354 0.636 C13.874 1.156,13.874 2.000,13.354 2.520C13.354 2.520,2.520 13.354,2.520 13.354C2.000 13.874,1.156 13.874,0.636 13.354C0.115 12.834,0.115 11.990,0.636 11.470C0.636 11.470,11.470 0.636,11.470 0.636C11.990 0.115,12.834 0.115,13.354 0.636 Z"/>
       <path fill-rule="evenodd" d="M13.354 13.354 C12.834 13.874,11.990 13.874,11.470 13.354C11.470 13.354,0.636 2.520,0.636 2.520C0.115 2.000,0.115 1.156,0.636 0.636C1.156 0.115,2.000 0.115,2.520 0.636C2.520 0.636,13.354 11.470,13.354 11.470C13.874 11.990,13.874 12.834,13.354 13.354 Z"/>
     </symbol>
   </svg>
-  <script src="./display.js"></script>
+  <script src="./about.js"></script>
 </html>

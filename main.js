@@ -25,12 +25,13 @@ let menu
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 let dropWindow
+let aboutWindow
 let menuTemplate
 let firstFocus = true
 
 
 function setIncognito(value) {
-  if (value == true && frames.length == 0) return;
+  // if (value == true && frames.length == 0) return;
 
   if (value != incognito) {
     incognito = value
@@ -68,7 +69,7 @@ function createMenu() {
         {
           label: 'Transparent',
           accelerator: '/',
-          click: function (item, focusedWindow) {
+          click: (item, focusedWindow) => {
             setIncognito(!incognito)
           }
         },
@@ -82,14 +83,14 @@ function createMenu() {
         },
         {
           label: 'Toggle Developer Tools',
-          accelerator: (function () {
+          accelerator: (() => {
             if (process.platform === 'darwin') {
               return 'Alt+Command+I'
             } else {
               return 'Ctrl+Shift+I'
             }
           })(),
-          click: function (item, focusedWindow) {
+          click: (item, focusedWindow) => {
             dropWindow.toggleDevTools()
           }
         }
@@ -152,7 +153,7 @@ function startup() {
       height: 280,
       minWidth: 280,
       minHeight: 280,
-      transparent: true,
+      // transparent: true,
       alwaysOnTop: true,
       resizable: false,
       title: appName,
@@ -163,15 +164,27 @@ function startup() {
       disableAutoHideCursor: true,
       hasShadow: false,
       acceptFirstMouse: true,
-      frame: false,
+      // useContentSize: true,
+      minimizable: false,
+      maximizable: false,
+      // frame: false,
       // show: false,
       // modal: process.plaftorm !== 'darwin' ? false : true,
+      // modal: true,
       parent: mainWindow,
-      backgroundColor: '#20A0FF'
+      backgroundColor: '#20A0FF',
       // autoHideMenuBar: true
     }
 
     dropWindow = new BrowserWindow(options)
+    // dropWindow.menu = null
+    // Menu.setApplicationMenu(menu)
+    Menu.setApplicationMenu(null)
+
+    // let bounds = dropWindow.getContentBounds()
+    // console.log(bounds)
+    dropWindow.setContentBounds({ x: 0, y: 0, width: 280, height: 280 })
+    dropWindow.center()
 
     dropWindow.loadURL(url.format({
       pathname: path.join(__dirname, 'drop.html'),
@@ -221,29 +234,54 @@ function startup() {
 
     tray = new Tray(iconPath)
     contextMenu = Menu.buildFromTemplate([
-      {label: 'Incognito', type: 'checkbox', click: (menuItem) => {
+      {label: 'Show/Hide', click: (menuItem) => {
         setIncognito(!incognito)
-        menuItem.checked = incognito
+        // menuItem.checked = incognito
       }},
-      {
-        type: 'separator'
-      },
-      {label: 'Quit', type: 'checkbox', click: (menuItem) => {
+      { type: 'separator' },
+      {label: 'About', click: (menuItem) => {
+        // app.about()
+        showAbout()
+      }},
+      { type: 'separator' },
+      {label: 'Quit', click: (menuItem) => {
         app.quit()
       }}
-      // {label: 'Item2', type: 'radio'},
-      // {label: 'Item3', type: 'radio', checked: true},
-      // {label: 'Item4', type: 'radio'}
     ])
-    tray.setToolTip('This is my application.')
+    tray.setToolTip('Floaty! :)')
     tray.setContextMenu(contextMenu)
     tray.on('click', () => {
-      console.log('hi')
       setIncognito(false)
     })
+
     // contextMenu.items[0].label = 'frogger'
-    // tray.setContextMenu(contextMenu)
+    // tray.setContextMenu(null)
   }
+}
+
+function showAbout() {
+  if (aboutWindow) {
+    aboutWindow.close()
+  }
+
+  options = {
+    show: true,
+    alwaysOnTop: true
+    // resizable: false,
+    // backgroundColor: '#808080',
+    // frame: false
+  }
+
+  aboutWindow = new BrowserWindow(options)
+
+  aboutWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'about.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+
+  // aboutWindow.webContents.openDevTools({ mode:'bottom' })
+
 }
 
 function createWindow(imagePath) {
@@ -345,13 +383,16 @@ app.on('activate', function () {
 // code. You can also put them in separate files and require them here.
 
 ipc.on('move-window-by', function (event, x, y) {
-
   handle = BrowserWindow.fromWebContents(event.sender)
-
   bounds = handle.getBounds()
   bounds.x += x
   bounds.y += y
   handle.setBounds(bounds)
+  // console.log(x, y)
+})
+
+ipc.on('console', function (event, arg) {
+  console.log(arg)
 })
 
 
@@ -393,4 +434,11 @@ ipc.on('close-image', (event) => {
   }
 
   handle.close()
+})
+
+ipc.on('close-about', (event) => {
+  if (aboutWindow) {
+    aboutWindow.close()
+    aboutWindow = null
+  }
 })
