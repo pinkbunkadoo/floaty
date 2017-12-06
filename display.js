@@ -73,14 +73,18 @@ window.onload = function (event) {
 
   close = document.createElement('div')
   close.style.position = 'fixed'
+  close.style.display = 'flex'
   close.style.right = '6px'
   close.style.top = '6px'
+  close.style.width = '32px'
+  close.style.height = '32px'
   close.style.cursor = 'default'
   close.style.alignItems = 'center'
   close.style.justifyContent = 'center'
   close.style['-webkit-user-select'] = 'none'
   close.style['-webkit-app-region'] = 'no-drag'
   close.style.boxSizing = 'border-box'
+  close.style.borderRadius = '4px'
   close.style.background = 'rgba(0, 0, 0, 0.65)'
 
   let closeElement = (new Icon('close', icons['close'].width, icons['close'].height)).element()
@@ -104,6 +108,7 @@ window.onload = function (event) {
   // title.style.border = '1px solid yellow'
   title.style.boxSizing = 'border-box'
   title.style.background = 'rgba(0, 0, 0, 0.65)'
+  title.style.borderRadius = '4px'
   title.innerHTML = ''
 
   overlayContainer.appendChild(title)
