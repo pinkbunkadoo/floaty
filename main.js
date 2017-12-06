@@ -16,8 +16,6 @@ const url = require('url')
 
 const appName = 'Floaty'
 
-// app.setName(appName)
-
 let incognito = false
 let frames = []
 let pictures = []
@@ -32,17 +30,19 @@ let firstFocus = true
 
 
 function setIncognito(value) {
-  if (value != incognito) {
-    if (value == true && frames.length == 0) return;
+  if (value == true && frames.length == 0) return;
 
+  if (value != incognito) {
     incognito = value
 
     if (incognito) {
       dropWindow.setIgnoreMouseEvents(true)
-      dropWindow.minimize()
+      // dropWindow.minimize()
+      dropWindow.hide()
     } else {
       dropWindow.setIgnoreMouseEvents(false)
-      dropWindow.restore()
+      // dropWindow.restore()
+      dropWindow.show()
     }
 
 
@@ -50,17 +50,11 @@ function setIncognito(value) {
       frame = frames[i]
       if (incognito) {
         frame.setIgnoreMouseEvents(true)
-        // frame.setAlwaysOnTop(true)
       } else {
         frame.setIgnoreMouseEvents(false)
       }
       frame.send('incognito', value)
     }
-
-    // dropWindow.send('incognito', incognito)
-
-    // console.log(value)
-
 
   }
 }
@@ -147,18 +141,20 @@ function createMenu() {
 function startup() {
   if (!mainWindow) {
 
+    if (process.platform === 'darwin') app.dock.hide()
+
     createMenu()
 
     mainWindow = new BrowserWindow({ show: false })
 
-    dropWindow = new BrowserWindow({
+    options = {
       width: 280,
       height: 280,
       minWidth: 280,
       minHeight: 280,
-      // transparent: true,
+      transparent: true,
       alwaysOnTop: true,
-      // resizable: false,
+      resizable: false,
       title: appName,
       // titleBarStyle: 'hidden',
       // parent: mainWindow,
@@ -171,9 +167,11 @@ function startup() {
       // show: false,
       // modal: process.plaftorm !== 'darwin' ? false : true,
       parent: mainWindow,
-      backgroundColor: '#20A0FF',
-      autoHideMenuBar: true
-    })
+      backgroundColor: '#20A0FF'
+      // autoHideMenuBar: true
+    }
+
+    dropWindow = new BrowserWindow(options)
 
     dropWindow.loadURL(url.format({
       pathname: path.join(__dirname, 'drop.html'),
@@ -218,12 +216,21 @@ function startup() {
     // mainWindow.webContents.openDevTools({ mode:'bottom' })
     // app.setName(appName)
 
-    // console.log()
-    file = app.getAppPath() + '/images/tray.png'
+    iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray.png'
+    iconPath = app.getAppPath() + '/images/' + iconFilename;
 
-    tray = new Tray(file)
-    const contextMenu = Menu.buildFromTemplate([
-      // {label: 'Item1', type: 'radio'},
+    tray = new Tray(iconPath)
+    contextMenu = Menu.buildFromTemplate([
+      {label: 'Incognito', type: 'checkbox', click: (menuItem) => {
+        setIncognito(!incognito)
+        menuItem.checked = incognito
+      }},
+      {
+        type: 'separator'
+      },
+      {label: 'Quit', type: 'checkbox', click: (menuItem) => {
+        app.quit()
+      }}
       // {label: 'Item2', type: 'radio'},
       // {label: 'Item3', type: 'radio', checked: true},
       // {label: 'Item4', type: 'radio'}
@@ -231,9 +238,11 @@ function startup() {
     tray.setToolTip('This is my application.')
     tray.setContextMenu(contextMenu)
     tray.on('click', () => {
-      // console.log('hi');
+      console.log('hi')
       setIncognito(false)
     })
+    // contextMenu.items[0].label = 'frogger'
+    // tray.setContextMenu(contextMenu)
   }
 }
 
@@ -269,7 +278,7 @@ function createWindow(imagePath) {
   options.acceptFirstMouse = true
 
   // if (process.platform !== 'darwin') {
-    options.parent = mainWindow
+  options.parent = mainWindow
   // }
   // options.show = false
 
