@@ -7,10 +7,9 @@ const Icon = require('./icon')
 
 const fs = require('fs')
 
-let image, container
+let image, container, titleEl, closeEl
 let overlayContainer
 let canvas, ctx, overlayCanvas
-let title
 let width, height
 let isInitialised = false
 let mode = null
@@ -71,48 +70,47 @@ window.onload = function (event) {
 
   // overlayContainer.appendChild(overlayCanvas)
 
-  close = document.createElement('div')
-  close.style.position = 'fixed'
-  close.style.display = 'flex'
-  close.style.right = '8px'
-  close.style.top = '8px'
-  close.style.width = '32px'
-  close.style.height = '32px'
-  close.style.cursor = 'default'
-  close.style.alignItems = 'center'
-  close.style.justifyContent = 'center'
-  close.style['-webkit-user-select'] = 'none'
-  close.style['-webkit-app-region'] = 'no-drag'
-  close.style.boxSizing = 'border-box'
-  close.style.borderRadius = '16px'
-  close.style.background = 'rgba(32, 160, 255, 1)' //'rgba(0, 0, 0, 0.65)'
-
+  closeEl = document.createElement('div')
+  closeEl.style.position = 'fixed'
+  closeEl.style.display = 'flex'
+  closeEl.style.right = '8px'
+  closeEl.style.top = '8px'
+  closeEl.style.width = '32px'
+  closeEl.style.height = '32px'
+  closeEl.style.cursor = 'default'
+  closeEl.style.alignItems = 'center'
+  closeEl.style.justifyContent = 'center'
+  closeEl.style['-webkit-user-select'] = 'none'
+  closeEl.style['-webkit-app-region'] = 'no-drag'
+  closeEl.style.boxSizing = 'border-box'
+  closeEl.style.borderRadius = '16px'
+  closeEl.style.background = 'rgba(32, 160, 255, 1)' //'rgba(0, 0, 0, 0.65)'
 
   let closeElement = (new Icon('close', icons['close'].width, icons['close'].height)).element()
-  close.appendChild(closeElement)
+  closeEl.appendChild(closeElement)
 
-  close.addEventListener('click', (event) => {
+  closeEl.addEventListener('click', (event) => {
     ipc.send('close-image')
   })
 
-  overlayContainer.appendChild(close)
+  overlayContainer.appendChild(closeEl)
 
-  title = document.createElement('div')
-  title.style.position = 'fixed'
-  title.style.left = '8px'
-  title.style.bottom = '8px'
-  title.style.padding = '6px'
-  title.style.height = '32px'
-  title.style.color = 'white'
-  title.style.fontSize = '18px'
-  title.style.fontFamily =  'sans-serif'
-  // title.style.border = '1px solid yellow'
-  title.style.boxSizing = 'border-box'
-  title.style.background = 'rgba(32, 160, 255, 1)'//'rgba(0, 0, 0, 0.65)'
-  title.style.borderRadius = '3px'
-  title.innerHTML = ''
+  titleEl = document.createElement('div')
+  titleEl.style.position = 'fixed'
+  titleEl.style.left = '8px'
+  titleEl.style.bottom = '8px'
+  titleEl.style.padding = '6px'
+  titleEl.style.height = '32px'
+  titleEl.style.color = 'white'
+  titleEl.style.fontSize = '18px'
+  titleEl.style.fontFamily =  'sans-serif'
+  // titleEl.style.border = '1px solid yellow'
+  titleEl.style.boxSizing = 'border-box'
+  titleEl.style.background = 'rgba(32, 160, 255, 1)'//'rgba(0, 0, 0, 0.65)'
+  titleEl.style.borderRadius = '3px'
+  titleEl.innerHTML = ''
 
-  overlayContainer.appendChild(title)
+  overlayContainer.appendChild(titleEl)
 
   document.body.appendChild(overlayContainer)
 
@@ -223,7 +221,7 @@ function updateOpacity() {
 }
 
 function setTitle(name) {
-  title.innerHTML = name
+  titleEl.innerHTML = name
 }
 
 
@@ -377,24 +375,22 @@ function onMouseUp(e) {
 
 
 function onBlur(e) {
-  mode = null
-  // overlayContainer.style.border = '3px solid rgba(255, 255, 255, 0.5)'
-  // overlayContainer.style.border = '2px solid rgba(128, 128, 128, 1)'
   overlayContainer.classList.remove('selected')
   dragContainer.classList.add('draggable')
-  // overlayContainer.addClass('border')
+  closeEl.style.background = 'rgba(0, 0, 0, 0.65)'
+  titleEl.style.background = 'rgba(0, 0, 0, 0.65)'
   focused = false
+  mode = null
 }
 
 
 function onFocus(e) {
-  mode = null
-  // overlayContainer.style.border = '3px solid rgba(255, 255, 255, 1)'
-  // overlayContainer.style.border = '2px solid rgba(255, 255, 255, 1)'
-  // overlayContainer.removeClass('border')
   overlayContainer.classList.add('selected')
   dragContainer.classList.add('draggable')
+  closeEl.style.background = 'rgba(32, 160, 255, 1)'
+  titleEl.style.background = 'rgba(32, 160, 255, 1)'
   focused = true
+  mode = null
 }
 
 let resizeTimeout
@@ -523,18 +519,13 @@ ipc.on('incognito', function(event, arg1) {
   incognito = arg1
 
   if (incognito) {
-    // container.style.borderRadius = '0px'
     overlayContainer.style.opacity = 0
-    // overlayContainer.style.border = '2px solid rgba(0, 0, 0, 0)'
     overlayContainer.classList.remove('border')
     stop()
     draw()
   } else {
     overlayContainer.classList.add('border')
-    // overlayContainer.classList.add('selected')
-    // container.style.borderRadius = '6px'
     overlayContainer.style.opacity = 1
-    // overlayContainer.style.border = '2px solid rgba(0, 0, 0, 0.5)'
     start()
   }
 })
