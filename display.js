@@ -53,18 +53,8 @@ window.onload = function (event) {
   // overlayCanvas.width = width - 16
   // overlayCanvas.height = height - 16
 
-  overlayContainer = document.createElement('div')
-  overlayContainer.style['-webkit-user-select'] = 'none'
-  overlayContainer.style.overflow = 'hidden'
-  overlayContainer.style.display = 'flex'
-  overlayContainer.style.width = '100%'
-  overlayContainer.style.height = '100%'
-  overlayContainer.style.padding = '6px'
-  overlayContainer.style.position = 'fixed'
-  // overlayContainer.style.borderRadius = '6px'
-  // overlayContainer.style.border = '1px solid blue'
-  // overlayContainer.style.border = '2px solid rgba(255, 255, 255, 1)'
-  overlayContainer.style.boxSizing = 'border-box'
+  // overlayContainer = document.createElement('div')
+  overlayContainer = document.getElementById('overlayContainer')
 
   overlayContainer.classList.add('border')
   overlayContainer.classList.add('selected')
@@ -119,7 +109,7 @@ window.onload = function (event) {
   // title.style.border = '1px solid yellow'
   title.style.boxSizing = 'border-box'
   title.style.background = 'rgba(32, 160, 255, 1)'//'rgba(0, 0, 0, 0.65)'
-  title.style.borderRadius = '4px'
+  title.style.borderRadius = '3px'
   title.innerHTML = ''
 
   overlayContainer.appendChild(title)

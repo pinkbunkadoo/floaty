@@ -38,20 +38,23 @@ window.onload = function (event) {
 
   container = document.getElementById('container')
 
-  svgcontainer = document.createElement('div')
-  svgcontainer.style.display = 'flex'
-  svgcontainer.style.alignItems = 'center'
-  svgcontainer.style.justifyContent = 'flex-end'
-  svgcontainer.style.width = '100%'
+  bar = document.createElement('div')
+  bar.style.display = 'flex'
+  bar.style.alignItems = 'center'
+  bar.style.justifyContent = 'flex-end'
+  bar.style.width = '100%'
   // svgcontainer.style.height = '32px'
-  svgcontainer.style.padding = '8px'
-  svgcontainer.style.position = 'fixed'
-  svgcontainer.style.boxSizing = 'border-box'
+  bar.style.padding = '8px'
+  bar.style.position = 'fixed'
+  bar.style.boxSizing = 'border-box'
+  // bar.style.border = '1px solid gray'
+  // bar.style.background = 'rgba(255, 255, 255, 0.5)'
+  bar.style.bottom = '0px'
 
-  svgcontainer.appendChild(eye)
+  bar.appendChild(eye)
   // svgcontainer.appendChild(settings)
 
-  document.body.appendChild(svgcontainer)
+  document.body.appendChild(bar)
 
   initEventListeners()
 }

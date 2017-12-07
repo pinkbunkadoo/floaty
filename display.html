@@ -22,25 +22,37 @@
       margin: 0px;
       padding: 0px;
       box-sizing: border-box;
-      /*border-radius: 6px;*/
+      border-radius: 4px;
       /*border: 2px solid rgba(0, 0, 0, 0.5);*/
+    }
+    #overlayContainer {
+      -webkit-user-select: none;
+      overflow: hidden;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      padding: 6px;
+      position: fixed;
+      box-sizing: border-box;
+      border-radius: 4px;
     }
     .draggable {
       -webkit-app-region: drag;
       border: 1px solid rgba(0,0,0,0);
     }
     .border {
-      border: 3px solid rgba(255, 0, 0, 0);
+      border: 4px solid rgba(255, 0, 0, 0);
     }
     .border.selected {
-      border: 3px solid rgba(32, 160, 255, 1);
+      /*border: 3px dashed rgba(32, 160, 255, 1);*/
+      border: 4px solid rgba(255, 255, 255, 1);
     }
     /*.border.selected {
       border: 2px solid rgba(255, 255, 255, 1);
     }*/
     </style>
   </head>
-  <body><div id="container"></div></body>
+  <body><div id="container"><div id="overlayContainer"></div></div></body>
   <svg id="icons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: none;">
     <symbol id="close" viewBox="0 0 14 14">
       <path fill-rule="evenodd" d="M13.354 0.636 C13.874 1.156,13.874 2.000,13.354 2.520C13.354 2.520,2.520 13.354,2.520 13.354C2.000 13.874,1.156 13.874,0.636 13.354C0.115 12.834,0.115 11.990,0.636 11.470C0.636 11.470,11.470 0.636,11.470 0.636C11.990 0.115,12.834 0.115,13.354 0.636 Z"/>

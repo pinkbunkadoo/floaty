@@ -183,7 +183,7 @@ function startup() {
 
     // let bounds = dropWindow.getContentBounds()
     // console.log(bounds)
-    dropWindow.setContentBounds({ x: 0, y: 0, width: 280, height: 280 })
+    dropWindow.setContentBounds({ x: 0, y: 0, width: 320, height: 320 })
     dropWindow.center()
 
     dropWindow.loadURL(url.format({
