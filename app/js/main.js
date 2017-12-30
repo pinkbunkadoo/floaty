@@ -30,10 +30,12 @@ function setIncognito(value) {
       dropWindow.setIgnoreMouseEvents(true)
       // dropWindow.minimize()
       dropWindow.hide()
+      // mainWindow.hide()
     } else {
       dropWindow.setIgnoreMouseEvents(false)
       // dropWindow.restore()
       dropWindow.show()
+      // mainWindow.show()
     }
 
 
@@ -144,23 +146,16 @@ function createMenu() {
 function startup() {
   if (!mainWindow) {
 
-    if (process.platform === 'darwin') app.dock.hide()
-
-    createMenu()
+    // if (process.platform === 'darwin') app.dock.hide()
 
     mainWindow = new BrowserWindow({ show: false })
 
     dropWindow = new BrowserWindow({
-      width: 280,
-      height: 280,
-      minWidth: 280,
-      minHeight: 280,
-      // transparent: true,
       alwaysOnTop: true,
       // resizable: false,
       title: appName,
       // titleBarStyle: 'hidden',
-      // parent: mainWindow,
+      parent: mainWindow,
       // focusable: process.plaftorm !== 'darwin' ? true : false,
       // focusable: false,
       disableAutoHideCursor: true,
@@ -173,15 +168,18 @@ function startup() {
       // show: false,
       // modal: process.plaftorm !== 'darwin' ? false : true,
       // modal: true,
-      parent: mainWindow,
+      // parent: mainWindow
       // backgroundColor: '#20A0FF',
       autoHideMenuBar: true
     })
 
+    // mainWindow = dropWindow
+    createMenu()
+
     // Menu.setApplicationMenu(menu)
     // Menu.setApplicationMenu(null)
 
-    dropWindow.webContents.openDevTools({ mode:'bottom' })
+    // dropWindow.webContents.openDevTools({ mode:'bottom' })
 
     dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 480 })
     dropWindow.center()
