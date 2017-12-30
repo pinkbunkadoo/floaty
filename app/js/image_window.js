@@ -477,11 +477,13 @@ ipc.on('incognito', function(event, arg1) {
   if (incognito) {
     overlayContainer.style.opacity = 0
     overlayContainer.classList.remove('border')
+    container.style.borderRadius = 0
     stop()
     draw()
   } else {
     overlayContainer.classList.add('border')
     overlayContainer.style.opacity = 1
+    container.style.borderRadius = '4px'
     start()
   }
 })

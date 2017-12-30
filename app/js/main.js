@@ -152,7 +152,7 @@ function startup() {
       // focusable: process.plaftorm !== 'darwin' ? true : false,
       // focusable: false,
       disableAutoHideCursor: true,
-      hasShadow: false,
+      // hasShadow: false,
       acceptFirstMouse: true,
       // useContentSize: true,
       minimizable: false,
@@ -171,8 +171,7 @@ function startup() {
     // Menu.setApplicationMenu(menu)
     Menu.setApplicationMenu(null)
 
-    // let bounds = dropWindow.getContentBounds()
-    // console.log(bounds)
+    // dropWindow.webContents.openDevTools({ mode:'bottom' })
 
     dropWindow.setContentBounds({ x: 0, y: 0, width: 320, height: 320 })
     dropWindow.center()
@@ -208,8 +207,6 @@ function startup() {
         frame.restore()
       }
     })
-
-    dropWindow.webContents.openDevTools({ mode:'bottom' })
 
     try {
       iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray.png'
