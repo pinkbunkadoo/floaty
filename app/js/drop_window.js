@@ -6,7 +6,7 @@ const Point = require('./point')
 const Picture = require('./picture')
 const Icon = require('./icon')
 
-let container, perimeter
+let container, perimeter, dragOverlay
 let isInitialised = false
 let mode = null
 let incognito = false
@@ -16,32 +16,33 @@ let mx = 0
 let my = 0
 let previousmx = 0
 let previousmy = 0
+let eye, settings, close
 
 window.onload = function (event) {
-  // svg = document.getElementById('icons')
-  // for (var i = 0; i < svg.children.length; i++) {
-  //   icon = svg.children[i]
-  //   icons[icon.id] = { id: icon.id, width: icon.viewBox.baseVal.width, height: icon.viewBox.baseVal.height}
-  // }
-
   settings = (new Icon('settings', 32, 32)).element()
-  eye = (new Icon('eye', 32, 32)).element()
+  // eye = (new Icon('eye', 32, 32)).element()
+  eye = document.getElementById('eye');
+  close = document.getElementById('close');
 
   eye.onclick = function() {
+    console.log('eye');
     ipc.send('request-incognito')
   }
 
-  settings.onclick = function() {
+  close.onclick = function() {
     ipc.send('request-quit')
   }
 
   container = document.getElementById('container')
   perimeter = document.getElementById('perimeter')
+  dragOverlay = document.getElementById('drag-overlay')
+
+  // dragOverlay.style.display = 'none';
 
   // let image = new Image('./app/images/drop_icon.png')
   // container.appendChild(image)
 
-  eye.classList.add('eye')
+  // eye.classList.add('eye')
 
   // bar = document.createElement('div')
   // bar.style.display = 'flex'
@@ -55,7 +56,7 @@ window.onload = function (event) {
   // bar.appendChild(eye)
   // document.body.appendChild(bar)
 
-  document.body.appendChild(eye)
+  // document.body.appendChild(eye)
 
   initEventListeners()
 }
@@ -114,6 +115,16 @@ function onDragOver(e) {
   e.stopPropagation()
 }
 
+function onMouseDown(e) {
+}
+
+function onMouseUp(e) {
+  mx = 0
+  my = 0
+  previousmx = 0
+  previousmy = 0
+}
+
 function onMouseMove(e) {
   mx = e.clientX
   my = e.clientY
@@ -131,23 +142,20 @@ function onMouseMove(e) {
   previousmx = mx
   previousmy = my
 
+  // dragOverlay.style.display = 'none'
   // ipc.send('console', e.clientX + ',' + e.clientY)
 }
 
-function onMouseDown(e) {
-  // ipc.send('console', e.clientX + ',' + e.clientY)
-  // console.log();
-  // mx = 0
-  // my = 0
-  // previousmx = 0
-  // previousmy = 0
+function onMouseEnter(e) {
 }
 
-function onMouseUp(e) {
-  mx = 0
-  my = 0
-  previousmx = 0
-  previousmy = 0
+function onMouseLeave(e) {
+}
+
+function onMouseOver(e) {
+}
+
+function onMouseOut(e) {
 }
 
 function onBlur(e) {
@@ -196,6 +204,10 @@ function initEventListeners() {
   window.addEventListener('mousedown', onMouseDown);
   window.addEventListener('mouseup', onMouseUp);
   window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseenter', onMouseEnter);
+  window.addEventListener('mouseleave', onMouseLeave);
+  window.addEventListener('mouseout', onMouseOut);
+  window.addEventListener('mouseover', onMouseOver);
   window.addEventListener('scroll', onScroll);
   window.addEventListener('contextmenu', onContextMenu);
   window.addEventListener('blur', onBlur);

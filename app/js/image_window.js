@@ -69,7 +69,7 @@ window.onload = function (event) {
   closeEl.classList.add('background');
   closeEl.classList.add('selected');
 
-  let closeIcon = (new Icon('close', 32, 32)).element()
+  let closeIcon = (new Icon('close', 24, 24)).element()
   closeEl.appendChild(closeIcon)
 
   closeEl.addEventListener('click', (event) => {
@@ -172,6 +172,11 @@ function updateOpacity() {
 
 function setTitle(name) {
   titleEl.innerHTML = name
+}
+
+function onImageReceived() {
+  overlayContainer.style.visibility = 'visible'
+  start()
 }
 
 
@@ -447,13 +452,12 @@ ipc.on('image', function(event, imagePath) {
   // console.log('image:', imagePath)
 
   fs.readFile(imagePath, null, function(err, data) {
-      console.log(imagePath);
+      // console.log(imagePath);
       image = new Image()
       image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
       picture = new Picture(image, 0, 0)
       setTitle(filename)
-      // draw()
-      start()
+      onImageReceived();
   })
 
   index1 = imagePath.lastIndexOf('/')
@@ -483,7 +487,7 @@ ipc.on('incognito', function(event, arg1) {
   } else {
     overlayContainer.classList.add('border')
     overlayContainer.style.opacity = 1
-    container.style.borderRadius = '4px'
+    container.style.borderRadius = '6px'
     start()
   }
 })

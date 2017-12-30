@@ -1,37 +1,95 @@
-#container {
+.title-bar {
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  width: 100%;
+  height: 42px;
+  background-color: #3a3c40;
+  color: white;
+  padding-left: 12px;
+  padding-right: 12px;
+  box-sizing: border-box;
   -webkit-app-region: drag;
+}
+
+.title {
+  flex: auto;
+  /* border: 1px solid red; */
+}
+
+#eye {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  margin-left: 8px;
+  margin-right: 16px;
+  fill: white;
+  -webkit-app-region: no-drag;
+}
+
+#close {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  margin-left: 4px;
+  /* margin-right: 4px; */
+  fill: white;
+  -webkit-app-region: no-drag;
+}
+
+
+.container {
+  display: flex;
+  /* flex-direction: column; */
+  position: absolute;
+  top: 42px;
+  width: 100%;
+  height: calc(100% - 42px);
+  /* height: 100%; */
+  /* margin: auto; */
+  overflow: hidden;
+  /* box-sizing: border-box; */
+  color: white;
+  font-size: 26px;
+  /* background-color: #28c6f8; */
+  /* background-color: #16d2f6; */
+  /* background-color: #3eb2de; */
+  background-color: #4c5054;
+  /* border: 16px solid black; */
+  /* -webkit-app-region: no-drag; */
+}
+
+.content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
-  color: white;
-  font-size: 22px;
-  /* background-color: #28c6f8; */
-  /* background-color: #16d2f6; */
-  /* background-color: #3eb2de; */
-  background-color: #3c4044;
-  border: 4px solid white;
+  align-content: center;
+  flex: auto;
 }
 
-#perimeter {
+.perimeter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* padding: 64px; */
+}
+
+.drop-image {
+  position: absolute;
+  margin: auto;
+  width: 96px;
+  height: 96px;
+  fill: white;
+}
+
+.drop-text {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* margin: 24px; */
-  /* border: 4px dashed white;
-  width: 140px;
-  height: 140px;
-  border-radius: 8px; */
-  -webkit-app-region: no-drag;
-}
-
-.eye {
-  position: fixed;
-  right: 0;
-  padding: 16px;
+  margin-top: 32px;
 }

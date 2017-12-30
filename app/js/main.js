@@ -85,6 +85,18 @@ function createMenu() {
           }
         }
       ]
+    },
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Quit',
+          accelerator: 'Ctrl+Q',
+          click: () => {
+            app.quit()
+          }
+        }
+      ]
     }
   ]
 
@@ -138,7 +150,7 @@ function startup() {
 
     mainWindow = new BrowserWindow({ show: false })
 
-    options = {
+    dropWindow = new BrowserWindow({
       width: 280,
       height: 280,
       minWidth: 280,
@@ -157,26 +169,24 @@ function startup() {
       // useContentSize: true,
       minimizable: false,
       maximizable: false,
-      // frame: false,
+      frame: false,
       // show: false,
       // modal: process.plaftorm !== 'darwin' ? false : true,
       // modal: true,
-      parent: mainWindow
+      parent: mainWindow,
       // backgroundColor: '#20A0FF',
-      // autoHideMenuBar: true
-    }
+      autoHideMenuBar: true
+    })
 
-    dropWindow = new BrowserWindow(options)
-    // dropWindow.menu = null
     // Menu.setApplicationMenu(menu)
-    Menu.setApplicationMenu(null)
+    // Menu.setApplicationMenu(null)
 
-    // dropWindow.webContents.openDevTools({ mode:'bottom' })
+    dropWindow.webContents.openDevTools({ mode:'bottom' })
 
-    dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 360 })
+    dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 480 })
     dropWindow.center()
 
-    console.log(__dirname);
+    // console.log(__dirname);
 
     dropWindow.loadURL(url.format({
       pathname: path.join(__dirname, '../drop_window.html'),

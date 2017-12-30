@@ -7,21 +7,23 @@
     <link rel="stylesheet" type="text/css" href="./css/drop_window.css">
   </head>
   <body>
-    <div id="container">
-      <div id="perimeter">
-        <svg width="148" height="148" viewBox="0 0 148 148" xmlns="http://www.w3.org/2000/svg">
-          <rect fill="transparent" stroke="white"
-            stroke-width="4"
-            stroke-dasharray="10, 6"
-            stroke-dashoffset="4"
-            x="4"
-            y="4"
-            width="140" height="140"
-            rx="8" ry = "8"/>
-        </svg>
+    <div class="title-bar">
+      <div class="title">Floaty</div>
+      <div id="eye"><svg class="icon"><use xlink:href="./images/icons.svg#eye"></use></svg></div>
+      <div id="close"><svg class="icon"><use xlink:href="./images/icons.svg#close"></use></svg></div>
+    </div>
+    <div class="container">
+      <div class="content">
+        <div class="perimeter">
+          <svg width="148" height="148" viewBox="0 0 148 148" xmlns="http://www.w3.org/2000/svg">
+          <g fill="transparent" stroke="gray" stroke-width="4" stroke-dasharray="10, 6" stroke-dashoffset="4">
+            <rect x="4" y="4" width="140" height="140" rx="8" ry="8" />
+          </g>
+          </svg>
+          <div class="drop-image"><svg class="icon"><use xlink:href="./images/icons.svg#picture"></use></svg></div>
+        </div>
+        <div class="drop-text">Drop your images here</div>
       </div>
-      <br>
-      <div>Drop your images here</div>
     </div>
   </body>
   <script>
