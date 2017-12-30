@@ -1,0 +1,37 @@
+#container {
+  -webkit-app-region: drag;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: white;
+  font-size: 22px;
+  /* background-color: #28c6f8; */
+  /* background-color: #16d2f6; */
+  /* background-color: #3eb2de; */
+  background-color: #3c4044;
+  border: 4px solid white;
+}
+
+#perimeter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* margin: 24px; */
+  /* border: 4px dashed white;
+  width: 140px;
+  height: 140px;
+  border-radius: 8px; */
+  -webkit-app-region: no-drag;
+}
+
+.eye {
+  position: fixed;
+  right: 0;
+  padding: 16px;
+}

@@ -6,7 +6,7 @@ const Point = require('./point')
 const Picture = require('./picture')
 const Icon = require('./icon')
 
-let container
+let container, perimeter
 let isInitialised = false
 let mode = null
 let incognito = false
@@ -36,23 +36,26 @@ window.onload = function (event) {
   }
 
   container = document.getElementById('container')
+  perimeter = document.getElementById('perimeter')
 
-  bar = document.createElement('div')
-  bar.style.display = 'flex'
-  bar.style.alignItems = 'center'
-  bar.style.justifyContent = 'flex-end'
-  bar.style.width = '100%'
-  bar.style.padding = '8px'
-  bar.style.paddingRight = '16px'
-  bar.style.position = 'fixed'
-  bar.style.boxSizing = 'border-box'
-  bar.style.bottom = '0px'
-  // bar.style.bottom = '0px'
+  // let image = new Image('./app/images/drop_icon.png')
+  // container.appendChild(image)
 
-  bar.appendChild(eye)
-  // svgcontainer.appendChild(settings)
+  eye.classList.add('eye')
 
-  document.body.appendChild(bar)
+  // bar = document.createElement('div')
+  // bar.style.display = 'flex'
+  // bar.style.alignItems = 'center'
+  // bar.style.justifyContent = 'flex-end'
+  // bar.style.width = '100%'
+  // bar.style.padding = '32px'
+  // bar.style.position = 'fixed'
+  // bar.style.boxSizing = 'border-box'
+  // bar.style.top = 0
+  // bar.appendChild(eye)
+  // document.body.appendChild(bar)
+
+  document.body.appendChild(eye)
 
   initEventListeners()
 }
@@ -67,8 +70,17 @@ function onWheel(e) {
 
 
 function onKeyDown(event) {
+  // log
   if (event.key == '=' && !event.repeat) {
+  } else if (event.key == ']' && !event.repeat) {
+    perimeter.style.width = (perimeter.offsetWidth + 1) + 'px';
+    perimeter.style.height = (perimeter.offsetHeight + 1) + 'px';
+  } else if (event.key == '[' && !event.repeat) {
+    perimeter.style.width = (perimeter.offsetWidth - 1) + 'px';
+    perimeter.style.height = (perimeter.offsetHeight - 1) + 'px';
   }
+
+  // console.log(perimeter.clientWidth);
 }
 
 function onDragStart(e) {
@@ -89,7 +101,7 @@ function onDrop(e) {
   e.stopPropagation()
 
   file = e.dataTransfer.files[0]
-  ipc.send('image-drop', file.path)
+  ipc.send('image-drop', file.path, e.clientX, e.clientY)
 }
 
 function onDragEnter(e) {

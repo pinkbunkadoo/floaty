@@ -173,13 +173,13 @@ function startup() {
 
     // dropWindow.webContents.openDevTools({ mode:'bottom' })
 
-    dropWindow.setContentBounds({ x: 0, y: 0, width: 320, height: 320 })
+    dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 360 })
     dropWindow.center()
 
     console.log(__dirname);
 
     dropWindow.loadURL(url.format({
-      pathname: path.join(__dirname, '../drop.html'),
+      pathname: path.join(__dirname, '../drop_window.html'),
       protocol: 'file:',
       slashes: true
     }))
@@ -264,7 +264,7 @@ function showAbout() {
 
 }
 
-function createWindow(imagePath) {
+function createWindow(imagePath, x, y) {
   options = {}
 
   let imageFilename = null
@@ -319,6 +319,12 @@ function createWindow(imagePath) {
     protocol: 'file:',
     slashes: true
   }))
+
+  // bounds.x = x + 16
+  // bounds.y = x + 16
+  // bounds.width = 640
+  // bounds.height = 480
+  frame.setBounds({ x: x - 320, y: y - 240, width: 640, height: 480})
 
   // frame.webContents.openDevTools({ mode: 'bottom' })
 
@@ -392,8 +398,9 @@ ipcMain.on('request-quit', function(event) {
 })
 
 
-ipcMain.on('image-drop', function(event, path) {
-  createWindow(path)
+ipcMain.on('image-drop', function(event, path, x, y) {
+  let bounds = dropWindow.getContentBounds()
+  createWindow(path, bounds.x + x, bounds.y + y)
 })
 
 
