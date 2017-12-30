@@ -1,15 +1,5 @@
-const electron = require('electron')
-// Module to control application life.
-const app = electron.app
-const Tray = electron.Tray
-const nativeImage = electron.nativeImage
-const Menu = electron.Menu
-const ipc = electron.ipcMain
 
-const globalShortcut = electron.globalShortcut
-
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+const {app, Tray, nativeImage, Menu, ipcMain, globalShortcut, BrowserWindow} = require('electron')
 
 const path = require('path')
 const url = require('url')
@@ -155,7 +145,7 @@ function startup() {
       minHeight: 280,
       // transparent: true,
       alwaysOnTop: true,
-      resizable: false,
+      // resizable: false,
       title: appName,
       // titleBarStyle: 'hidden',
       // parent: mainWindow,
@@ -183,11 +173,14 @@ function startup() {
 
     // let bounds = dropWindow.getContentBounds()
     // console.log(bounds)
+
     dropWindow.setContentBounds({ x: 0, y: 0, width: 320, height: 320 })
     dropWindow.center()
 
+    console.log(__dirname);
+
     dropWindow.loadURL(url.format({
-      pathname: path.join(__dirname, 'drop.html'),
+      pathname: path.join(__dirname, '../drop.html'),
       protocol: 'file:',
       slashes: true
     }))
@@ -216,46 +209,36 @@ function startup() {
       }
     })
 
-    // mainWindow = dropWindow
+    dropWindow.webContents.openDevTools({ mode:'bottom' })
 
-    // let icon = nativeImage.createFromPath(app.getAppPath() + '/images/icon.png')
-    //
-    // if (process.platform === 'darwin') {
-    //   app.dock.setIcon(icon)
-    // } else {
-    //   mainWindow.setIcon(icon)
-    // }
+    try {
+      iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray.png'
+      iconPath = app.getAppPath() + '/app/images/' + iconFilename;
 
-    // mainWindow.webContents.openDevTools({ mode:'bottom' })
-    // app.setName(appName)
-
-    iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray.png'
-    iconPath = app.getAppPath() + '/images/' + iconFilename;
-
-    tray = new Tray(iconPath)
-    contextMenu = Menu.buildFromTemplate([
-      {label: 'Show/Hide', click: (menuItem) => {
-        setIncognito(!incognito)
-        // menuItem.checked = incognito
-      }},
-      { type: 'separator' },
-      {label: 'About', click: (menuItem) => {
-        // app.about()
-        showAbout()
-      }},
-      { type: 'separator' },
-      {label: 'Quit', click: (menuItem) => {
-        app.quit()
-      }}
-    ])
-    tray.setToolTip('Floaty! :)')
-    tray.setContextMenu(contextMenu)
-    tray.on('click', () => {
-      setIncognito(false)
-    })
-
-    // contextMenu.items[0].label = 'frogger'
-    // tray.setContextMenu(null)
+      tray = new Tray(iconPath)
+      contextMenu = Menu.buildFromTemplate([
+        {label: 'Show/Hide', click: (menuItem) => {
+          setIncognito(!incognito)
+          // menuItem.checked = incognito
+        }},
+        { type: 'separator' },
+        {label: 'About', click: (menuItem) => {
+          // app.about()
+          showAbout()
+        }},
+        { type: 'separator' },
+        {label: 'Quit', click: (menuItem) => {
+          app.quit()
+        }}
+      ])
+      tray.setToolTip('Floaty! :)')
+      tray.setContextMenu(contextMenu)
+      tray.on('click', () => {
+        setIncognito(false)
+      })
+    } catch (e) {
+      console.log('Unable to create tray icon', e);
+    }
   }
 }
 
@@ -275,7 +258,7 @@ function showAbout() {
   aboutWindow = new BrowserWindow(options)
 
   aboutWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'about.html'),
+    pathname: path.join(__dirname, '../about.html'),
     protocol: 'file:',
     slashes: true
   }))
@@ -335,7 +318,7 @@ function createWindow(imagePath) {
   })
 
   frame.loadURL(url.format({
-    pathname: path.join(__dirname, 'display.html'),
+    pathname: path.join(__dirname, '../image_window.html'),
     protocol: 'file:',
     slashes: true
   }))
@@ -382,7 +365,7 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-ipc.on('move-window-by', function (event, x, y) {
+ipcMain.on('move-window-by', function (event, x, y) {
   handle = BrowserWindow.fromWebContents(event.sender)
   bounds = handle.getBounds()
   bounds.x += x
@@ -391,33 +374,33 @@ ipc.on('move-window-by', function (event, x, y) {
   // console.log(x, y)
 })
 
-ipc.on('console', function (event, arg) {
+ipcMain.on('console', function (event, arg) {
   console.log(arg)
 })
 
 
-ipc.on('request-image', function(event) {
+ipcMain.on('request-image', function(event) {
   handle = BrowserWindow.fromWebContents(event.sender)
   event.sender.send('image', handle.imagePath)
 })
 
 
-ipc.on('request-incognito', function(event) {
+ipcMain.on('request-incognito', function(event) {
   setIncognito(true)
 })
 
 
-ipc.on('request-quit', function(event) {
+ipcMain.on('request-quit', function(event) {
   dropWindow.close()
 })
 
 
-ipc.on('image-drop', function(event, path) {
+ipcMain.on('image-drop', function(event, path) {
   createWindow(path)
 })
 
 
-ipc.on('close-image', (event) => {
+ipcMain.on('close-image', (event) => {
   let handle = BrowserWindow.fromWebContents(event.sender)
   let index = -1
 
@@ -436,7 +419,7 @@ ipc.on('close-image', (event) => {
   handle.close()
 })
 
-ipc.on('close-about', (event) => {
+ipcMain.on('close-about', (event) => {
   if (aboutWindow) {
     aboutWindow.close()
     aboutWindow = null

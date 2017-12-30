@@ -1,0 +1,27 @@
+#container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0px;
+  box-sizing: border-box;
+  /* background: rgba(32, 160, 255, 1); */
+  background-color: #28c6f8;
+  -webkit-app-region: drag;
+  color: white;
+  font-size: 18px;
+}
+
+#perimeter {
+  border: 4px dashed white;
+  width: 128px;
+  height: 128px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  /*box-shadow: 2px 2px 4px 4px;*/
+  -webkit-app-region: no-drag;
+}

@@ -1,0 +1,77 @@
+
+#container {
+  -webkit-scrollbar: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+
+#overlayContainer {
+  -webkit-user-select: none;
+  overflow: hidden;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  position: fixed;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+
+.title {
+  position: fixed;
+  left: 8px;
+  bottom: 8px;
+  padding: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  height: 32px;
+  color: white;
+  font-size: 18px;
+  box-sizing: border-box;
+  border-radius: 3px;
+}
+
+.close {
+  position: fixed;
+  display: flex;
+  right: 8px;
+  top: 8px;
+  width: 48px;
+  height: 48px;
+  /* padding: 12px; */
+  cursor: default;
+  align-items: center;
+  justify-content: center;
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
+  /* box-sizing: border-box; */
+  border-radius: 32px;
+}
+
+.background {
+  background-color: rgba(0, 0, 0, 0.75);
+  opacity: 0.5;
+}
+
+.background.selected {
+  opacity: 1;
+}
+
+.draggable {
+  -webkit-app-region: drag;
+  border: 1px solid rgba(0,0,0,0);
+}
+
+.border {
+  border: 4px solid rgba(255, 255, 255, 0.5);
+}
+
+.border.selected {
+  border-color: white;
+}

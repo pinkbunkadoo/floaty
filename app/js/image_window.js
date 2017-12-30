@@ -23,18 +23,11 @@ let active = true
 let message
 
 let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
-let icons = {}
 
 let mousedown = false
 
 
 window.onload = function (event) {
-
-  svg = document.getElementById('icons')
-  for (var i = 0; i < svg.children.length; i++) {
-    icon = svg.children[i]
-    icons[icon.id] = { id: icon.id, width: icon.viewBox.baseVal.width, height: icon.viewBox.baseVal.height}
-  }
 
   container = document.getElementById('container')
 
@@ -44,6 +37,7 @@ window.onload = function (event) {
   canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
+  // canvas.style.background = 'red';
 
   // ctx = canvas.getContext('2d')
   container.appendChild(canvas)
@@ -71,23 +65,12 @@ window.onload = function (event) {
   // overlayContainer.appendChild(overlayCanvas)
 
   closeEl = document.createElement('div')
-  closeEl.style.position = 'fixed'
-  closeEl.style.display = 'flex'
-  closeEl.style.right = '8px'
-  closeEl.style.top = '8px'
-  closeEl.style.width = '32px'
-  closeEl.style.height = '32px'
-  closeEl.style.cursor = 'default'
-  closeEl.style.alignItems = 'center'
-  closeEl.style.justifyContent = 'center'
-  closeEl.style['-webkit-user-select'] = 'none'
-  closeEl.style['-webkit-app-region'] = 'no-drag'
-  closeEl.style.boxSizing = 'border-box'
-  closeEl.style.borderRadius = '16px'
-  closeEl.style.background = 'rgba(32, 160, 255, 1)' //'rgba(0, 0, 0, 0.65)'
+  closeEl.classList.add('close');
+  closeEl.classList.add('background');
+  closeEl.classList.add('selected');
 
-  let closeElement = (new Icon('close', icons['close'].width, icons['close'].height)).element()
-  closeEl.appendChild(closeElement)
+  let closeIcon = (new Icon('close', 32, 32)).element()
+  closeEl.appendChild(closeIcon)
 
   closeEl.addEventListener('click', (event) => {
     ipc.send('close-image')
@@ -96,25 +79,16 @@ window.onload = function (event) {
   overlayContainer.appendChild(closeEl)
 
   titleEl = document.createElement('div')
-  titleEl.style.position = 'fixed'
-  titleEl.style.left = '8px'
-  titleEl.style.bottom = '8px'
-  titleEl.style.padding = '6px'
-  titleEl.style.height = '32px'
-  titleEl.style.color = 'white'
-  titleEl.style.fontSize = '18px'
-  titleEl.style.fontFamily =  'sans-serif'
-  // titleEl.style.border = '1px solid yellow'
-  titleEl.style.boxSizing = 'border-box'
-  titleEl.style.background = 'rgba(32, 160, 255, 1)'//'rgba(0, 0, 0, 0.65)'
-  titleEl.style.borderRadius = '3px'
+  titleEl.classList.add('title');
+  titleEl.classList.add('background');
+  titleEl.classList.add('selected');
   titleEl.innerHTML = ''
 
   overlayContainer.appendChild(titleEl)
 
   document.body.appendChild(overlayContainer)
 
-  start()
+  // start()
   initEventListeners()
 
   ipc.send('request-image')
@@ -170,37 +144,13 @@ function draw() {
 
   ctx.drawImage(picture.image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
 
-  // ctx = overlayCanvas.getContext('2d')
-  // ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
-  //
-  // // close icon
-  //
-  // ctx.fillStyle = focused ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.25)'
-  // ctx.beginPath()
-  // ctx.arc(overlayCanvas.width - 16, 16, 16, 0, 2 * Math.PI, false)
-  // ctx.fill()
-  //
-  // ctx.font = '18px sans-serif'
-  // tm = ctx.measureText(filename)
-  //
-  // ctx.fillStyle = focused ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.25)'
-  // ctx.fillRect(0, overlayCanvas.height - 32, tm.width + 16, 32)
-  //
-  // ctx.fillStyle = focused ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.5)'
-  // ctx.fillText(filename, 8, overlayCanvas.height - 10)
-}
-
-
-function update() {
 }
 
 
 function frame() {
   if (active) {
     requestAnimationFrame(frame)
-    update()
     draw()
-    // frameNo++
   }
 }
 
@@ -377,8 +327,10 @@ function onMouseUp(e) {
 function onBlur(e) {
   overlayContainer.classList.remove('selected')
   dragContainer.classList.add('draggable')
-  closeEl.style.background = 'rgba(0, 0, 0, 0.65)'
-  titleEl.style.background = 'rgba(0, 0, 0, 0.65)'
+  // closeEl.style.background = 'rgba(0, 0, 0, 0.65)'
+  // titleEl.style.background = 'rgba(0, 0, 0, 0.65)'
+  closeEl.classList.remove('selected');
+  titleEl.classList.remove('selected');
   focused = false
   mode = null
 }
@@ -387,8 +339,10 @@ function onBlur(e) {
 function onFocus(e) {
   overlayContainer.classList.add('selected')
   dragContainer.classList.add('draggable')
-  closeEl.style.background = 'rgba(32, 160, 255, 1)'
-  titleEl.style.background = 'rgba(32, 160, 255, 1)'
+  closeEl.classList.add('selected');
+  titleEl.classList.add('selected');
+  // closeEl.style.background = 'rgba(32, 160, 255, 1)'
+  // titleEl.style.background = 'rgba(32, 160, 255, 1)'
   focused = true
   mode = null
 }
@@ -425,42 +379,42 @@ function onContextMenu(e) {
 
 
 function handleEvent(e) {
-  if (e.type == 'keydown') onKeyDown(e)
-  else if (e.type == 'keyup') onKeyUp(e)
-  else if (e.type == 'wheel') onWheel(e)
-  else if (e.type == 'mouseup') onMouseUp(e)
-  else if (e.type == 'mousedown') onMouseDown(e)
-  else if (e.type == 'mousemove') onMouseMove(e)
-  else if (e.type == 'dragstart') onDragStart(e)
-  else if (e.type == 'drag') onDrag(e)
-  else if (e.type == 'drop') onDrop(e)
-  else if (e.type == 'dragenter') onDragEnter(e)
-  else if (e.type == 'dragover') onDragOver(e)
-  else if (e.type == 'blur') onBlur(e)
-  else if (e.type == 'focus') onFocus(e)
-  else if (e.type == 'resize') onResize(e)
-  else if (e.type == 'scroll') onScroll(e)
-  else if (e.type == 'contextmenu') onContextMenu(e)
+  // if (e.type == 'keydown') onKeyDown(e)
+  // else if (e.type == 'keyup') onKeyUp(e)
+  // else if (e.type == 'wheel') onWheel(e)
+  // else if (e.type == 'mouseup') onMouseUp(e)
+  // else if (e.type == 'mousedown') onMouseDown(e)
+  // else if (e.type == 'mousemove') onMouseMove(e)
+  // else if (e.type == 'dragstart') onDragStart(e)
+  // else if (e.type == 'drag') onDrag(e)
+  // else if (e.type == 'drop') onDrop(e)
+  // else if (e.type == 'dragenter') onDragEnter(e)
+  // else if (e.type == 'dragover') onDragOver(e)
+  // else if (e.type == 'blur') onBlur(e)
+  // else if (e.type == 'focus') onFocus(e)
+  // else if (e.type == 'resize') onResize(e)
+  // else if (e.type == 'scroll') onScroll(e)
+  // else if (e.type == 'contextmenu') onContextMenu(e)
 }
 
 
 function initEventListeners() {
-  document.body.addEventListener("wheel", handleEvent)
-  window.addEventListener('keydown', handleEvent)
-  window.addEventListener('keyup', handleEvent)
-  window.addEventListener('dragstart', handleEvent)
-  window.addEventListener('drag', handleEvent)
-  window.addEventListener('drop', handleEvent)
-  window.addEventListener('dragover', handleEvent)
-  window.addEventListener('dragenter', handleEvent)
-  window.addEventListener('mousedown', handleEvent)
-  window.addEventListener('mouseup', handleEvent)
-  window.addEventListener('mousemove', handleEvent)
-  window.addEventListener('scroll', handleEvent)
-  window.addEventListener('contextmenu', handleEvent)
-  window.addEventListener('blur', handleEvent)
-  window.addEventListener('focus', handleEvent)
-  window.addEventListener('resize', handleEvent)
+  document.body.addEventListener("wheel", onWheel)
+  window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('keyup', onKeyUp)
+  window.addEventListener('dragstart', onDragStart)
+  window.addEventListener('drag', onDrag)
+  window.addEventListener('drop', onDrop)
+  window.addEventListener('dragover', onDragOver)
+  window.addEventListener('dragenter', onDragEnter)
+  window.addEventListener('mousedown', onMouseDown)
+  window.addEventListener('mouseup', onMouseUp)
+  window.addEventListener('mousemove', onMouseMove)
+  window.addEventListener('scroll', onScroll)
+  window.addEventListener('contextmenu', onContextMenu)
+  window.addEventListener('blur', onBlur)
+  window.addEventListener('focus', onFocus)
+  window.addEventListener('resize', onResize)
 }
 
 
@@ -493,11 +447,13 @@ ipc.on('image', function(event, imagePath) {
   // console.log('image:', imagePath)
 
   fs.readFile(imagePath, null, function(err, data) {
+      console.log(imagePath);
       image = new Image()
       image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
       picture = new Picture(image, 0, 0)
       setTitle(filename)
-      draw()
+      // draw()
+      start()
   })
 
   index1 = imagePath.lastIndexOf('/')
