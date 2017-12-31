@@ -43,10 +43,13 @@ function setIncognito(value) {
       frame = frames[i]
       if (incognito) {
         frame.setIgnoreMouseEvents(true)
+        frame.setAlwaysOnTop(true)
       } else {
         frame.setIgnoreMouseEvents(false)
+        frame.setAlwaysOnTop(false)
       }
       frame.send('incognito', value)
+
     }
 
   }
@@ -87,8 +90,11 @@ function createMenu() {
           }
         }
       ]
-    },
-    {
+    }
+  ]
+
+  if (process.platform !== 'darwin') {
+    menuTemplate.unshift({
       label: 'File',
       submenu: [
         {
@@ -99,8 +105,8 @@ function createMenu() {
           }
         }
       ]
-    }
-  ]
+    })
+  }
 
   if (process.platform === 'darwin') {
     menuTemplate.unshift({
@@ -148,13 +154,20 @@ function startup() {
 
     // if (process.platform === 'darwin') app.dock.hide()
 
-    mainWindow = new BrowserWindow({ show: false })
+    // mainWindow = new BrowserWindow({ show: false })
 
     dropWindow = new BrowserWindow({
-      alwaysOnTop: true,
+      // alwaysOnTop: true,
       // resizable: false,
+      minWidth: 320,
+      minHeight: 320,
       title: appName,
+      maximizable: false,
+      fullscreenable: false,
+      fullscreen: false,
+
       // titleBarStyle: 'hidden',
+      titleBarStyle: 'hiddenInset',
       parent: mainWindow,
       // focusable: process.plaftorm !== 'darwin' ? true : false,
       // focusable: false,
@@ -173,7 +186,7 @@ function startup() {
       autoHideMenuBar: true
     })
 
-    // mainWindow = dropWindow
+    mainWindow = dropWindow
     createMenu()
 
     // Menu.setApplicationMenu(menu)
@@ -287,29 +300,25 @@ function createWindow(imagePath, x, y) {
       imageFilename = imagePath.substring(index2 + 1)
   }
 
-  options.title = imageFilename
-  // options.title = null
-  options.width = 640
-  options.height = 480
-  options.minimizable = false
-  options.maximizable = false
-  options.transparent = true
-  options.hasShadow = false
-  options.frame = false
-  options.disableAutoHideCursor = true
-  // options.modal = process.plaftorm !== 'darwin' ? false : true,
-  // options.modal = true
-  options.skipTaskbar = true
-  options.alwaysOnTop = true
-  options.acceptFirstMouse = true
+  frame = new BrowserWindow({
+    title: imageFilename,
+    // options.title = null
+    width: 640,
+    height: 480,
+    minimizable: false,
+    maximizable: false,
+    transparent: true,
+    hasShadow: false,
+    frame: false,
+    disableAutoHideCursor: true,
+    // modal = process.plaftorm !== 'darwin' ? false : true,
+    // modal = true
+    skipTaskbar: true,
+    // alwaysOnTop: true,
+    acceptFirstMouse: true
+    // parent = mainWindow
+  })
 
-  // if (process.platform !== 'darwin') {
-  options.parent = mainWindow
-  // }
-  // options.show = false
-
-
-  frame = new BrowserWindow(options)
   frame.firstFocus = true
   frame.imagePath = imagePath
 

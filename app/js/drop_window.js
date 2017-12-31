@@ -22,16 +22,16 @@ window.onload = function (event) {
   settings = (new Icon('settings', 32, 32)).element()
   // eye = (new Icon('eye', 32, 32)).element()
   eye = document.getElementById('eye');
-  close = document.getElementById('close');
+  // close = document.getElementById('close');
 
   eye.onclick = function() {
     console.log('eye');
     ipc.send('request-incognito')
   }
 
-  close.onclick = function() {
-    ipc.send('request-quit')
-  }
+  // close.onclick = function() {
+  //   ipc.send('request-quit')
+  // }
 
   container = document.getElementById('container')
   perimeter = document.getElementById('perimeter')
@@ -103,6 +103,7 @@ function onDrop(e) {
 
   file = e.dataTransfer.files[0]
   ipc.send('image-drop', file.path, e.clientX, e.clientY)
+  console.log('drop');
 }
 
 function onDragEnter(e) {

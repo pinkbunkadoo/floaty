@@ -64,27 +64,27 @@ window.onload = function (event) {
 
   // overlayContainer.appendChild(overlayCanvas)
 
-  closeEl = document.createElement('div')
-  closeEl.classList.add('close');
+  closeEl = document.getElementById('close')
+  // closeEl.classList.add('close');
   closeEl.classList.add('background');
   closeEl.classList.add('selected');
 
-  let closeIcon = (new Icon('close', 24, 24)).element()
-  closeEl.appendChild(closeIcon)
+  // let closeIcon = (new Icon('close', 24, 24)).element()
+  // closeEl.appendChild(closeIcon)
 
   closeEl.addEventListener('click', (event) => {
     ipc.send('close-image')
   })
 
-  overlayContainer.appendChild(closeEl)
+  // overlayContainer.appendChild(closeEl)
 
-  titleEl = document.createElement('div')
-  titleEl.classList.add('title');
+  titleEl = document.getElementById('title')
+  // titleEl.classList.add('title');
   titleEl.classList.add('background');
   titleEl.classList.add('selected');
   titleEl.innerHTML = ''
 
-  overlayContainer.appendChild(titleEl)
+  // overlayContainer.appendChild(titleEl)
 
   document.body.appendChild(overlayContainer)
 
