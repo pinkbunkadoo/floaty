@@ -153,8 +153,7 @@ function startup() {
   if (!mainWindow) {
 
     // if (process.platform === 'darwin') app.dock.hide()
-
-    // mainWindow = new BrowserWindow({ show: false })
+    mainWindow = new BrowserWindow({ show: false })
 
     dropWindow = new BrowserWindow({
       // alwaysOnTop: true,
@@ -165,7 +164,6 @@ function startup() {
       maximizable: false,
       fullscreenable: false,
       fullscreen: false,
-
       // titleBarStyle: 'hidden',
       titleBarStyle: 'hiddenInset',
       parent: mainWindow,
@@ -186,7 +184,7 @@ function startup() {
       autoHideMenuBar: true
     })
 
-    mainWindow = dropWindow
+    // mainWindow = dropWindow
     createMenu()
 
     // Menu.setApplicationMenu(menu)
@@ -194,7 +192,7 @@ function startup() {
 
     // dropWindow.webContents.openDevTools({ mode:'bottom' })
 
-    dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 480 })
+    dropWindow.setContentBounds({ x: 0, y: 0, width: 360, height: 360 })
     dropWindow.center()
 
     // console.log(__dirname);
@@ -253,6 +251,7 @@ function startup() {
       tray.setContextMenu(contextMenu)
       tray.on('click', () => {
         setIncognito(false)
+        dropWindow.show()
       })
     } catch (e) {
       console.log('Unable to create tray icon', e);
@@ -265,15 +264,15 @@ function showAbout() {
     aboutWindow.close()
   }
 
-  options = {
+  options = {}
+
+  aboutWindow = new BrowserWindow({
     show: true,
     alwaysOnTop: true
     // resizable: false,
     // backgroundColor: '#808080',
     // frame: false
-  }
-
-  aboutWindow = new BrowserWindow(options)
+  })
 
   aboutWindow.loadURL(url.format({
     pathname: path.join(__dirname, '../about.html'),
@@ -302,9 +301,10 @@ function createWindow(imagePath, x, y) {
 
   frame = new BrowserWindow({
     title: imageFilename,
-    // options.title = null
     width: 640,
     height: 480,
+    minWidth: 256,
+    minHeight: 256,
     minimizable: false,
     maximizable: false,
     transparent: true,
@@ -315,20 +315,14 @@ function createWindow(imagePath, x, y) {
     // modal = true
     skipTaskbar: true,
     // alwaysOnTop: true,
-    acceptFirstMouse: true
-    // parent = mainWindow
+    acceptFirstMouse: true,
+    parent: mainWindow
   })
 
   frame.firstFocus = true
   frame.imagePath = imagePath
 
   frame.on('focus', () => {
-    // console.log('framefocus', incognito)
-    // if (!frame.firstFocus) {
-      // setIncognito(false)
-    // }
-    // frame.firstFocus = false
-    // frame.setAlwaysOnTop(true)
   })
 
   frame.loadURL(url.format({
@@ -337,17 +331,11 @@ function createWindow(imagePath, x, y) {
     slashes: true
   }))
 
-  // bounds.x = x + 16
-  // bounds.y = x + 16
-  // bounds.width = 640
-  // bounds.height = 480
   frame.setBounds({ x: x - 320, y: y - 240, width: 640, height: 480})
 
   // frame.webContents.openDevTools({ mode: 'bottom' })
 
   frames.push(frame)
-
-  // dropWindow.setAlwaysOnTop(true)
 }
 
 // This method will be called when Electron has finished

@@ -19,19 +19,21 @@ let previousmy = 0
 let eye, settings, close
 
 window.onload = function (event) {
-  settings = (new Icon('settings', 32, 32)).element()
+  // settings = (new Icon('settings', 32, 32)).element()
   // eye = (new Icon('eye', 32, 32)).element()
-  eye = document.getElementById('eye');
-  // close = document.getElementById('close');
+  eye = document.getElementById('eye')
+  close = document.getElementById('close')
 
   eye.onclick = function() {
-    console.log('eye');
+    // console.log('eye');
     ipc.send('request-incognito')
   }
 
-  // close.onclick = function() {
-  //   ipc.send('request-quit')
-  // }
+  close.onclick = function() {
+    ipc.send('request-quit')
+  }
+
+  if (process.platform === 'darwin') close.style.display = 'none'
 
   container = document.getElementById('container')
   perimeter = document.getElementById('perimeter')

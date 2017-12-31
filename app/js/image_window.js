@@ -30,6 +30,7 @@ let mousedown = false
 window.onload = function (event) {
 
   container = document.getElementById('container')
+  container.classList.add('selected');
 
   width = window.innerWidth
   height = window.innerHeight
@@ -47,20 +48,16 @@ window.onload = function (event) {
   // overlayCanvas.height = height - 16
 
   // overlayContainer = document.createElement('div')
-  overlayContainer = document.getElementById('overlayContainer')
-
+  overlayContainer = document.getElementById('overlay-container')
   overlayContainer.classList.add('border')
   overlayContainer.classList.add('selected')
 
-  dragContainer = document.createElement('div')
-  dragContainer.style['-webkit-user-select'] = 'none'
-  // dragContainer.style['-webkit-app-region'] = 'drag'
-  dragContainer.style.flex = 'auto'
-  // dragContainer.style.border = '1px solid blue'
-
+  dragContainer = document.getElementById('drag-container')
+  // dragContainer.style['-webkit-user-select'] = 'none'
+  // dragContainer.style.flex = 'auto'
   dragContainer.classList.add('draggable')
 
-  overlayContainer.appendChild(dragContainer)
+  // overlayContainer.appendChild(dragContainer)
 
   // overlayContainer.appendChild(overlayCanvas)
 
@@ -331,11 +328,10 @@ function onMouseUp(e) {
 
 function onBlur(e) {
   overlayContainer.classList.remove('selected')
-  dragContainer.classList.add('draggable')
-  // closeEl.style.background = 'rgba(0, 0, 0, 0.65)'
-  // titleEl.style.background = 'rgba(0, 0, 0, 0.65)'
-  closeEl.classList.remove('selected');
-  titleEl.classList.remove('selected');
+  container.classList.remove('selected');
+  // dragContainer.classList.add('draggable')
+  // closeEl.classList.remove('selected');
+  // titleEl.classList.remove('selected');
   focused = false
   mode = null
 }
@@ -343,11 +339,10 @@ function onBlur(e) {
 
 function onFocus(e) {
   overlayContainer.classList.add('selected')
-  dragContainer.classList.add('draggable')
-  closeEl.classList.add('selected');
-  titleEl.classList.add('selected');
-  // closeEl.style.background = 'rgba(32, 160, 255, 1)'
-  // titleEl.style.background = 'rgba(32, 160, 255, 1)'
+  container.classList.add('selected');
+  // dragContainer.classList.add('draggable')
+  // closeEl.classList.add('selected');
+  // titleEl.classList.add('selected');
   focused = true
   mode = null
 }
@@ -481,13 +476,15 @@ ipc.on('incognito', function(event, arg1) {
   if (incognito) {
     overlayContainer.style.opacity = 0
     overlayContainer.classList.remove('border')
-    container.style.borderRadius = 0
+    // container.style.borderRadius = 0
+    container.classList.remove('selected');
     stop()
     draw()
   } else {
     overlayContainer.classList.add('border')
     overlayContainer.style.opacity = 1
-    container.style.borderRadius = '6px'
+    // container.style.borderRadius = '6px'
+    container.classList.add('selected');
     start()
   }
 })

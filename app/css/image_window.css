@@ -1,6 +1,5 @@
 
 #container {
-  -webkit-scrollbar: none;
   position: absolute;
   width: 100%;
   height: 100%;
@@ -8,11 +7,14 @@
   margin: 0px;
   padding: 0px;
   box-sizing: border-box;
-  border-radius: 6px;
+  -webkit-scrollbar: none;
 }
 
-#overlayContainer {
-  -webkit-user-select: none;
+#container.selected {
+  border-radius: 8px;
+}
+
+#overlay-container {
   overflow: hidden;
   display: flex;
   width: 100%;
@@ -21,19 +23,21 @@
   position: fixed;
   box-sizing: border-box;
   visibility: hidden;
+  -webkit-user-select: none;
+}
+
+#drag-container {
+  flex: auto;
+  -webkit-user-select: none;
 }
 
 #title-bar {
   display: flex;
   position: fixed;
-  /* align-items: center; */
-  /* justify-content: center; */
   left: 0;
   top: 0px;
   width: 100%;
   box-sizing: border-box;
-  /* margin: 8px; */
-  /* margin:9px; */
   padding: 8px;
 }
 
@@ -42,15 +46,19 @@
 }
 
 #title {
-  padding: 6px;
-  padding-left: 12px;
-  padding-right: 12px;
+  overflow: hidden;
+  padding: 6px 12px 6px 12px;
   height: 32px;
+  /* max-width: 75%; */
   color: white;
-  font-size: 14px;
+  font-size: 16px;
   box-sizing: border-box;
   border-radius: 3px;
-  /* flex: auto; */
+  /* text-wrap: nowrap; */
+  /* flex-wrap: nowrap; */
+  /* overflow-wrap: normal; */
+  margin-right: 5px;
+  white-space: nowrap;
 }
 
 #close {
@@ -60,12 +68,13 @@
   fill: white;
   width: 32px;
   height: 32px;
+  min-width: 32px;
+  max-width: 32px;
   padding: 6px;
-  /* flex: auto; */
-  /* margin-right: 16px; */
   border-radius: 32px;
-  -webkit-user-select: none;
   box-sizing: border-box;
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
 }
 
 .close {
@@ -75,13 +84,11 @@
   top: 8px;
   width: 40px;
   height: 40px;
-  /* padding: 12px; */
   cursor: default;
   align-items: center;
   justify-content: center;
   -webkit-user-select: none;
   -webkit-app-region: no-drag;
-  /* box-sizing: border-box; */
   border-radius: 32px;
 }
 
@@ -100,7 +107,6 @@
 }
 
 .border {
-  /* border: 4px solid rgba(255, 255, 255, 0.5); */
   border: 3px solid rgba(255, 255, 255, 0);
   border-radius: 5px;
 }
