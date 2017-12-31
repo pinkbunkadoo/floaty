@@ -58,8 +58,8 @@ function createMenu() {
       label: 'View',
       submenu: [
         {
-          label: 'Transparent',
-          accelerator: '/',
+          label: 'Incognito On/Off',
+          accelerator: process.platform === 'darwin' ? 'Command+Option+/' : '/',
           click: (item, focusedWindow) => {
             setIncognito(!incognito)
           }
@@ -76,7 +76,7 @@ function createMenu() {
           label: 'Toggle Developer Tools',
           accelerator: (() => {
             if (process.platform === 'darwin') {
-              return 'Alt+Command+I'
+              return 'Option+Command+I'
             } else {
               return 'Ctrl+Shift+I'
             }
@@ -183,6 +183,12 @@ function startup() {
     // mainWindow = dropWindow
     createMenu()
 
+    if (process.platform === 'darwin') {
+      globalShortcut.register('Command+Option+/', () => {
+        setIncognito(!incognito)
+      })
+    }
+
     // Menu.setApplicationMenu(menu)
     // Menu.setApplicationMenu(null)
 
@@ -228,7 +234,7 @@ function startup() {
       iconPath = app.getAppPath() + '/app/images/' + iconFilename;
 
       tray = new Tray(iconPath)
-      
+
       if (process.platform === 'darwin') {
         pressedImage = nativeImage.createFromPath(app.getAppPath() + '/app/images/tray_light.png')
         tray.setPressedImage(pressedImage)
@@ -236,7 +242,7 @@ function startup() {
 
       contextMenu = Menu.buildFromTemplate([
         {
-          label: 'Show/Hide', click: (menuItem) => {
+          label: 'Incognito On/Off', click: (menuItem) => {
             setIncognito(!incognito)
           }
         },
