@@ -329,8 +329,8 @@ function onBlur(e) {
   overlayContainer.classList.remove('selected')
   container.classList.remove('selected');
   // dragContainer.classList.add('draggable')
-  // closeEl.classList.remove('selected');
-  // titleEl.classList.remove('selected');
+  closeEl.classList.remove('selected');
+  titleEl.classList.remove('selected');
   focused = false
   mode = null
 }
@@ -340,8 +340,8 @@ function onFocus(e) {
   overlayContainer.classList.add('selected')
   container.classList.add('selected');
   // dragContainer.classList.add('draggable')
-  // closeEl.classList.add('selected');
-  // titleEl.classList.add('selected');
+  closeEl.classList.add('selected');
+  titleEl.classList.add('selected');
   focused = true
   mode = null
 }
