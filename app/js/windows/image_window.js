@@ -108,7 +108,7 @@ function draw() {
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
+    ctx.fillStyle = 'rgba(0, 192, 255, 0.2)'
     ctx.fillRect(0, 0, width, height)
   }
 
