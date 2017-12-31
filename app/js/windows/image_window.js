@@ -8,7 +8,7 @@ const Icon = require('../icon')
 const fs = require('fs')
 
 let image, container, titleEl, closeEl
-let overlayContainer
+let overlayContainer, canvasContainer
 let canvas, ctx, overlayCanvas
 let width, height
 let isInitialised = false
@@ -31,60 +31,41 @@ window.onload = function (event) {
   container = document.getElementById('container')
   container.classList.add('selected');
 
+  canvasContainer = document.getElementById('canvas-container')
+
+  canvas = document.getElementById('surface')
+  // canvasContainer.appendChild(canvas)
   width = window.innerWidth
   height = window.innerHeight
-
-  canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
-  // canvas.style.background = 'red';
 
-  // ctx = canvas.getContext('2d')
-  container.appendChild(canvas)
-
-  // overlayCanvas = document.createElement('canvas')
-  // overlayCanvas.width = width - 16
-  // overlayCanvas.height = height - 16
-
-  // overlayContainer = document.createElement('div')
   overlayContainer = document.getElementById('overlay-container')
   overlayContainer.classList.add('border')
   overlayContainer.classList.add('selected')
 
   dragContainer = document.getElementById('drag-container')
-  // dragContainer.style['-webkit-user-select'] = 'none'
-  // dragContainer.style.flex = 'auto'
   dragContainer.classList.add('draggable')
 
   // overlayContainer.appendChild(dragContainer)
 
-  // overlayContainer.appendChild(overlayCanvas)
-
   closeEl = document.getElementById('close')
-  // closeEl.classList.add('close');
   closeEl.classList.add('background');
   closeEl.classList.add('selected');
 
-  // let closeIcon = (new Icon('close', 24, 24)).element()
-  // closeEl.appendChild(closeIcon)
+  // overlayContainer.appendChild(closeEl)
 
   closeEl.addEventListener('click', (event) => {
     ipc.send('close-image')
   })
 
-  // overlayContainer.appendChild(closeEl)
-
   titleEl = document.getElementById('title')
-  // titleEl.classList.add('title');
   titleEl.classList.add('background');
   titleEl.classList.add('selected');
   titleEl.innerHTML = ''
 
-  // overlayContainer.appendChild(titleEl)
+  // document.body.appendChild(overlayContainer)
 
-  document.body.appendChild(overlayContainer)
-
-  // start()
   initEventListeners()
 
   ipc.send('request-image')
@@ -122,10 +103,8 @@ function canvasToWorld(x, y) {
 
 
 function draw() {
-  // width = canvas.width
-  // height = canvas.height
-
   ctx = canvas.getContext('2d')
+  ctx.save()
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
@@ -134,12 +113,23 @@ function draw() {
   }
 
   p = worldToCanvas(picture.x, picture.y)
-
   w = picture.image.width * settings.scale
   h = picture.image.height * settings.scale
 
+  ctx.globalAlpha = settings.opacity
   ctx.drawImage(picture.image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
 
+  ctx.restore()
+}
+
+function dragOn() {
+  dragContainer.classList.add('draggable')
+  // dragContainer.style.visibility = 'visible'
+}
+
+function dragOff() {
+  dragContainer.classList.remove('draggable')
+  // dragContainer.style.visibility = 'hidden'
 }
 
 
@@ -163,7 +153,9 @@ function stop() {
 
 
 function updateOpacity() {
-  container.style.opacity = settings.opacity
+  // canvasContainer.style.opacity = settings.opacity
+  // overlayContainer.style.opacity = 1
+  // ipc.send('console', settings.opacity)
 }
 
 function setTitle(name) {
@@ -171,7 +163,23 @@ function setTitle(name) {
 }
 
 function onImageReceived() {
-  overlayContainer.style.visibility = 'visible'
+  // overlayContainer.style.visibility = 'visible'
+  // dragContainer.classList.add('draggable')
+  dragOn()
+
+  ipc.send('console', 'image-received')
+
+  // let ratio = picture.image.height / picture.image.width
+  // let canvas = document.createElement('canvas')
+  // canvas.width = 56
+  // canvas.height = (56 * ratio) >> 0
+  //
+  // let ctx = canvas.getContext('2d')
+  // ctx.drawImage(picture.image, 0, 0, canvas.width, canvas.height)
+  //
+  // let dataURL = canvas.toDataURL()
+  // ipc.send('thumbnail', dataURL)
+
   start()
 }
 
@@ -187,7 +195,7 @@ function onKeyDown(event) {
     opacity = settings.opacity
     opacity = opacity + 0.1
     opacity = (opacity <= 1.0 ? opacity : 1.0)
-    container.style.opacity = opacity
+    // container.style.opacity = opacity
     settings.opacity = opacity
     updateOpacity()
 
@@ -195,7 +203,7 @@ function onKeyDown(event) {
     opacity = settings.opacity
     opacity = opacity - 0.1
     opacity = (opacity >= 0.1 ? opacity : 0.1)
-    container.style.opacity = opacity
+    // container.style.opacity = opacity
     settings.opacity = opacity
     updateOpacity()
 
@@ -216,10 +224,12 @@ function onKeyDown(event) {
 
   } else if ((event.key == 'Shift') && !event.repeat) {
     // ipc.send('console', 'shift')
-    dragContainer.classList.remove('draggable')
+    dragOff()
+    // dragContainer.classList.remove('draggable')
 
   } else if ((event.key == 'Control') && !event.repeat) {
-    dragContainer.classList.remove('draggable')
+    // dragContainer.classList.remove('draggable')
+    dragOff()
   }
 
   // message = event.key
@@ -229,10 +239,11 @@ function onKeyDown(event) {
 function onKeyUp(event) {
   if ((event.key == 'Shift') && !event.repeat) {
     // ipc.send('console', 'shiftup')
-    dragContainer.classList.add('draggable')
+    // dragContainer.classList.add('draggable')
+    dragOn()
   } else if ((event.key == 'Control') && !event.repeat) {
-
-    dragContainer.classList.add('draggable')
+    // dragContainer.classList.add('draggable')
+    dragOn()
   }
 }
 
@@ -310,18 +321,15 @@ function onMouseMove(e) {
 function onMouseDown(e) {
   if (e.shiftKey) {
     mode = 'pan'
-    dragContainer.classList.remove('draggable')
+    dragOff()
   } else if (e.ctrlKey) {
     mode = 'zoom'
-    dragContainer.classList.remove('draggable')
+    dragOff()
   }
-  // if (!e.shiftKey)
-  //   dragContainer.classList.add('draggable')
 }
 
 function onMouseUp(e) {
   mode = null
-  // if (!e.shiftKey) dragContainer.classList.add('draggable')
 }
 
 
@@ -377,26 +385,6 @@ function onContextMenu(e) {
 }
 
 
-function handleEvent(e) {
-  // if (e.type == 'keydown') onKeyDown(e)
-  // else if (e.type == 'keyup') onKeyUp(e)
-  // else if (e.type == 'wheel') onWheel(e)
-  // else if (e.type == 'mouseup') onMouseUp(e)
-  // else if (e.type == 'mousedown') onMouseDown(e)
-  // else if (e.type == 'mousemove') onMouseMove(e)
-  // else if (e.type == 'dragstart') onDragStart(e)
-  // else if (e.type == 'drag') onDrag(e)
-  // else if (e.type == 'drop') onDrop(e)
-  // else if (e.type == 'dragenter') onDragEnter(e)
-  // else if (e.type == 'dragover') onDragOver(e)
-  // else if (e.type == 'blur') onBlur(e)
-  // else if (e.type == 'focus') onFocus(e)
-  // else if (e.type == 'resize') onResize(e)
-  // else if (e.type == 'scroll') onScroll(e)
-  // else if (e.type == 'contextmenu') onContextMenu(e)
-}
-
-
 function initEventListeners() {
   document.body.addEventListener("wheel", onWheel)
   window.addEventListener('keydown', onKeyDown)
@@ -416,23 +404,14 @@ function initEventListeners() {
   window.addEventListener('resize', onResize)
 }
 
-
-// function requestSettings() {
-  // ipc.send('request-settings');
-// }
-
-
-// function saveSettings() {
-//   ipc.send('save-settings', settings);
-// }
-
-
 ipc.on('settings', function(event, arg1) {
   for (i in arg1) {
     settings[i] = arg1[i]
   }
-  container.style.opacity = settings.opacity
+  // container.style.opacity = settings.opacity
+  updateOpacity()
   isInitialised = true
+  ipc.send('console', settings)
 })
 
 
@@ -443,15 +422,14 @@ ipc.on('initialise', function(event, imagePath) {
 
 
 ipc.on('image', function(event, imagePath) {
-  // console.log('image:', imagePath)
-
   fs.readFile(imagePath, null, function(err, data) {
-      // console.log(imagePath);
       image = new Image()
       image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
-      picture = new Picture(image, 0, 0)
+      image.onload = (e) => {
+        picture = new Picture(e.target, 0, 0)
+        onImageReceived()
+      }
       setTitle(filename)
-      onImageReceived();
   })
 
   index1 = imagePath.lastIndexOf('/')
@@ -463,8 +441,6 @@ ipc.on('image', function(event, imagePath) {
     if (index2 != -1)
       filename = imagePath.substring(index2 + 1)
   }
-
-  // overlayContainer.title = imagePath
 })
 
 

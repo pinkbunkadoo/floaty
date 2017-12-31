@@ -148,7 +148,6 @@ function createMenu() {
 function startup() {
   if (!mainWindow) {
 
-    // if (process.platform === 'darwin') app.dock.hide()
     mainWindow = new BrowserWindow({ show: false })
 
     dropWindow = new BrowserWindow({
@@ -189,15 +188,10 @@ function startup() {
       })
     }
 
-    // Menu.setApplicationMenu(menu)
-    // Menu.setApplicationMenu(null)
-
     // dropWindow.webContents.openDevTools({ mode:'bottom' })
 
-    dropWindow.setContentBounds({ x: 0, y: 0, width: 360, height: 360 })
+    dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 360 })
     dropWindow.center()
-
-    // console.log(__dirname);
 
     dropWindow.loadURL(url.format({
       pathname: path.join(__dirname, '../drop_window.html'),
@@ -271,14 +265,9 @@ function showAbout() {
     aboutWindow.close()
   }
 
-  options = {}
-
   aboutWindow = new BrowserWindow({
     show: true,
     alwaysOnTop: true
-    // resizable: false,
-    // backgroundColor: '#808080',
-    // frame: false
   })
 
   aboutWindow.loadURL(url.format({
@@ -290,8 +279,8 @@ function showAbout() {
   aboutWindow.on('close', () => {
     aboutWindow = null
   })
-  // aboutWindow.webContents.openDevTools({ mode:'bottom' })
 
+  // aboutWindow.webContents.openDevTools({ mode:'bottom' })
 }
 
 function createWindow(imagePath, x, y) {
@@ -321,10 +310,7 @@ function createWindow(imagePath, x, y) {
     hasShadow: false,
     frame: false,
     disableAutoHideCursor: true,
-    // modal = process.plaftorm !== 'darwin' ? false : true,
-    // modal = true
     skipTaskbar: true,
-    // alwaysOnTop: true,
     acceptFirstMouse: true,
     parent: mainWindow
   })
@@ -369,19 +355,13 @@ app.on('show', function() {
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-
   if (mainWindow === null) {
     startup()
   } else {
-    // mainWindow.show()
     setIncognito(false)
   }
-  // console.log('activate')
 })
 
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
 
 ipcMain.on('move-window-by', function (event, x, y) {
   handle = BrowserWindow.fromWebContents(event.sender)
@@ -389,7 +369,6 @@ ipcMain.on('move-window-by', function (event, x, y) {
   bounds.x += x
   bounds.y += y
   handle.setBounds(bounds)
-  // console.log(x, y)
 })
 
 ipcMain.on('console', function (event, arg) {
@@ -402,22 +381,27 @@ ipcMain.on('request-image', function(event) {
   event.sender.send('image', handle.imagePath)
 })
 
+ipcMain.on('request-image-list', function(event) {
+  handle = BrowserWindow.fromWebContents(event.sender)
+  let list = frames.map((element) => {
+    return element.imagePath;
+  })
+  // console.log(list)
+  event.sender.send('image-list', list)
+})
 
 ipcMain.on('request-incognito', function(event) {
   setIncognito(true)
 })
 
-
 ipcMain.on('request-quit', function(event) {
   dropWindow.close()
 })
-
 
 ipcMain.on('image-drop', function(event, path, x, y) {
   let bounds = dropWindow.getContentBounds()
   createWindow(path, bounds.x + x, bounds.y + y)
 })
-
 
 ipcMain.on('close-image', (event) => {
   let handle = BrowserWindow.fromWebContents(event.sender)
