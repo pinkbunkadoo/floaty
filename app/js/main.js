@@ -224,24 +224,22 @@ function startup() {
     })
 
     try {
-      iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray.png'
+      iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray_light.png'
       iconPath = app.getAppPath() + '/app/images/' + iconFilename;
 
       tray = new Tray(iconPath)
       contextMenu = Menu.buildFromTemplate([
-        {label: 'Show/Hide', click: (menuItem) => {
-          setIncognito(!incognito)
-          // menuItem.checked = incognito
-        }},
+        {
+          label: 'Show/Hide', click: (menuItem) => {
+            setIncognito(!incognito)
+          }
+        },
         { type: 'separator' },
-        {label: 'About', click: (menuItem) => {
-          // app.about()
-          showAbout()
-        }},
-        { type: 'separator' },
-        {label: 'Quit', click: (menuItem) => {
-          app.quit()
-        }}
+        {
+          label: 'Quit', click: (menuItem) => {
+            app.quit()
+          }
+        }
       ])
       tray.setToolTip('Floaty! :)')
       tray.setContextMenu(contextMenu)
@@ -250,7 +248,8 @@ function startup() {
         dropWindow.show()
       })
     } catch (e) {
-      console.log('Unable to create tray icon', e);
+      console.log('Unable to create tray icon!');
+      console.log(e);
     }
   }
 }
