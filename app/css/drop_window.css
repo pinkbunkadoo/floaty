@@ -52,6 +52,21 @@
   /* background: white; */
 }
 
+.title-icon {
+  width: 1em;
+  height: 1em;
+  min-width: 1em;
+  min-height: 1em;
+  margin-left: 6px;
+  margin-right: 6px;
+  -webkit-app-region: no-drag;
+  fill: rgba(0, 0, 0, 0.75);
+}
+
+.title-icon:hover {
+  fill: rgba(0, 0, 0, 0.5);
+}
+
 #icons {
   display: flex;
   position: absolute;
@@ -60,41 +75,11 @@
   right: 0;
   height: 38px;
   margin-right: 7px;
+  font-size: 16px;
 }
 
 #icons.selected {
 
-}
-
-#eye {
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
-  min-height: 16px;
-  margin-left: 4px;
-  margin-right: 4px;
-  -webkit-app-region: no-drag;
-  fill: rgba(0, 0, 0, 0.75);
-}
-
-#eye:hover {
-  /* fill: lightgray; */
-  fill: rgba(0, 0, 0, 0.5);
-}
-
-#close {
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
-  min-height: 16px;
-  margin-left: 4px;
-  margin-right: 4px;
-  fill: rgba(0, 0, 0, 0.75);
-  -webkit-app-region: no-drag;
-}
-
-#close:hover {
-  fill: rgba(0, 0, 0, 0.5);
 }
 
 .container {
