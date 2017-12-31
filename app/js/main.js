@@ -228,6 +228,12 @@ function startup() {
       iconPath = app.getAppPath() + '/app/images/' + iconFilename;
 
       tray = new Tray(iconPath)
+      
+      if (process.platform === 'darwin') {
+        pressedImage = nativeImage.createFromPath(app.getAppPath() + '/app/images/tray_light.png')
+        tray.setPressedImage(pressedImage)
+      }
+
       contextMenu = Menu.buildFromTemplate([
         {
           label: 'Show/Hide', click: (menuItem) => {
