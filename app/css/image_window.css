@@ -40,7 +40,7 @@
   top: 0px;
   width: 100%;
   box-sizing: border-box;
-  padding: 6px;
+  padding: 8px;
 }
 
 .spacer {
@@ -53,8 +53,8 @@
   overflow: hidden;
   padding: 6px 12px 6px 12px;
   height: 24px;
-  color: white;
-  font-size: 14px;
+  /* color: white; */
+  font-size: 12px;
   box-sizing: border-box;
   border-radius: 3px;
   margin-right: 5px;
@@ -68,12 +68,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  fill: white;
+  /* fill: white; */
   width: 24px;
   height: 24px;
   min-width: 24px;
   max-width: 24px;
-  margin: 6px;
+  margin: 8px;
   padding: 6px;
   border-radius: 24px;
   box-sizing: border-box;
@@ -81,14 +81,16 @@
   -webkit-app-region: no-drag;
 }
 
-.background {
+.background.selected {
   background-color: rgba(0, 0, 0, 0.7);
-  opacity: 1;
+  fill: white;
+  color: white;
 }
 
-.background.selected {
-  opacity: 1;
-  background-color: dodgerblue;
+.background {
+  background-color: rgba(240, 240, 240, 1);
+  fill: #404040;
+  color: #404040;
 }
 
 .draggable {
@@ -102,6 +104,6 @@
 }
 
 .border.selected {
-  /* border-color: rgb(0, 255, 0); */
-  border-color: dodgerblue;
+  /* border-color: dodgerblue; */
+  border-color: white;
 }
