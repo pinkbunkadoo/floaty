@@ -2,9 +2,9 @@ const BrowserWindow = require('electron').remote.BrowserWindow
 const ipc = require('electron').ipcRenderer
 const fs = require('fs')
 // const app =  require('electron').app
-const Point = require('./point')
-const Picture = require('./picture')
-const Icon = require('./icon')
+const Point = require('../point')
+const Picture = require('../picture')
+const Icon = require('../icon')
 
 let container, perimeter, dragOverlay
 let isInitialised = false

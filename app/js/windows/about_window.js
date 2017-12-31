@@ -2,7 +2,7 @@ const BrowserWindow = require('electron').remote.BrowserWindow
 const ipc = require('electron').ipcRenderer
 const fs = require('fs')
 
-const Icon = require('./icon')
+const Icon = require('../icon')
 
 let icons = {}
 

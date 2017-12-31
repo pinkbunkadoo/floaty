@@ -1,0 +1,30 @@
+html, body {
+  padding: 0px;
+  margin: 0px;
+  background: lightgray;
+  color: rgba(0, 0, 0, 0.75);
+  font-family: sans-serif;
+  -webkit-user-select: none;
+  -ms-user-select:none;
+  -moz-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+.main {
+  padding: 16px;
+  margin-top: 32px;
+}
+.heading {
+  font-size: 32px;
+  margin-bottom: 16px;
+  font-weight: bold;
+}
+.sub-heading {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.content {
+  font-size: 12px;
+
+}

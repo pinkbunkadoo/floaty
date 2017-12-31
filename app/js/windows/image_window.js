@@ -1,9 +1,9 @@
 const BrowserWindow = require('electron').remote.BrowserWindow
 const ipc = require('electron').ipcRenderer
 
-const Point = require('./point')
-const Picture = require('./picture')
-const Icon = require('./icon')
+const Point = require('../point')
+const Picture = require('../picture')
+const Icon = require('../icon')
 
 const fs = require('fs')
 
@@ -25,7 +25,6 @@ let message
 let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
 
 let mousedown = false
-
 
 window.onload = function (event) {
 

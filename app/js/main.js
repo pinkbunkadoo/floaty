@@ -28,16 +28,13 @@ function setIncognito(value) {
 
     if (incognito) {
       dropWindow.setIgnoreMouseEvents(true)
-      // dropWindow.minimize()
       dropWindow.hide()
-      // mainWindow.hide()
+      if (process.platform === 'darwin') app.dock.hide()
     } else {
       dropWindow.setIgnoreMouseEvents(false)
-      // dropWindow.restore()
       dropWindow.show()
-      // mainWindow.show()
+      if (process.platform === 'darwin') app.dock.show()
     }
-
 
     for (var i = 0; i < frames.length; i++) {
       frame = frames[i]
@@ -49,7 +46,6 @@ function setIncognito(value) {
         frame.setAlwaysOnTop(false)
       }
       frame.send('incognito', value)
-
     }
 
   }
@@ -275,11 +271,14 @@ function showAbout() {
   })
 
   aboutWindow.loadURL(url.format({
-    pathname: path.join(__dirname, '../about.html'),
+    pathname: path.join(__dirname, '../about_window.html'),
     protocol: 'file:',
     slashes: true
   }))
 
+  aboutWindow.on('close', () => {
+    aboutWindow = null
+  })
   // aboutWindow.webContents.openDevTools({ mode:'bottom' })
 
 }
