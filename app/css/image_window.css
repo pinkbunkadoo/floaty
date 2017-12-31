@@ -53,7 +53,6 @@
   overflow: hidden;
   padding: 6px 12px 6px 12px;
   height: 24px;
-  /* color: white; */
   font-size: 12px;
   box-sizing: border-box;
   border-radius: 3px;
@@ -81,15 +80,14 @@
 }
 
 .background {
-  background-color: #c0c0c0;
-  fill: #404040;
-  color: #404040;
+  background-color: rgba(32, 32, 32, 0.8);
+  fill: #dddddd;
+  color: #dddddd;
 }
 
 .background.selected {
-  background-color: white;
-  fill: #404040;
-  color: #404040;
+  fill: white;
+  color: white;
 }
 
 .draggable {
@@ -103,6 +101,5 @@
 }
 
 .border.selected {
-  /* border-color: dodgerblue; */
   border-color: white;
 }
