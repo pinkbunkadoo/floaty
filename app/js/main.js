@@ -248,12 +248,12 @@ function startup() {
         },
         { type: 'separator' },
         {
-          label: 'Quit', click: (menuItem) => {
+          label: 'Quit ' + appName, click: (menuItem) => {
             app.quit()
           }
         }
       ])
-      tray.setToolTip('Floaty! :)')
+      tray.setToolTip(appName + '! :)')
       tray.setContextMenu(contextMenu)
       tray.on('click', () => {
         setIncognito(false)
