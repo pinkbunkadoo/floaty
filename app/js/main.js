@@ -155,12 +155,10 @@ function createMenu() {
 function startup() {
   if (!mainWindow) {
 
-    mainWindow = new BrowserWindow({ show: false })
-
-    if (process.platform === 'darwin') {
-    } else {
-
-    }
+    // mainWindow = new BrowserWindow({
+    //   focusable: true,
+    //   show: true
+    // })
 
     dropWindow = new BrowserWindow({
       title: appName,
@@ -175,9 +173,12 @@ function startup() {
       acceptFirstMouse: true,
       minimizable: false,
       maximizable: false,
-      autoHideMenuBar: true
-      // parent: mainWindow,
+      autoHideMenuBar: true,
+      parent: null
+      // parent: mainWindow
     })
+
+    mainWindow = dropWindow
 
     // if (process.platform !== 'darwin') mainWindow = dropWindow
 
@@ -350,7 +351,8 @@ function createImageWindow(picture) {
     disableAutoHideCursor: true,
     skipTaskbar: true,
     acceptFirstMouse: true,
-    parent: process.platform === 'darwin' ? mainWindow : dropWindow
+    parent: mainWindow
+    // parent: process.platform === 'darwin' ? mainWindow : dropWindow
     // parent: process.platform === 'darwin' ? mainWindow : null
   })
 

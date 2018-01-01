@@ -1,5 +1,5 @@
 const BrowserWindow = require('electron').remote.BrowserWindow
-const ipc = require('electron').ipcRenderer
+const ipcRenderer = require('electron').ipcRenderer
 const fs = require('fs')
 const Point = require('../point')
 const Picture = require('../picture')
@@ -26,11 +26,11 @@ window.onload = function (event) {
   close = document.getElementById('close')
 
   eye.onclick = function() {
-    ipc.send('request-incognito')
+    ipcRenderer.send('request-incognito')
   }
 
   close.onclick = function() {
-    ipc.send('request-quit')
+    ipcRenderer.send('request-quit')
   }
 
   if (process.platform === 'darwin') close.style.display = 'none'
@@ -76,7 +76,7 @@ function onDrop(e) {
   e.stopPropagation()
 
   let file = e.dataTransfer.files[0]
-  ipc.send('image-drop', file.path, e.clientX, e.clientY)
+  ipcRenderer.send('image-drop', file.path, e.clientX, e.clientY)
 }
 
 function onDragEnter(e) {
@@ -177,13 +177,13 @@ function createThumbnail(dataURL, imagePath) {
   }
 }
 
-ipc.on('thumbnails', function(event, arg) {
+ipcRenderer.on('thumbnails', function(event, arg) {
   for (let i = 0; i < arg.length; i++) {
     createThumbnail(arg[i].data, arg[i].path)
   }
 })
 
-ipc.on('remove-image', function(event, path) {
+ipcRenderer.on('remove-image', function(event, path) {
   let found = null
   for (let i = 0; i < thumbnailContainer.childNodes.length; i++) {
     let node = thumbnailContainer.childNodes[i]
@@ -197,11 +197,11 @@ ipc.on('remove-image', function(event, path) {
   }
 })
 
-ipc.on('new-image', function(event, arg) {
+ipcRenderer.on('new-image', function(event, arg) {
   createThumbnail(arg.data, arg.path)
 })
 
-ipc.on('incognito', function(event, arg1) {
+ipcRenderer.on('incognito', function(event, arg1) {
   incognito = arg1
   if (incognito) {
     container.style.opacity = 0
