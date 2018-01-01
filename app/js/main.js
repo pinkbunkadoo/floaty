@@ -189,7 +189,7 @@ function startup() {
       })
     }
 
-    dropWindow.webContents.openDevTools({ mode:'bottom' })
+    // dropWindow.webContents.openDevTools({ mode:'bottom' })
 
     dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 480 })
     dropWindow.center()
