@@ -155,10 +155,10 @@ function createMenu() {
 function startup() {
   if (!mainWindow) {
 
-    // mainWindow = new BrowserWindow({
-    //   focusable: true,
-    //   show: true
-    // })
+    mainWindow = new BrowserWindow({
+      // focusable: true,
+      show: false
+    })
 
     dropWindow = new BrowserWindow({
       title: appName,
@@ -174,11 +174,11 @@ function startup() {
       minimizable: false,
       maximizable: false,
       autoHideMenuBar: true,
-      parent: null
-      // parent: mainWindow
+      // parent: null
+      parent: mainWindow
     })
 
-    mainWindow = dropWindow
+    // mainWindow = dropWindow
 
     // if (process.platform !== 'darwin') mainWindow = dropWindow
 
@@ -203,6 +203,7 @@ function startup() {
 
     dropWindow.on('focus', () => {
       setIncognito(false)
+      // mainWindow.focus()
     })
 
     dropWindow.on('close', () => {
@@ -352,13 +353,13 @@ function createImageWindow(picture) {
     skipTaskbar: true,
     acceptFirstMouse: true,
     parent: process.platform === 'darwin' ? null : mainWindow
-    // parent: process.platform === 'darwin' ? mainWindow : dropWindow
-    // parent: process.platform === 'darwin' ? mainWindow : null
   })
 
   frame.firstFocus = true
 
-  frame.setBounds({ x: picture.x, y: picture.y, width: 640, height: 480})
+  let bounds = dropWindow.getBounds()
+
+  frame.setBounds({ x: bounds.x, y: bounds.y, width: 640, height: 480})
   frame.center()
 
   frame.on('focus', () => {})

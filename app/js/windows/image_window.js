@@ -24,7 +24,7 @@ let focused = true
 let active = false
 let message
 
-let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
+let settings = { scale: 1.0, opacity: 0.5, left: 0, top: 0 }
 
 let mouseLeft = false
 
@@ -81,16 +81,21 @@ function worldToCanvas(x, y) {
   var sx = (tx * settings.scale)
   var sy = (ty * settings.scale)
 
-  var widthHalf = (width * 0.5) >> 0
-  var heightHalf = (height * 0.5) >> 0
+  // var widthHalf = (width * 0.5) >> 0
+  // var heightHalf = (height * 0.5) >> 0
+
+  var widthHalf = (width / 2)
+  var heightHalf = (height / 2)
 
   return new Point(sx + widthHalf, sy + heightHalf)
 }
 
 
 function canvasToWorld(x, y) {
-  var widthHalf = (width / 2) >> 0
-  var heightHalf = (height / 2) >> 0
+  // var widthHalf = (width / 2) >> 0
+  // var heightHalf = (height / 2) >> 0
+  var widthHalf = (width / 2)
+  var heightHalf = (height / 2)
 
   var px = x - widthHalf
   var py = y - heightHalf
@@ -167,7 +172,7 @@ function draw(quality='medium') {
     h = image.height * settings.scale
     ctx.imageSmoothingQuality = quality
     ctx.globalAlpha = settings.opacity
-    ctx.drawImage(image, p.x - (w * 0.5) >> 0, p.y - (h * 0.5) >> 0, Math.round(w), Math.round(h))
+    ctx.drawImage(image, p.x - (w/2), p.y - (h/2), w, h)
   }
   // ctx.fillStyle = 'white'
   // ctx.font = '48px sans-serif'
