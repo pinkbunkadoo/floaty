@@ -19,15 +19,16 @@ let picture
 let focusFrame
 
 let focused = true
-let active = true
+let active = false
 let message
 
 let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
 
 let mousedown = false
 
-window.onload = function (event) {
+let timerId = null
 
+window.onload = function (event) {
   container = document.getElementById('container')
   container.classList.add('selected');
 
@@ -68,7 +69,7 @@ window.onload = function (event) {
 
   initEventListeners()
 
-  ipc.send('request-image')
+  if (!picture) ipc.send('request-image')
 }
 
 function worldToCanvas(x, y) {
@@ -101,6 +102,46 @@ function canvasToWorld(x, y) {
   return new Point(tx, ty)
 }
 
+function resetAnimationTimer() {
+  if (timerId) {
+    clearTimeout(timerId)
+  }
+  timerId = setTimeout(() => {
+      // clearInterval(timerId)
+      timerId = null
+      stop()
+  }, 1000)
+  if (!active) start()
+}
+
+function zoomBy(x) {
+  settings.scale += x
+  if (settings.scale < 0.5) settings.scale = 0.5
+  if (settings.scale > 4) settings.scale = 4
+  resetAnimationTimer()
+}
+
+function scrollBy(dx, dy) {
+  settings.left += dx
+  settings.top += dy
+
+  let xmax = picture.image.width / 2
+  let ymax = picture.image.height / 2
+
+  if (settings.left < -xmax) {
+    settings.left = -xmax
+  } else if (settings.left > xmax) {
+    settings.left = xmax
+  }
+  if (settings.top < -ymax) {
+    settings.top = -ymax
+  } else if (settings.top > ymax) {
+    settings.top = ymax
+  }
+
+  resetAnimationTimer()
+}
+
 
 function draw() {
   ctx = canvas.getContext('2d')
@@ -118,6 +159,10 @@ function draw() {
 
   ctx.globalAlpha = settings.opacity
   ctx.drawImage(picture.image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
+
+  // ctx.fillStyle = 'white'
+  // ctx.font = '48px sans-serif'
+  // ctx.fillText(settings.left, 50, 100)
 
   ctx.restore()
 }
@@ -144,15 +189,24 @@ function frame() {
 function start() {
   active = true
   requestAnimationFrame(frame)
+  // ipc.send('console', 'start-animation')
 }
 
 
 function stop() {
   active = false
+  // ipc.send('console', 'stop-animation')
 }
 
 
-function updateOpacity() {
+function updateOpacity(value) {
+  // opacity = settings.opacity
+  // opacity = opacity - 0.05
+  settings.opacity = value
+  settings.opacity = (settings.opacity >= 0.05 ? settings.opacity : 0.05)
+  settings.opacity = (settings.opacity <= 1 ? settings.opacity : 1)
+
+  draw()
   // canvasContainer.style.opacity = settings.opacity
   // overlayContainer.style.opacity = 1
   // ipc.send('console', settings.opacity)
@@ -162,84 +216,78 @@ function setTitle(name) {
   titleEl.innerHTML = name
 }
 
+let thumbSize = 64
+
+function generateThumbnail() {
+  let img = picture.image
+  let ratio = img.width / img.height
+  let canvas = document.createElement('canvas')
+  canvas.width = (thumbSize * ratio) >> 0
+  canvas.height = (thumbSize) >> 0
+  let ctx = canvas.getContext('2d')
+  ctx.fillStyle = 'black'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.imageSmoothingQuality = 'medium'
+  // console.log(ctx.imageSmoothingQuality)
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+  let dataURL = canvas.toDataURL()
+  return dataURL
+}
+
 function onImageReceived() {
-  // overlayContainer.style.visibility = 'visible'
-  // dragContainer.classList.add('draggable')
-  dragOn()
-
-  ipc.send('console', 'image-received')
-
-  // let ratio = picture.image.height / picture.image.width
-  // let canvas = document.createElement('canvas')
-  // canvas.width = 56
-  // canvas.height = (56 * ratio) >> 0
-  //
-  // let ctx = canvas.getContext('2d')
-  // ctx.drawImage(picture.image, 0, 0, canvas.width, canvas.height)
-  //
-  // let dataURL = canvas.toDataURL()
-  // ipc.send('thumbnail', dataURL)
-
-  start()
+  // dragOn()
+  // ipc.send('console', 'image-received')
+  let thumbnail = generateThumbnail()
+  ipc.send('thumbnail', thumbnail)
+  // console.log();
+  // start()
+  draw()
 }
-
-
-function onWheel(e) {
-  e.preventDefault()
-}
-
 
 function onKeyDown(event) {
   if ((event.key == '=' || event.key == '+')) {
-    opacity = settings.opacity
-    opacity = opacity + 0.05
-    opacity = (opacity <= 1.0 ? opacity : 1.0)
-    settings.opacity = opacity
-    updateOpacity()
+    // opacity = settings.opacity
+    // opacity = opacity + 0.05
+    // opacity = (opacity <= 1.0 ? opacity : 1.0)
+    // settings.opacity = opacity
+    updateOpacity(settings.opacity + 0.05)
 
   } else if (event.key == '-') {
-    opacity = settings.opacity
-    opacity = opacity - 0.05
-    opacity = (opacity >= 0.05 ? opacity : 0.05)
-    settings.opacity = opacity
-    updateOpacity()
+    // opacity = settings.opacity
+    // opacity = opacity - 0.05
+    // opacity = (opacity >= 0.05 ? opacity : 0.05)
+    // settings.opacity = opacity
+    updateOpacity(settings.opacity - 0.05)
 
   } else if (event.key == ',') {
-    scale = settings.scale
-    scale = scale - 0.5
-    scale = (scale < 0.5 ? 0.5 : scale)
-    settings.scale = scale
+    // scale = settings.scale
+    // scale = scale - 0.5
+    // scale = (scale < 0.5 ? 0.5 : scale)
+    // settings.scale = scale
+    zoomBy(-0.5)
 
   } else if (event.key == '.') {
-    scale = settings.scale
-    scale = scale + 0.5
-    scale = (scale > 8.0 ? 8.0 : scale)
-    settings.scale = scale
+    // scale = settings.scale
+    // scale = scale + 0.5
+    // scale = (scale > 8.0 ? 8.0 : scale)
+    // settings.scale = scale
+    zoomBy(0.5)
 
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
     ipc.send('close-image')
 
   } else if ((event.key == 'Shift') && !event.repeat) {
-    // ipc.send('console', 'shift')
     dragOff()
-    // dragContainer.classList.remove('draggable')
 
   } else if ((event.key == 'Control') && !event.repeat) {
-    // dragContainer.classList.remove('draggable')
     dragOff()
   }
-
-  // message = event.key
-  // draw()
 }
 
 function onKeyUp(event) {
   if ((event.key == 'Shift') && !event.repeat) {
-    // ipc.send('console', 'shiftup')
-    // dragContainer.classList.add('draggable')
     dragOn()
   } else if ((event.key == 'Control') && !event.repeat) {
-    // dragContainer.classList.add('draggable')
     dragOn()
   }
 }
@@ -274,10 +322,40 @@ function onDragOver(e) {
   e.dataTransfer.dropEffect = 'none'
 }
 
+function onWheel(e) {
+  e.preventDefault()
+  // ipc.send('console', e.deltaZ)
+  let x = e.deltaX / settings.scale
+  let y = e.deltaY / settings.scale
+  // settings.left = settings.left + e.deltaX / settings.scale
+  // settings.top = settings.top + e.deltaY / settings.scale
+  if (e.ctrlKey) {
+    zoomBy(-e.deltaY * (settings.scale * 0.01))
+  } else {
+    scrollBy(x, y)
+  }
+}
+
+function onMouseDown(e) {
+  if (e.shiftKey) {
+    mode = 'pan'
+    dragOff()
+  } else if (e.ctrlKey) {
+    mode = 'zoom'
+    dragOff()
+  } else {
+    if (e.buttons & 2) {
+      settings.left = 0
+      settings.top = 0
+    }
+  }
+}
+
+function onMouseUp(e) {
+  mode = null
+}
 
 function onMouseMove(e) {
-  // ipc.send('console', 'move')
-
   if (e.buttons & 1) {
     if (e.shiftKey) {
       if (mode !== 'pan') {
@@ -295,40 +373,18 @@ function onMouseMove(e) {
     }
 
     if (mode === 'pan') {
-      settings.left = settings.left - e.movementX / settings.scale
-      settings.top = settings.top - e.movementY / settings.scale
+      // settings.left = settings.left - e.movementX / settings.scale
+      // settings.top = settings.top - e.movementY / settings.scale
+      scrollBy(-e.movementX / settings.scale, -e.movementY / settings.scale)
       // saveSettings()
 
     } else if (mode === 'zoom') {
       if (image) {
-        // x = settings.left + canvas.width * 0.5
-        // y = settings.top + canvas.height * 0.5
-
-        settings.scale = (settings.scale + (e.movementX * (settings.scale * 0.002)))
-        if (settings.scale < 0.5) settings.scale = 0.5
-        if (settings.scale > 4) settings.scale = 4
-
-        // settings.left = x - canvas.width * 0.5
-        // settings.top = y - canvas.height * 0.5
+        zoomBy(e.movementX * (settings.scale * 0.002))
       }
     }
   }
 }
-
-function onMouseDown(e) {
-  if (e.shiftKey) {
-    mode = 'pan'
-    dragOff()
-  } else if (e.ctrlKey) {
-    mode = 'zoom'
-    dragOff()
-  }
-}
-
-function onMouseUp(e) {
-  mode = null
-}
-
 
 function onBlur(e) {
   overlayContainer.classList.remove('selected')
@@ -339,7 +395,6 @@ function onBlur(e) {
   focused = false
   mode = null
 }
-
 
 function onFocus(e) {
   overlayContainer.classList.add('selected')
@@ -363,17 +418,20 @@ function onResize(e) {
 
       canvas.width = width
       canvas.height = height
+
+      draw()
       // overlayCanvas.width = width - 16
       // overlayCanvas.height = height - 16
 
      // The actualResizeHandler will execute at a rate of 15fps
-   }, 66)
+   }, 1000/30)
   }
 }
 
 
 function onScroll(e) {
   // console.log('scroll')
+  // ipc.send('console', 'scroll')
 }
 
 
@@ -406,9 +464,9 @@ ipc.on('settings', function(event, arg1) {
     settings[i] = arg1[i]
   }
   // container.style.opacity = settings.opacity
-  updateOpacity()
+  updateOpacity(settings.opacity)
   isInitialised = true
-  ipc.send('console', settings)
+  // ipc.send('console', settings)
 })
 
 
@@ -457,6 +515,6 @@ ipc.on('incognito', function(event, arg1) {
     overlayContainer.style.opacity = 1
     // container.style.borderRadius = '6px'
     container.classList.add('selected');
-    start()
+    draw()
   }
 })

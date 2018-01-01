@@ -375,19 +375,24 @@ ipcMain.on('console', function (event, arg) {
   console.log(arg)
 })
 
+ipcMain.on('thumbnail', function (event, arg) {
+  // console.log('thumbnail');
+  let handle = BrowserWindow.fromWebContents(event.sender)
+  handle.thumbnail = arg
+  // console.log(arg)
+  dropWindow.send('new-image', { data: handle.thumbnail, path: handle.imagePath })
+})
+
+ipcMain.on('request-thumbnails', function(event) {
+  let list = frames.map((frame) => {
+    return { data: frame.thumbnail, path: frame.imagePath };
+  })
+  event.sender.send('thumbnails', list)
+})
 
 ipcMain.on('request-image', function(event) {
   handle = BrowserWindow.fromWebContents(event.sender)
   event.sender.send('image', handle.imagePath)
-})
-
-ipcMain.on('request-image-list', function(event) {
-  handle = BrowserWindow.fromWebContents(event.sender)
-  let list = frames.map((element) => {
-    return element.imagePath;
-  })
-  // console.log(list)
-  event.sender.send('image-list', list)
 })
 
 ipcMain.on('request-incognito', function(event) {
@@ -416,6 +421,8 @@ ipcMain.on('close-image', (event) => {
   }
 
   if (index != -1) {
+    let path = frames[index].imagePath
+    dropWindow.send('remove-image', path)
     frames.splice(index, 1)
   }
 

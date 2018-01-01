@@ -39,7 +39,7 @@ window.onload = function (event) {
 
   initEventListeners()
 
-  ipc.send('request-image-list')
+  ipc.send('request-thumbnails')
 }
 
 function startup() {
@@ -156,57 +156,71 @@ function initEventListeners() {
   window.addEventListener('resize', onResize);
 }
 
-function createThumbnail(dataURL) {
+function createThumbnail(dataURL, imagePath) {
   let image = new Image()
   image.src = dataURL
   image.onload = (e) => {
     let img = e.target
     let el = document.createElement('div')
+    el.dataset.path = imagePath
     el.classList.add('thumbnail')
     el.appendChild(img)
-    el.style.width = img.width + 'px'
-    el.style.height = img.height + 'px'
+    // let w = img.width
+    // let h = img.height
+    let w = (img.width * 0.5) >> 0
+    let h = (img.height * 0.5) >> 0
+    el.style.width = (w) + 'px'
+    el.style.height = (h) + 'px'
+    img.width = w
+    img.height = h
     thumbnailContainer.appendChild(el)
   }
 }
 
 function processImage(arg) {
-  fs.readFile(arg, null, function(err, data) {
-      image = new Image()
-      image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
-      image.onload = (e) => {
-        let img = e.target
-        let ratio = img.height / img.width
-        let canvas = document.createElement('canvas')
-        canvas.width = thumbWidth
-        canvas.height = (thumbWidth * ratio) >> 0
-        let ctx = canvas.getContext('2d')
-        ctx.fillStyle = 'black'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-        ctx.imageSmoothingQuality = 'medium'
-        // console.log(ctx.imageSmoothingQuality)
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        let dataURL = canvas.toDataURL()
-        createThumbnail(dataURL)
-      }
-  })
+  // fs.readFile(arg, null, function(err, data) {
+  //     image = new Image()
+  //     image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
+  //     image.onload = (e) => {
+  //       let img = e.target
+  //       let ratio = img.height / img.width
+  //       let canvas = document.createElement('canvas')
+  //       canvas.width = thumbWidth
+  //       canvas.height = (thumbWidth * ratio) >> 0
+  //       let ctx = canvas.getContext('2d')
+  //       ctx.fillStyle = 'black'
+  //       ctx.fillRect(0, 0, canvas.width, canvas.height)
+  //       ctx.imageSmoothingQuality = 'medium'
+  //       // console.log(ctx.imageSmoothingQuality)
+  //       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+  //       let dataURL = canvas.toDataURL()
+  //       createThumbnail(dataURL)
+  //     }
+  // })
 }
 
-ipc.on('image-list', function(event, arg) {
-  // console.log(arg)
+ipc.on('thumbnails', function(event, arg) {
   for (let i = 0; i < arg.length; i++) {
-    processImage(arg[i])
+    createThumbnail(arg[i].data, arg[i].path)
   }
 })
 
-ipc.on('image', function(event, arg) {
-  processImage(arg)
-  // let el = document.createElement('div')
-  // el.classList.add('thumbnail')
-  // let image = new Image()
-  // image.src = arg
-  // el.appendChild(image)
-  // thumbnailContainer.appendChild(el)
+ipc.on('remove-image', function(event, path) {
+  let found = null
+  for (let i = 0; i < thumbnailContainer.childNodes.length; i++) {
+    let node = thumbnailContainer.childNodes[i]
+    if (node.dataset.path === path) {
+      found = node
+      break
+    }
+  }
+  if (found) {
+    thumbnailContainer.removeChild(found)
+  }
+})
+
+ipc.on('new-image', function(event, arg) {
+  createThumbnail(arg.data, arg.path)
 })
 
 ipc.on('incognito', function(event, arg1) {
