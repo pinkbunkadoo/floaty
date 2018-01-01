@@ -75,7 +75,7 @@ function onDrop(e) {
   e.preventDefault()
   e.stopPropagation()
 
-  file = e.dataTransfer.files[0]
+  let file = e.dataTransfer.files[0]
   ipc.send('image-drop', file.path, e.clientX, e.clientY)
 }
 

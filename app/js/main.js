@@ -1,5 +1,9 @@
 
-const {app, Tray, nativeImage, Menu, ipcMain, globalShortcut, BrowserWindow} = require('electron')
+const electron = require('electron')
+const { app, nativeImage, ipcMain, globalShortcut } = require('electron')
+const { Tray } = require('electron')
+const { BrowserWindow } = require('electron')
+const { Menu } = require('electron')
 
 const path = require('path')
 const url = require('url')
@@ -153,36 +157,30 @@ function startup() {
 
     mainWindow = new BrowserWindow({ show: false })
 
+    if (process.platform === 'darwin') {
+    } else {
+
+    }
+
     dropWindow = new BrowserWindow({
-      // alwaysOnTop: true,
-      // resizable: false,
+      title: appName,
+      frame: false,
       minWidth: 320,
       minHeight: 320,
-      title: appName,
       maximizable: false,
       fullscreenable: false,
       fullscreen: false,
-      // titleBarStyle: 'hidden',
       titleBarStyle: 'hiddenInset',
-      parent: mainWindow,
-      // focusable: process.plaftorm !== 'darwin' ? true : false,
-      // focusable: false,
       disableAutoHideCursor: true,
-      // hasShadow: false,
       acceptFirstMouse: true,
-      // useContentSize: true,
       minimizable: false,
       maximizable: false,
-      frame: false,
-      // show: false,
-      // modal: process.plaftorm !== 'darwin' ? false : true,
-      // modal: true,
-      // parent: mainWindow
-      // backgroundColor: '#20A0FF',
       autoHideMenuBar: true
+      // parent: mainWindow,
     })
 
-    // mainWindow = dropWindow
+    // if (process.platform !== 'darwin') mainWindow = dropWindow
+
     createMenu()
 
     if (process.platform === 'darwin') {
@@ -352,12 +350,14 @@ function createImageWindow(picture) {
     disableAutoHideCursor: true,
     skipTaskbar: true,
     acceptFirstMouse: true,
-    parent: mainWindow
+    parent: process.platform === 'darwin' ? mainWindow : dropWindow
+    // parent: process.platform === 'darwin' ? mainWindow : null
   })
 
   frame.firstFocus = true
 
   frame.setBounds({ x: picture.x, y: picture.y, width: 640, height: 480})
+  frame.center()
 
   frame.on('focus', () => {})
 
@@ -406,11 +406,12 @@ app.on('activate', function () {
 
 
 ipcMain.on('move-window-by', function (event, x, y) {
-  handle = BrowserWindow.fromWebContents(event.sender)
-  bounds = handle.getBounds()
-  bounds.x += x
-  bounds.y += y
-  handle.setBounds(bounds)
+  // handle = BrowserWindow.fromWebContents(event.sender)
+  // bounds = handle.getBounds()
+  // bounds.x += x
+  // bounds.y += y
+  // handle.setBounds(bounds)
+  console.log('move-window-by')
 })
 
 ipcMain.on('console', function (event, arg) {
@@ -448,6 +449,47 @@ ipcMain.on('request-quit', function(event) {
   dropWindow.close()
 })
 
+ipcMain.on('resize-frame', (event, width, height) => {
+  let handle = BrowserWindow.fromWebContents(event.sender)
+  let bounds = handle.getBounds()
+
+  let ratio = (width > height ? height / width : width / height);
+
+  let display = electron.screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y })
+  let dw = display.size.width
+  let dh = display.size.height
+
+  let wratio = dw / width
+  let hratio = dh / height
+
+  if (wratio < 1 && hratio < 1) {
+    // Both width and height are larger than display area
+    if (wratio < hratio) {
+      // Favour width
+      width = dw
+      height = height * wratio
+    } else {
+      // Favour height
+      width = width * hratio
+      height = dh
+    }
+  } else if (wratio < 1) {
+    width = dw
+    height = height * wratio
+  } else if (hratio < 1) {
+    width = width * hratio
+    height = dh
+  }
+
+  width = Math.round(width)
+  height = Math.round(height)
+
+  handle.setSize(width, height)
+  handle.center()
+
+  handle.send('frame-resized', width, height)
+})
+
 ipcMain.on('image-drop', function(event, imagePath, x, y) {
   let bounds = dropWindow.getContentBounds()
   onImageDrop(imagePath, bounds.x + x, bounds.y + y)
@@ -474,6 +516,7 @@ ipcMain.on('close-image', (event) => {
   }
 
   handle.close()
+  dropWindow.focus()
 })
 
 ipcMain.on('close-about', (event) => {

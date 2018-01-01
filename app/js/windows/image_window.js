@@ -105,34 +105,24 @@ function canvasToWorld(x, y) {
 }
 
 function resetAnimationTimer() {
-  // if (timerId) {
-  //   clearTimeout(timerId)
-  // }
-  // timerId = setTimeout(() => {
-  //     // clearInterval(timerId)
-  //     timerId = null
-  //     stop()
-  // }, 1000)
-  // if (!active) start()
   if (!active) {
     timerId = setInterval(() => {
       timeout--
-      // console.log(timeout)
       if (timeout == 0) {
         clearInterval(timerId)
         stop()
       } else {
         // ipc.send('console', timeout)
       }
-    }, 100)
+    }, 250)
     start()
   }
-  timeout = 10
+  timeout = 2
 }
 
 function zoomBy(x) {
   settings.scale += x
-  if (settings.scale < 0.5) settings.scale = 0.5
+  if (settings.scale < 0.1) settings.scale = 0.1
   if (settings.scale > 4) settings.scale = 4
   resetAnimationTimer()
 }
@@ -159,7 +149,7 @@ function scrollBy(dx, dy) {
 }
 
 
-function draw() {
+function draw(quality='medium') {
   ctx = canvas.getContext('2d')
   ctx.save()
   ctx.clearRect(0, 0, width, height)
@@ -175,10 +165,10 @@ function draw() {
     p = worldToCanvas(0, 0)
     w = image.width * settings.scale
     h = image.height * settings.scale
+    ctx.imageSmoothingQuality = quality
     ctx.globalAlpha = settings.opacity
-    ctx.drawImage(image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
+    ctx.drawImage(image, p.x - (w * 0.5) >> 0, p.y - (h * 0.5) >> 0, Math.round(w), Math.round(h))
   }
-
   // ctx.fillStyle = 'white'
   // ctx.font = '48px sans-serif'
   // ctx.fillText(settings.left, 50, 100)
@@ -226,6 +216,7 @@ function start() {
 function stop() {
   active = false
   cancelAnimationFrame(requestAnimationFrameId)
+  draw('medium')
   // ipc.send('console', 'stop-animation')
 }
 
@@ -261,39 +252,17 @@ function generateThumbnail() {
 
 function onKeyDown(event) {
   if ((event.key == '=' || event.key == '+')) {
-    // opacity = settings.opacity
-    // opacity = opacity + 0.05
-    // opacity = (opacity <= 1.0 ? opacity : 1.0)
-    // settings.opacity = opacity
     updateOpacity(settings.opacity + 0.05)
-
   } else if (event.key == '-') {
-    // opacity = settings.opacity
-    // opacity = opacity - 0.05
-    // opacity = (opacity >= 0.05 ? opacity : 0.05)
-    // settings.opacity = opacity
     updateOpacity(settings.opacity - 0.05)
-
   } else if (event.key == ',') {
-    // scale = settings.scale
-    // scale = scale - 0.5
-    // scale = (scale < 0.5 ? 0.5 : scale)
-    // settings.scale = scale
     zoomBy(-0.5)
-
   } else if (event.key == '.') {
-    // scale = settings.scale
-    // scale = scale + 0.5
-    // scale = (scale > 8.0 ? 8.0 : scale)
-    // settings.scale = scale
     zoomBy(0.5)
-
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
     ipc.send('close-image')
-
   } else if (event.key == 'Shift' && !event.repeat) {
     setMode('pan')
-
   } else if (event.key == 'Control' && !event.repeat) {
     setMode('zoom')
   }
@@ -339,11 +308,8 @@ function onDragOver(e) {
 
 function onWheel(e) {
   e.preventDefault()
-  // ipc.send('console', e.deltaZ)
   let x = e.deltaX / settings.scale
   let y = e.deltaY / settings.scale
-  // settings.left = settings.left + e.deltaX / settings.scale
-  // settings.top = settings.top + e.deltaY / settings.scale
   if (e.ctrlKey) {
     zoomBy(-e.deltaY * (settings.scale * 0.01))
   } else {
@@ -368,7 +334,6 @@ function onMouseDown(e) {
 
 function onMouseUp(e) {
   if (e.button === 0) mouseLeft = false
-
   if (e.button === 0) {
     if (!e.ctrlKey && !e.shiftKey) {
       setMode(null)
@@ -382,7 +347,8 @@ function onMouseMove(e) {
       scrollBy(-e.movementX / settings.scale, -e.movementY / settings.scale)
     }
     else if (mode === 'zoom') {
-      zoomBy(e.movementX * (settings.scale * 0.002))
+      // zoomBy(e.movementX * (settings.scale * 0.002))
+      zoomBy(e.movementX * (settings.scale * 0.0025))
     }
   }
 }
@@ -415,8 +381,10 @@ function onResize(e) {
       resizeTimeoutId = null
       width = window.innerWidth
       height = window.innerHeight
-      canvas.width = width
-      canvas.height = height
+      if (canvas) {
+        canvas.width = width
+        canvas.height = height
+      }
       resetAnimationTimer()
    }, 1000 / 30)
   }
@@ -461,45 +429,37 @@ ipc.on('settings', function(event, arg) {
   isInitialised = true
 })
 
-// ipc.on('initialise', function(event, imagePath) {
-//   isInitialised = true
-// })
-
 ipc.on('picture', (event, arg) => {
   picture = arg
   image = new Image()
-  image.src = picture.dataURL
   image.onload = (e) => {
-    // isInitialised = true
     initialised = true
     setTitle(picture.imageFilename)
+    ipc.send('resize-frame', e.target.width, e.target.height)
     draw()
   }
+  image.src = picture.dataURL
 })
 
+ipc.on('frame-resized', (event, width, height) => {
+  if (image.width > width && image.height > height) {
+    let w = width / image.width
+    let h = height / image.height
+    settings.scale = w > h ? h : w
+  } else if (image.width > width) {
+    settings.scale = width / image.width
+  } else if (height > image.height) {
+    settings.scale = height / image.height
+  }
 
-// ipc.on('image', function(event, imagePath) {
-  // fs.readFile(imagePath, null, function(err, data) {
-  //     image = new Image()
-  //     image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
-  //     image.onload = (e) => {
-  //       picture = new Picture(e.target, 0, 0)
-  //       onImageReceived()
-  //     }
-  //     setTitle(filename)
-  // })
-  //
-  // index1 = imagePath.lastIndexOf('/')
-  // index2 = imagePath.lastIndexOf('\\')
-  //
-  // if (index1 > index2) {
-  //   filename = imagePath.substring(index1 + 1)
-  // } else {
-  //   if (index2 != -1)
-  //     filename = imagePath.substring(index2 + 1)
-  // }
-// })
+  // width = window.innerWidth
+  // height = window.innerHeight
+  // canvas.width = width
+  // canvas.height = height
+  // ipc.send('console', settings.scale)
 
+  draw()
+})
 
 ipc.on('incognito', function(event, arg) {
   settings.incognito = arg
