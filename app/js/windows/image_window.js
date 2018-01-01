@@ -108,7 +108,7 @@ function draw() {
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
-    ctx.fillStyle = 'rgba(0, 192, 255, 0.2)'
+    ctx.fillStyle = 'rgba(0, 192, 255, 0.1)'
     ctx.fillRect(0, 0, width, height)
   }
 
@@ -190,30 +190,27 @@ function onWheel(e) {
 
 
 function onKeyDown(event) {
-  // console.log(event.key);
-  if ((event.key == '=' || event.key == '+') && !event.repeat) {
+  if ((event.key == '=' || event.key == '+')) {
     opacity = settings.opacity
-    opacity = opacity + 0.1
+    opacity = opacity + 0.05
     opacity = (opacity <= 1.0 ? opacity : 1.0)
-    // container.style.opacity = opacity
     settings.opacity = opacity
     updateOpacity()
 
-  } else if (event.key == '-' && !event.repeat) {
+  } else if (event.key == '-') {
     opacity = settings.opacity
-    opacity = opacity - 0.1
-    opacity = (opacity >= 0.1 ? opacity : 0.1)
-    // container.style.opacity = opacity
+    opacity = opacity - 0.05
+    opacity = (opacity >= 0.05 ? opacity : 0.05)
     settings.opacity = opacity
     updateOpacity()
 
-  } else if (event.key == ',' && !event.repeat) {
+  } else if (event.key == ',') {
     scale = settings.scale
     scale = scale - 0.5
     scale = (scale < 0.5 ? 0.5 : scale)
     settings.scale = scale
 
-  } else if (event.key == '.' && !event.repeat) {
+  } else if (event.key == '.') {
     scale = settings.scale
     scale = scale + 0.5
     scale = (scale > 8.0 ? 8.0 : scale)
