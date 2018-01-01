@@ -12,6 +12,7 @@ let overlayContainer, canvasContainer
 let canvas, ctx, overlayCanvas
 let width, height
 let isInitialised = false
+let initialised = false
 let mode = null
 
 let incognito = false
@@ -164,15 +165,18 @@ function draw() {
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
-    ctx.fillStyle = 'rgba(0, 192, 255, 0.1)'
+    ctx.fillStyle = 'rgb(0, 192, 255)'
+    // ctx.fillStyle = 'rgb(255, 0, 0)'
+    // ctx.fillStyle = 'cyan'
+    ctx.globalAlpha = 0.1
     ctx.fillRect(0, 0, width, height)
+    ctx.globalAlpha = 1
   }
 
-  if (image) {
+  if (initialised) {
     p = worldToCanvas(0, 0)
     w = image.width * settings.scale
     h = image.height * settings.scale
-
     ctx.globalAlpha = settings.opacity
     ctx.drawImage(image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
   }
@@ -206,14 +210,14 @@ function frame() {
 function start() {
   active = true
   requestAnimationFrameId = requestAnimationFrame(frame)
-  ipc.send('console', 'start-animation')
+  // ipc.send('console', 'start-animation')
 }
 
 
 function stop() {
   active = false
   cancelAnimationFrame(requestAnimationFrameId)
-  ipc.send('console', 'stop-animation')
+  // ipc.send('console', 'stop-animation')
 }
 
 
@@ -477,6 +481,7 @@ ipc.on('picture', (event, arg) => {
   image.src = picture.dataURL
   image.onload = (e) => {
     // isInitialised = true
+    initialised = true
     setTitle(picture.imageFilename)
     draw()
   }

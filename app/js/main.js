@@ -346,7 +346,10 @@ function createImageWindow(picture) {
     minHeight: 256,
     minimizable: false,
     maximizable: false,
+
     transparent: true,
+    // transparent: false,
+
     hasShadow: false,
     frame: false,
     disableAutoHideCursor: true,
