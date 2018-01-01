@@ -351,7 +351,7 @@ function createImageWindow(picture) {
     disableAutoHideCursor: true,
     skipTaskbar: true,
     acceptFirstMouse: true,
-    parent: mainWindow
+    parent: process.platform === 'darwin' ? null : mainWindow
     // parent: process.platform === 'darwin' ? mainWindow : dropWindow
     // parent: process.platform === 'darwin' ? mainWindow : null
   })
