@@ -20,6 +20,8 @@ let previousmy = 0
 let eye, settings, close
 
 window.onload = function (event) {
+  console.log('onload');
+
   eye = document.getElementById('eye')
   close = document.getElementById('close')
 
@@ -39,7 +41,7 @@ window.onload = function (event) {
 
   initEventListeners()
 
-  ipc.send('request-thumbnails')
+  // ipc.send('request-thumbnails')
 }
 
 function startup() {

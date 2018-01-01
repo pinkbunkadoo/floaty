@@ -2,10 +2,12 @@
 #container {
   display: flex;
   position: absolute;
-  width: calc(100% - 6px);
-  height: calc(100% - 6px);
+  /* width: calc(100% - 6px); */
+  /* height: calc(100% - 6px); */
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  margin: 3px;
+  /* margin: 3px; */
   box-sizing: border-box;
   -webkit-scrollbar: none;
 }
@@ -34,6 +36,7 @@
 
 #canvas-container {
   overflow: hidden;
+  border-radius: 4px;
   /* display: none; */
   /* -webkit-scrollbar: none; */
 }
@@ -90,7 +93,7 @@
   min-width: 24px;
   max-width: 24px;
   margin: 12px;
-  padding: 4px;
+  padding: 5px;
   border-radius: 24px;
   box-sizing: border-box;
   -webkit-user-select: none;
@@ -99,25 +102,26 @@
 }
 
 .background {
-  background-color: rgba(255, 255, 255, 1);
+  background-color: white;
   fill: rgba(0, 0, 0, 0.6);
   color: rgba(0, 0, 0, 0.6);
 }
 
 .background.selected {
-  background-color: dodgerblue;
-  fill: white;
-  color: white;
-  /* fill: rgba(0, 0, 0, 0.8); */
-  /* color: rgba(0, 0, 0, 0.8); */
+  /* background-color: dodgerblue; */
+  /* fill: white; */
+  /* color: white; */
+  fill: rgba(0, 0, 0, 0.8);
+  color: rgba(0, 0, 0, 0.8);
 }
 
 .border {
-  /* border: 3px solid rgba(255, 255, 255, 0); */
-  border: 1px solid rgba(255, 255, 255, 0);
+  border: 3px solid rgba(255, 255, 255, 0);
+  /* border: 1px solid rgba(255, 255, 255, 0); */
+  border-radius: 2px;
 }
 
 .border.selected {
-  /* border-color: white; */
-  border-color: dodgerblue;
+  border-color: white;
+  /* border-color: dodgerblue; */
 }

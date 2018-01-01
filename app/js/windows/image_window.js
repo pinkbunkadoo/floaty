@@ -26,7 +26,7 @@ let message
 
 let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
 
-let mousedown = false
+let mouseLeft = false
 
 let timerId = null
 let timeout = 0
@@ -166,8 +166,6 @@ function draw() {
 
   if (!incognito) {
     ctx.fillStyle = 'rgb(0, 192, 255)'
-    // ctx.fillStyle = 'rgb(255, 0, 0)'
-    // ctx.fillStyle = 'cyan'
     ctx.globalAlpha = 0.1
     ctx.fillRect(0, 0, width, height)
     ctx.globalAlpha = 1
@@ -186,6 +184,17 @@ function draw() {
   // ctx.fillText(settings.left, 50, 100)
 
   ctx.restore()
+}
+
+function setMode(newMode) {
+  if (mode != newMode) {
+    mode = newMode
+    if (mode == null) {
+      dragOn()
+    } else {
+      dragOff()
+    }
+  }
 }
 
 function dragOn() {
@@ -282,19 +291,19 @@ function onKeyDown(event) {
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
     ipc.send('close-image')
 
-  } else if ((event.key == 'Shift') && !event.repeat) {
-    dragOff()
+  } else if (event.key == 'Shift' && !event.repeat) {
+    setMode('pan')
 
-  } else if ((event.key == 'Control') && !event.repeat) {
-    dragOff()
+  } else if (event.key == 'Control' && !event.repeat) {
+    setMode('zoom')
   }
 }
 
 function onKeyUp(event) {
-  if ((event.key == 'Shift') && !event.repeat) {
-    dragOn()
-  } else if ((event.key == 'Control') && !event.repeat) {
-    dragOn()
+  if (event.key == 'Shift' && !event.repeat) {
+    if (!mouseLeft) setMode(null)
+  } else if (event.key == 'Control' && !event.repeat) {
+    if (!mouseLeft) setMode(null)
   }
 }
 
@@ -343,12 +352,12 @@ function onWheel(e) {
 }
 
 function onMouseDown(e) {
+  if (e.button === 0) mouseLeft = true
+
   if (e.shiftKey) {
-    mode = 'pan'
-    dragOff()
+    setMode('pan')
   } else if (e.ctrlKey) {
-    mode = 'zoom'
-    dragOff()
+    setMode('zoom')
   } else {
     if (e.buttons & 2 || e.buttons & 3) {
       // settings.left = 0
@@ -358,33 +367,21 @@ function onMouseDown(e) {
 }
 
 function onMouseUp(e) {
-  mode = null
+  if (e.button === 0) mouseLeft = false
+
+  if (e.button === 0) {
+    if (!e.ctrlKey && !e.shiftKey) {
+      setMode(null)
+    }
+  }
 }
 
 function onMouseMove(e) {
   if (e.buttons & 1) {
-    if (e.shiftKey) {
-      if (mode !== 'pan') {
-        mode = 'pan'
-      }
-    } else if (e.ctrlKey) {
-      if (mode !== 'zoom') {
-        mode = 'zoom'
-      }
-    } else {
-      if (!mode) {
-        // console.log('move', e.movementX)
-        // ipc.send('move-window-by', e.movementX, e.movementY)
-      }
-    }
-
     if (mode === 'pan') {
-      // settings.left = settings.left - e.movementX / settings.scale
-      // settings.top = settings.top - e.movementY / settings.scale
       scrollBy(-e.movementX / settings.scale, -e.movementY / settings.scale)
-      // saveSettings()
-
-    } else if (mode === 'zoom') {
+    }
+    else if (mode === 'zoom') {
       zoomBy(e.movementX * (settings.scale * 0.002))
     }
   }
@@ -397,7 +394,7 @@ function onBlur(e) {
   closeEl.classList.remove('selected');
   titleEl.classList.remove('selected');
   focused = false
-  mode = null
+  setMode(null)
 }
 
 function onFocus(e) {
@@ -407,28 +404,21 @@ function onFocus(e) {
   closeEl.classList.add('selected');
   titleEl.classList.add('selected');
   focused = true
-  mode = null
+  setMode(null)
 }
 
-let resizeTimeout
+let resizeTimeoutId
 
 function onResize(e) {
-  if (!resizeTimeout) {
-    resizeTimeout = setTimeout(function() {
-      resizeTimeout = null
-
+  if (!resizeTimeoutId) {
+    resizeTimeoutId = setTimeout(function() {
+      resizeTimeoutId = null
       width = window.innerWidth
       height = window.innerHeight
-
       canvas.width = width
       canvas.height = height
-
-      draw()
-      // overlayCanvas.width = width - 16
-      // overlayCanvas.height = height - 16
-
-     // The actualResizeHandler will execute at a rate of 15fps
-   }, 1000/30)
+      resetAnimationTimer()
+   }, 1000 / 30)
   }
 }
 
