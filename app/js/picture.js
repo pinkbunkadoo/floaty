@@ -1,9 +1,12 @@
 
 class Picture {
-  constructor(image, x, y) {
-    this.x = (x == undefined ? 0 : x)
-    this.y = (y == undefined ? 0 : y)
-    this.image = image
+  constructor(params) {
+    this.id = params.id
+    this.x = params.x
+    this.y = params.y
+    this.dataURL = params.dataURL
+    this.imageFilename = params.imageFilename
+    this.imagePath = params.imagePath
   }
 }
 

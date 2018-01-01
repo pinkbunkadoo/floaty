@@ -165,8 +165,6 @@ function createThumbnail(dataURL, imagePath) {
     el.dataset.path = imagePath
     el.classList.add('thumbnail')
     el.appendChild(img)
-    // let w = img.width
-    // let h = img.height
     let w = (img.width * 0.5) >> 0
     let h = (img.height * 0.5) >> 0
     el.style.width = (w) + 'px'
@@ -175,28 +173,6 @@ function createThumbnail(dataURL, imagePath) {
     img.height = h
     thumbnailContainer.appendChild(el)
   }
-}
-
-function processImage(arg) {
-  // fs.readFile(arg, null, function(err, data) {
-  //     image = new Image()
-  //     image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
-  //     image.onload = (e) => {
-  //       let img = e.target
-  //       let ratio = img.height / img.width
-  //       let canvas = document.createElement('canvas')
-  //       canvas.width = thumbWidth
-  //       canvas.height = (thumbWidth * ratio) >> 0
-  //       let ctx = canvas.getContext('2d')
-  //       ctx.fillStyle = 'black'
-  //       ctx.fillRect(0, 0, canvas.width, canvas.height)
-  //       ctx.imageSmoothingQuality = 'medium'
-  //       // console.log(ctx.imageSmoothingQuality)
-  //       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-  //       let dataURL = canvas.toDataURL()
-  //       createThumbnail(dataURL)
-  //     }
-  // })
 }
 
 ipc.on('thumbnails', function(event, arg) {

@@ -7,7 +7,7 @@ const Icon = require('../icon')
 
 const fs = require('fs')
 
-let image, container, titleEl, closeEl
+let container, titleEl, closeEl
 let overlayContainer, canvasContainer
 let canvas, ctx, overlayCanvas
 let width, height
@@ -16,6 +16,7 @@ let mode = null
 
 let incognito = false
 let picture
+let image
 let focusFrame
 
 let focused = true
@@ -27,6 +28,9 @@ let settings = { scale: 1.0, opacity: 1.0, left: 0, top: 0 }
 let mousedown = false
 
 let timerId = null
+let timeout = 0
+let requestAnimationFrameId
+
 
 window.onload = function (event) {
   container = document.getElementById('container')
@@ -65,11 +69,8 @@ window.onload = function (event) {
   titleEl.classList.add('selected');
   titleEl.innerHTML = ''
 
-  // document.body.appendChild(overlayContainer)
-
   initEventListeners()
-
-  if (!picture) ipc.send('request-image')
+  ipc.send('request-picture')
 }
 
 function worldToCanvas(x, y) {
@@ -103,15 +104,29 @@ function canvasToWorld(x, y) {
 }
 
 function resetAnimationTimer() {
-  if (timerId) {
-    clearTimeout(timerId)
+  // if (timerId) {
+  //   clearTimeout(timerId)
+  // }
+  // timerId = setTimeout(() => {
+  //     // clearInterval(timerId)
+  //     timerId = null
+  //     stop()
+  // }, 1000)
+  // if (!active) start()
+  if (!active) {
+    timerId = setInterval(() => {
+      timeout--
+      // console.log(timeout)
+      if (timeout == 0) {
+        clearInterval(timerId)
+        stop()
+      } else {
+        // ipc.send('console', timeout)
+      }
+    }, 100)
+    start()
   }
-  timerId = setTimeout(() => {
-      // clearInterval(timerId)
-      timerId = null
-      stop()
-  }, 1000)
-  if (!active) start()
+  timeout = 10
 }
 
 function zoomBy(x) {
@@ -125,8 +140,8 @@ function scrollBy(dx, dy) {
   settings.left += dx
   settings.top += dy
 
-  let xmax = picture.image.width / 2
-  let ymax = picture.image.height / 2
+  let xmax = image.width / 2
+  let ymax = image.height / 2
 
   if (settings.left < -xmax) {
     settings.left = -xmax
@@ -153,12 +168,14 @@ function draw() {
     ctx.fillRect(0, 0, width, height)
   }
 
-  p = worldToCanvas(picture.x, picture.y)
-  w = picture.image.width * settings.scale
-  h = picture.image.height * settings.scale
+  if (image) {
+    p = worldToCanvas(0, 0)
+    w = image.width * settings.scale
+    h = image.height * settings.scale
 
-  ctx.globalAlpha = settings.opacity
-  ctx.drawImage(picture.image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
+    ctx.globalAlpha = settings.opacity
+    ctx.drawImage(image, p.x - w * 0.5, p.y - h * 0.5, w >> 0, h >> 0)
+  }
 
   // ctx.fillStyle = 'white'
   // ctx.font = '48px sans-serif'
@@ -180,7 +197,7 @@ function dragOff() {
 
 function frame() {
   if (active) {
-    requestAnimationFrame(frame)
+    requestAnimationFrameId = requestAnimationFrame(frame)
     draw()
   }
 }
@@ -188,28 +205,24 @@ function frame() {
 
 function start() {
   active = true
-  requestAnimationFrame(frame)
-  // ipc.send('console', 'start-animation')
+  requestAnimationFrameId = requestAnimationFrame(frame)
+  ipc.send('console', 'start-animation')
 }
 
 
 function stop() {
   active = false
-  // ipc.send('console', 'stop-animation')
+  cancelAnimationFrame(requestAnimationFrameId)
+  ipc.send('console', 'stop-animation')
 }
 
 
 function updateOpacity(value) {
-  // opacity = settings.opacity
-  // opacity = opacity - 0.05
   settings.opacity = value
   settings.opacity = (settings.opacity >= 0.05 ? settings.opacity : 0.05)
   settings.opacity = (settings.opacity <= 1 ? settings.opacity : 1)
-
-  draw()
-  // canvasContainer.style.opacity = settings.opacity
-  // overlayContainer.style.opacity = 1
-  // ipc.send('console', settings.opacity)
+  // draw()
+  resetAnimationTimer()
 }
 
 function setTitle(name) {
@@ -219,7 +232,7 @@ function setTitle(name) {
 let thumbSize = 64
 
 function generateThumbnail() {
-  let img = picture.image
+  let img = image
   let ratio = img.width / img.height
   let canvas = document.createElement('canvas')
   canvas.width = (thumbSize * ratio) >> 0
@@ -228,20 +241,9 @@ function generateThumbnail() {
   ctx.fillStyle = 'black'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.imageSmoothingQuality = 'medium'
-  // console.log(ctx.imageSmoothingQuality)
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
   let dataURL = canvas.toDataURL()
   return dataURL
-}
-
-function onImageReceived() {
-  // dragOn()
-  // ipc.send('console', 'image-received')
-  let thumbnail = generateThumbnail()
-  ipc.send('thumbnail', thumbnail)
-  // console.log();
-  // start()
-  draw()
 }
 
 function onKeyDown(event) {
@@ -344,9 +346,9 @@ function onMouseDown(e) {
     mode = 'zoom'
     dragOff()
   } else {
-    if (e.buttons & 2) {
-      settings.left = 0
-      settings.top = 0
+    if (e.buttons & 2 || e.buttons & 3) {
+      // settings.left = 0
+      // settings.top = 0
     }
   }
 }
@@ -379,9 +381,7 @@ function onMouseMove(e) {
       // saveSettings()
 
     } else if (mode === 'zoom') {
-      if (image) {
-        zoomBy(e.movementX * (settings.scale * 0.002))
-      }
+      zoomBy(e.movementX * (settings.scale * 0.002))
     }
   }
 }
@@ -459,61 +459,65 @@ function initEventListeners() {
   window.addEventListener('resize', onResize)
 }
 
-ipc.on('settings', function(event, arg1) {
-  for (i in arg1) {
-    settings[i] = arg1[i]
+ipc.on('settings', function(event, arg) {
+  for (i in arg) {
+    settings[i] = arg[i]
   }
-  // container.style.opacity = settings.opacity
   updateOpacity(settings.opacity)
   isInitialised = true
-  // ipc.send('console', settings)
 })
 
+// ipc.on('initialise', function(event, imagePath) {
+//   isInitialised = true
+// })
 
-ipc.on('initialise', function(event, imagePath) {
-  isInitialised = true
-  // console.log('initialise')
-})
-
-
-ipc.on('image', function(event, imagePath) {
-  fs.readFile(imagePath, null, function(err, data) {
-      image = new Image()
-      image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
-      image.onload = (e) => {
-        picture = new Picture(e.target, 0, 0)
-        onImageReceived()
-      }
-      setTitle(filename)
-  })
-
-  index1 = imagePath.lastIndexOf('/')
-  index2 = imagePath.lastIndexOf('\\')
-
-  if (index1 > index2) {
-    filename = imagePath.substring(index1 + 1)
-  } else {
-    if (index2 != -1)
-      filename = imagePath.substring(index2 + 1)
+ipc.on('picture', (event, arg) => {
+  picture = arg
+  image = new Image()
+  image.src = picture.dataURL
+  image.onload = (e) => {
+    // isInitialised = true
+    setTitle(picture.imageFilename)
+    draw()
   }
 })
 
 
-ipc.on('incognito', function(event, arg1) {
-  settings.incognito = arg1
-  incognito = arg1
+// ipc.on('image', function(event, imagePath) {
+  // fs.readFile(imagePath, null, function(err, data) {
+  //     image = new Image()
+  //     image.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
+  //     image.onload = (e) => {
+  //       picture = new Picture(e.target, 0, 0)
+  //       onImageReceived()
+  //     }
+  //     setTitle(filename)
+  // })
+  //
+  // index1 = imagePath.lastIndexOf('/')
+  // index2 = imagePath.lastIndexOf('\\')
+  //
+  // if (index1 > index2) {
+  //   filename = imagePath.substring(index1 + 1)
+  // } else {
+  //   if (index2 != -1)
+  //     filename = imagePath.substring(index2 + 1)
+  // }
+// })
+
+
+ipc.on('incognito', function(event, arg) {
+  settings.incognito = arg
+  incognito = arg
 
   if (incognito) {
     overlayContainer.style.opacity = 0
     overlayContainer.classList.remove('border')
-    // container.style.borderRadius = 0
     container.classList.remove('selected');
-    stop()
     draw()
   } else {
     overlayContainer.classList.add('border')
     overlayContainer.style.opacity = 1
-    // container.style.borderRadius = '6px'
     container.classList.add('selected');
     draw()
   }

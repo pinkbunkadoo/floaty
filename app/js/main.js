@@ -3,13 +3,10 @@ const {app, Tray, nativeImage, Menu, ipcMain, globalShortcut, BrowserWindow} = r
 
 const path = require('path')
 const url = require('url')
+const fs = require('fs')
+const Picture = require('./picture')
 
 const appName = 'Floaty'
-
-let incognito = false
-let frames = []
-let pictures = []
-let menu
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -17,7 +14,13 @@ let mainWindow
 let dropWindow
 let aboutWindow
 let menuTemplate
+let menu
+
 let firstFocus = true
+let incognito = false
+let frames = []
+let pictures = []
+let imageId = 1
 
 
 function setIncognito(value) {
@@ -188,9 +191,9 @@ function startup() {
       })
     }
 
-    // dropWindow.webContents.openDevTools({ mode:'bottom' })
+    dropWindow.webContents.openDevTools({ mode:'bottom' })
 
-    dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 360 })
+    dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 480 })
     dropWindow.center()
 
     dropWindow.loadURL(url.format({
@@ -283,9 +286,25 @@ function showAbout() {
   // aboutWindow.webContents.openDevTools({ mode:'bottom' })
 }
 
-function createWindow(imagePath, x, y) {
-  options = {}
+function generatePictureId(name) {
+  let count = 0
+  while (1) {
+    let found = false
+    let id = (count == 0 ? name : name + count)
+    for (var i = 0; i < pictures.length; i++) {
+      let picture = pictures[i]
+      if (picture.id === id) {
+        found = true
+        break
+      }
+    }
+    if (!found) break
+    count++
+  }
+  return (count == 0 ? name : name + count)
+}
 
+function onImageDrop(imagePath, x, y) {
   let imageFilename = null
 
   index1 = imagePath.lastIndexOf('/')
@@ -298,8 +317,29 @@ function createWindow(imagePath, x, y) {
       imageFilename = imagePath.substring(index2 + 1)
   }
 
-  frame = new BrowserWindow({
-    title: imageFilename,
+  fs.readFile(imagePath, null, function(err, data) {
+    // img = new Image()
+    // img.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
+    // img.onload = (e) => {
+      let picture = new Picture({
+        id: generatePictureId(),
+        x: x,
+        y: y,
+        dataURL: 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64')),
+        imageFilename: imageFilename,
+        imagePath: imagePath
+      })
+      createImageWindow(picture)
+    // }
+  })
+
+}
+
+function createImageWindow(picture) {
+  options = {}
+
+  let frame = new BrowserWindow({
+    title: picture.imageFilename,
     width: 640,
     height: 480,
     minWidth: 256,
@@ -316,10 +356,10 @@ function createWindow(imagePath, x, y) {
   })
 
   frame.firstFocus = true
-  frame.imagePath = imagePath
 
-  frame.on('focus', () => {
-  })
+  frame.setBounds({ x: picture.x, y: picture.y, width: 640, height: 480})
+
+  frame.on('focus', () => {})
 
   frame.loadURL(url.format({
     pathname: path.join(__dirname, '../image_window.html'),
@@ -327,11 +367,13 @@ function createWindow(imagePath, x, y) {
     slashes: true
   }))
 
-  frame.setBounds({ x: x - 320, y: y - 240, width: 640, height: 480})
-
   // frame.webContents.openDevTools({ mode: 'bottom' })
 
+  frame.picture = picture
   frames.push(frame)
+
+  // picture.frame = frame
+  // pictures.push(picture)
 }
 
 // This method will be called when Electron has finished
@@ -390,9 +432,12 @@ ipcMain.on('request-thumbnails', function(event) {
   event.sender.send('thumbnails', list)
 })
 
-ipcMain.on('request-image', function(event) {
+ipcMain.on('request-picture', function(event) {
   handle = BrowserWindow.fromWebContents(event.sender)
-  event.sender.send('image', handle.imagePath)
+  let frame = frames.find((element) => {
+    return element === handle
+  })
+  event.sender.send('picture', frame.picture)
 })
 
 ipcMain.on('request-incognito', function(event) {
@@ -403,9 +448,11 @@ ipcMain.on('request-quit', function(event) {
   dropWindow.close()
 })
 
-ipcMain.on('image-drop', function(event, path, x, y) {
+ipcMain.on('image-drop', function(event, imagePath, x, y) {
   let bounds = dropWindow.getContentBounds()
-  createWindow(path, bounds.x + x, bounds.y + y)
+  onImageDrop(imagePath, bounds.x + x, bounds.y + y)
+  // processImageFile(imagePath)
+  // createWindow(imagePath, bounds.x + x, bounds.y + y)
 })
 
 ipcMain.on('close-image', (event) => {
