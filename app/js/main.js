@@ -65,8 +65,8 @@ function createMenu() {
       label: 'View',
       submenu: [
         {
-          label: 'Incognito On/Off',
-          accelerator: process.platform === 'darwin' ? 'Command+Option+/' : '/',
+          label: 'Freeze/Unfreeze',
+          accelerator: '/', //process.platform === 'darwin' ? 'Command+Option+/' : '/',
           click: (item, focusedWindow) => {
             setIncognito(!incognito)
           }
@@ -239,7 +239,7 @@ function startup() {
 
       contextMenu = Menu.buildFromTemplate([
         {
-          label: 'Incognito On/Off', click: (menuItem) => {
+          label: 'Freeze/Unfreeze', click: (menuItem) => {
             setIncognito(!incognito)
           }
         },
