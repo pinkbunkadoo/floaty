@@ -17,12 +17,16 @@ let focused = true
 
 let settings = { scale: 1.0, opacity: 0.5, left: 0, top: 0 }
 
+let titlebarSize = 28
+
 let mouseLeft = false
 
 let timerId = null
 let timeout = 0
 let requestAnimationFrameId
 let active = false
+let hintOpacity
+let hintTimerId
 
 let picture
 let image
@@ -43,7 +47,7 @@ window.onload = function (event) {
   canvas = document.getElementById('surface')
   // canvasContainer.appendChild(canvas)
   width = window.innerWidth
-  height = window.innerHeight
+  height = window.innerHeight - titlebarSize
   canvas.width = width
   canvas.height = height
 
@@ -71,8 +75,8 @@ window.onload = function (event) {
   titleEl.classList.add('selected');
   titleEl.innerHTML = ''
 
-  info = document.getElementById('info')
-  updateInfo()
+  // info = document.getElementById('info')
+  // updateInfo()
 
   initEventListeners()
 
@@ -188,7 +192,7 @@ function draw(quality='medium') {
     ctx.globalAlpha = 1
   }
 
-  if (active) {
+  if (hintTimerId) {
     let fontSize = 40
 
     ctx.fillStyle = 'white'
@@ -267,29 +271,25 @@ function updateOpacity(value) {
   settings.opacity = value
   settings.opacity = (settings.opacity >= 0.05 ? settings.opacity : 0.05)
   settings.opacity = (settings.opacity <= 1 ? settings.opacity : 1)
-  // draw()
   resetAnimationTimer(10)
+
+  hintOpacity = 1
+
+  if (!hintTimerId) {
+    hintTimerId = setInterval(() => {
+      hintOpacity = hintOpacity - 0.1
+      if (hintOpacity <= 0) {
+        clearInterval(hintTimerId)
+        hintTimerId = null
+        draw()
+      }
+    }, 50)
+  }
 }
 
 function setTitle(name) {
   titleEl.innerHTML = name
 }
-
-// let thumbSize = 64
-
-// function generateThumbnail() {
-//   let ratio = image.width / image.height
-//   let canvas = document.createElement('canvas')
-//   canvas.width = (thumbSize * ratio) >> 0
-//   canvas.height = (thumbSize) >> 0
-//   let ctx = canvas.getContext('2d')
-//   ctx.fillStyle = 'black'
-//   ctx.fillRect(0, 0, canvas.width, canvas.height)
-//   ctx.imageSmoothingQuality = 'medium'
-//   ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-//   let dataURL = canvas.toDataURL()
-//   return dataURL
-// }
 
 function onKeyDown(event) {
   if ((event.key == '=' || event.key == '+')) {
@@ -427,7 +427,7 @@ function onResize(e) {
     resizeTimeoutId = setTimeout(function() {
       resizeTimeoutId = null
       width = window.innerWidth
-      height = window.innerHeight
+      height = window.innerHeight - titlebarSize
       if (canvas) {
         canvas.width = width
         canvas.height = height
@@ -481,13 +481,14 @@ ipc.on('picture', (event, arg) => {
   image.onload = (e) => {
     initialised = true
     setTitle(picture.imageFilename)
-    ipc.send('request-initialise', e.target.width, e.target.height)
+    ipc.send('request-initialise', e.target.width, e.target.height + titlebarSize)
     draw()
   }
   image.src = picture.dataURL
 })
 
 ipc.on('initialised', (event, width, height) => {
+  height = height - titlebarSize
   if (image.width > width && image.height > height) {
     let w = width / image.width
     let h = height / image.height
@@ -497,7 +498,7 @@ ipc.on('initialised', (event, width, height) => {
   } else if (height > image.height) {
     settings.scale = height / image.height
   }
-  // ipc.send('console', 'image-window initialised')
+  // ipc.send('console', 'initialised')
   draw()
 })
 

@@ -224,7 +224,7 @@ function startup() {
 
     // if (process.platform !== 'darwin') mainWindow = dropWindow
 
-    // createMenu()
+    createMenu()
 
     if (process.platform === 'darwin') {
       globalShortcut.register('Command+Option+/', () => {
@@ -373,8 +373,8 @@ function createImageWindow(picture) {
   frame.picture = picture
   frames.push(frame)
 
-  let hwnd = frame.getNativeWindowHandle()
-  console.log(hwnd)
+  // let hwnd = frame.getNativeWindowHandle()
+  // console.log(hwnd)
   // dropWindow.send('new-picture', frame.picture)
 }
 
