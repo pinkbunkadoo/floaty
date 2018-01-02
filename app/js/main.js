@@ -11,7 +11,7 @@ const fs = require('fs')
 
 const Picture = require('./picture')
 
-const appName = 'Floaty!'
+const appName = 'Floaty'
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -21,7 +21,6 @@ let aboutWindow
 let menuTemplate
 let menu
 
-let firstFocus = true
 let incognito = false
 let frames = []
 let pictures = []
@@ -194,10 +193,9 @@ function createMenu() {
 function startup() {
   if (!mainWindow) {
 
-    mainWindow = new BrowserWindow({
-      // focusable: true,
-      show: false
-    })
+    // mainWindow = new BrowserWindow({
+    //   show: false
+    // })
 
     dropWindow = new BrowserWindow({
       title: appName,
@@ -212,11 +210,11 @@ function startup() {
       minimizable: true,
       maximizable: false,
       autoHideMenuBar: true,
-      // parent: null
       parent: null
+      // parent: mainWindow
     })
 
-    // mainWindow = dropWindow
+    mainWindow = dropWindow
 
     // if (process.platform !== 'darwin') mainWindow = dropWindow
 
@@ -344,17 +342,11 @@ function createImageWindow(picture) {
     minimizable: false,
     maximizable: false,
     transparent: true,
-    hasShadow: false,
     frame: false,
-    disableAutoHideCursor: true,
-    autoHideMenuBar: true,
-    skipTaskbar: true,
-    acceptFirstMouse: true,
+    toolbar: false,
     parent: process.platform === 'darwin' ? null : dropWindow,
     show: false
   })
-
-  frame.firstFocus = true
 
   let bounds = dropWindow.getBounds()
   frame.setBounds({ x: bounds.x, y: bounds.y, width: 1, height: 1})
@@ -362,7 +354,9 @@ function createImageWindow(picture) {
 
   frame.show()
 
-  frame.on('focus', () => {})
+  frame.on('focus', () => {
+    // console.log('frame focus', frame.getTitle());
+  })
 
   frame.loadURL(url.format({
     pathname: path.join(__dirname, '../image_window.html'),
