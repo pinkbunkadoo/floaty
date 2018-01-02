@@ -17,7 +17,7 @@ let focused = true
 
 let settings = { scale: 1.0, opacity: 0.5, left: 0, top: 0 }
 
-let titlebarSize = 28
+let titlebarSize = 24
 
 let mouseLeft = false
 
@@ -487,17 +487,21 @@ ipc.on('picture', (event, arg) => {
   image.src = picture.dataURL
 })
 
-ipc.on('initialised', (event, width, height) => {
-  height = height - titlebarSize
-  if (image.width > width && image.height > height) {
-    let w = width / image.width
-    let h = height / image.height
-    settings.scale = w > h ? h : w
-  } else if (image.width > width) {
-    settings.scale = width / image.width
-  } else if (height > image.height) {
-    settings.scale = height / image.height
+ipc.on('initialised', (event, w, h) => {
+  if (image.width > w && image.height > h) {
+    let wr = w / image.width
+    let hr = h / image.height
+    settings.scale = wr > hr ? hr : wr
+  } else if (image.width > w) {
+    settings.scale = w / image.width
+  } else if (image.height > h) {
+    settings.scale = h / image.height
   }
+
+  width = window.innerWidth
+  height = window.innerHeight - titlebarSize
+
+  setTitle(settings.scale)
   // ipc.send('console', 'initialised')
   draw()
 })
