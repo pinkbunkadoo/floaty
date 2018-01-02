@@ -60,6 +60,7 @@ function onWheel(e) {
 }
 
 function onKeyDown(event) {
+  // console.log(event.key)
   if (event.key == '=' && !event.repeat) {
   }
 }

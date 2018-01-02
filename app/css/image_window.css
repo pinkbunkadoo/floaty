@@ -1,4 +1,25 @@
 
+.background {
+  background-color: white;
+  fill: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.background.selected {
+  fill: rgba(0, 0, 0, 0.8);
+  color: rgba(0, 0, 0, 0.8);
+  /* background-color: rgba(16, 16, 16, 0.8); */
+}
+
+.border {
+  border: 3px solid rgba(255, 255, 255, 0);
+  border-radius: 2px;
+}
+
+.border.selected {
+  border-color: white;
+}
+
 #container {
   display: flex;
   position: absolute;
@@ -103,23 +124,12 @@
   -webkit-app-region: no-drag;
 }
 
-.background {
-  background-color: white;
-  fill: rgba(0, 0, 0, 0.5);
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.background.selected {
-  fill: rgba(0, 0, 0, 0.8);
-  color: rgba(0, 0, 0, 0.8);
-  /* background-color: rgba(16, 16, 16, 0.8); */
-}
-
-.border {
-  border: 3px solid rgba(255, 255, 255, 0);
-  border-radius: 2px;
-}
-
-.border.selected {
-  border-color: white;
+#info {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  margin: 8px;
+  color: white;
+  background: black;
+  font-size: 32px;
 }

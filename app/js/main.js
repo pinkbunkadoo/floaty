@@ -68,8 +68,10 @@ function createTrayIcon() {
 function setIncognito(value) {
   // if (value == true && frames.length == 0) return;
 
-  if (value != incognito) {
+  if (incognito != value) {
     incognito = value
+
+    console.log('incognito', incognito)
 
     for (var i = 0; i < frames.length; i++) {
       frame = frames[i]
@@ -92,6 +94,10 @@ function setIncognito(value) {
       dropWindow.setIgnoreMouseEvents(false)
       dropWindow.show()
       if (process.platform === 'darwin') app.dock.show()
+      if (tray) {
+        tray.destroy()
+        tray = null
+      }
     }
 
   }
@@ -218,7 +224,7 @@ function startup() {
 
     // if (process.platform !== 'darwin') mainWindow = dropWindow
 
-    createMenu()
+    // createMenu()
 
     if (process.platform === 'darwin') {
       globalShortcut.register('Command+Option+/', () => {
@@ -247,19 +253,21 @@ function startup() {
     })
 
     dropWindow.on('minimize', function() {
-      if (!incognito) {
-        for (var i = 0; i < frames.length; i++) {
-          frame = frames[i]
-          frame.minimize()
-        }
-      }
+      // if (!incognito) {
+      //   for (var i = 0; i < frames.length; i++) {
+      //     frame = frames[i]
+      //     // frame.minimize()
+      //     frame.hide()
+      //   }
+      // }
     })
 
     dropWindow.on('restore', function() {
-      for (var i = 0; i < frames.length; i++) {
-        frame = frames[i]
-        frame.restore()
-      }
+      // for (var i = 0; i < frames.length; i++) {
+      //   frame = frames[i]
+      //   // frame.restore()
+      //   frame.show()
+      // }
     })
   }
 }
@@ -333,30 +341,28 @@ function processImageDrop(imagePath, x, y) {
 }
 
 function createImageWindow(picture) {
-  options = {}
-
-  console.log('createImageWindow');
+  let bounds = dropWindow.getBounds()
 
   let frame = new BrowserWindow({
     title: picture.imageFilename,
+    x: bounds.x,
+    y: bounds.y,
+    width: 1,
+    height: 1,
     minimizable: false,
     maximizable: false,
     transparent: true,
     frame: false,
-    toolbar: false,
+    hasShadow: false,
+    // type: 'toolbar',
+    // focusable: false,
+    // alwaysOnTop: true,
+    // parent: null
     parent: process.platform === 'darwin' ? null : dropWindow,
-    show: false
+    // show: false
   })
 
-  let bounds = dropWindow.getBounds()
-  frame.setBounds({ x: bounds.x, y: bounds.y, width: 1, height: 1})
-  frame.center()
-
-  frame.show()
-
-  frame.on('focus', () => {
-    // console.log('frame focus', frame.getTitle());
-  })
+  frame.on('focus', () => {})
 
   frame.loadURL(url.format({
     pathname: path.join(__dirname, '../image_window.html'),
@@ -364,12 +370,11 @@ function createImageWindow(picture) {
     slashes: true
   }))
 
-  // frame.webContents.openDevTools({ mode: 'bottom' })
-
   frame.picture = picture
   frames.push(frame)
 
-  // console.log(frame);
+  let hwnd = frame.getNativeWindowHandle()
+  console.log(hwnd)
   // dropWindow.send('new-picture', frame.picture)
 }
 

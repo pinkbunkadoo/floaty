@@ -8,22 +8,12 @@ const Icon = require('../icon')
 
 const fs = require('fs')
 
-let container, titleEl, closeEl
-let overlayContainer, canvasContainer
-let canvas, ctx, overlayCanvas
 let width, height
 let isInitialised = false
 let initialised = false
 let mode = null
-
 let incognito = false
-let picture
-let image
-let focusFrame
-
 let focused = true
-let active = false
-let message
 
 let settings = { scale: 1.0, opacity: 0.5, left: 0, top: 0 }
 
@@ -32,10 +22,18 @@ let mouseLeft = false
 let timerId = null
 let timeout = 0
 let requestAnimationFrameId
+let active = false
+
+let picture
+let image
+
+let container, titleEl, closeEl, info
+let overlayContainer, canvasContainer
+let canvas, ctx, overlayCanvas
 
 
 window.onload = function (event) {
-  ipc.send('console', 'image-window onload')
+  // ipc.send('console', 'image-window onload')
 
   container = document.getElementById('container')
   container.classList.add('selected');
@@ -73,12 +71,19 @@ window.onload = function (event) {
   titleEl.classList.add('selected');
   titleEl.innerHTML = ''
 
+  info = document.getElementById('info')
+  updateInfo()
+
   initEventListeners()
 
   ipc.send('request-picture')
 
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 
+}
+
+function updateInfo() {
+  // info.innerHTML = Math.round(settings.opacity * 100) + '%'
 }
 
 function worldToCanvas(x, y) {
@@ -116,7 +121,7 @@ function canvasToWorld(x, y) {
   return new Point(tx, ty)
 }
 
-function resetAnimationTimer() {
+function resetAnimationTimer(count=5) {
   if (!active) {
     timerId = setInterval(() => {
       timeout--
@@ -126,10 +131,10 @@ function resetAnimationTimer() {
       } else {
         // ipc.send('console', timeout)
       }
-    }, 250)
+    }, 50)
     start()
   }
-  timeout = 2
+  timeout = count
 }
 
 function zoomBy(x) {
@@ -168,7 +173,7 @@ function draw(quality='medium') {
 
   if (!incognito) {
     ctx.fillStyle = 'rgb(0, 192, 255)'
-    ctx.globalAlpha = 0.1
+    ctx.globalAlpha = 0.05
     ctx.fillRect(0, 0, width, height)
     ctx.globalAlpha = 1
   }
@@ -180,10 +185,26 @@ function draw(quality='medium') {
     ctx.imageSmoothingQuality = quality
     ctx.globalAlpha = settings.opacity
     ctx.drawImage(image, p.x - (w/2), p.y - (h/2), w, h)
+    ctx.globalAlpha = 1
   }
-  // ctx.fillStyle = 'white'
-  // ctx.font = '48px sans-serif'
-  // ctx.fillText(settings.left, 50, 100)
+
+  if (active) {
+    let fontSize = 40
+
+    ctx.fillStyle = 'white'
+    ctx.font = fontSize + 'px sans-serif'
+    let text = Math.round(settings.opacity * 100) + '%'
+    let tm = ctx.measureText(text)
+
+    // let x = width / 2 - tm.width / 2
+    let x = 16
+    let y = height - 16
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
+    ctx.fillRect(x - 8, y - fontSize, tm.width + 16, fontSize + fontSize * 0.2)
+    ctx.fillStyle = 'white'
+    ctx.fillText(text, x, y)
+  }
 
   ctx.restore()
 }
@@ -236,6 +257,8 @@ function start() {
 function stop() {
   active = false
   cancelAnimationFrame(requestAnimationFrameId)
+  updateInfo()
+  draw()
   // ipc.send('console', 'stop-animation')
 }
 
@@ -245,7 +268,7 @@ function updateOpacity(value) {
   settings.opacity = (settings.opacity >= 0.05 ? settings.opacity : 0.05)
   settings.opacity = (settings.opacity <= 1 ? settings.opacity : 1)
   // draw()
-  resetAnimationTimer()
+  resetAnimationTimer(10)
 }
 
 function setTitle(name) {
@@ -374,12 +397,13 @@ function onMouseMove(e) {
       zoomBy(e.movementX * (settings.scale * 0.0025))
     }
   }
+  // ipc.send('console', 'image-window-mouse')
 }
 
 function onBlur(e) {
+  // ipc.send('console', 'image-window-blur')
   overlayContainer.classList.remove('selected')
   container.classList.remove('selected');
-  // dragContainer.classList.add('draggable')
   closeEl.classList.remove('selected');
   titleEl.classList.remove('selected');
   focused = false
@@ -387,9 +411,9 @@ function onBlur(e) {
 }
 
 function onFocus(e) {
+  // ipc.send('console', 'image-window-focus')
   overlayContainer.classList.add('selected')
   container.classList.add('selected');
-  // dragContainer.classList.add('draggable')
   closeEl.classList.add('selected');
   titleEl.classList.add('selected');
   focused = true
@@ -408,7 +432,7 @@ function onResize(e) {
         canvas.width = width
         canvas.height = height
       }
-      resetAnimationTimer()
+      draw()
    }, 1000 / 30)
   }
 }
@@ -473,7 +497,7 @@ ipc.on('initialised', (event, width, height) => {
   } else if (height > image.height) {
     settings.scale = height / image.height
   }
-  ipc.send('console', 'image-window initialised')
+  // ipc.send('console', 'image-window initialised')
   draw()
 })
 
