@@ -17,7 +17,7 @@ let focused = true
 
 let settings = { scale: 1.0, opacity: 0.5, left: 0, top: 0 }
 
-let titlebarSize = 24
+let titleBarSize = 24
 
 let mouseLeft = false
 
@@ -31,7 +31,7 @@ let hintTimerId
 let picture
 let image
 
-let container, titleEl, closeEl, info
+let container, titleEl, closeEl, titleBarEl
 let overlayContainer, canvasContainer
 let canvas, ctx, overlayCanvas
 
@@ -47,7 +47,7 @@ window.onload = function (event) {
   canvas = document.getElementById('surface')
   // canvasContainer.appendChild(canvas)
   width = window.innerWidth
-  height = window.innerHeight - titlebarSize
+  height = window.innerHeight - titleBarSize
   canvas.width = width
   canvas.height = height
 
@@ -61,8 +61,8 @@ window.onload = function (event) {
   // overlayContainer.appendChild(dragContainer)
 
   closeEl = document.getElementById('close')
-  closeEl.classList.add('background');
-  closeEl.classList.add('selected');
+  closeEl.classList.add('background')
+  closeEl.classList.add('selected')
 
   // overlayContainer.appendChild(closeEl)
 
@@ -71,9 +71,18 @@ window.onload = function (event) {
   })
 
   titleEl = document.getElementById('title')
-  titleEl.classList.add('background');
-  titleEl.classList.add('selected');
+  titleEl.classList.add('background')
+  titleEl.classList.add('selected')
   titleEl.innerHTML = ''
+
+  titleBarEl = document.getElementById('title-bar')
+
+  if (process.platform === 'darwin') {
+    titleBarSize = 0
+    titleBarEl.style.display = 'none'
+  } else {
+    titleBarEl.style.height = titleBarSize + 'px';
+  }
 
   // info = document.getElementById('info')
   // updateInfo()
@@ -81,9 +90,7 @@ window.onload = function (event) {
   initEventListeners()
 
   ipc.send('request-picture')
-
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
-
 }
 
 function updateInfo() {
@@ -427,7 +434,7 @@ function onResize(e) {
     resizeTimeoutId = setTimeout(function() {
       resizeTimeoutId = null
       width = window.innerWidth
-      height = window.innerHeight - titlebarSize
+      height = window.innerHeight - titleBarSize
       if (canvas) {
         canvas.width = width
         canvas.height = height
@@ -481,7 +488,7 @@ ipc.on('picture', (event, arg) => {
   image.onload = (e) => {
     initialised = true
     setTitle(picture.imageFilename)
-    ipc.send('request-initialise', e.target.width, e.target.height + titlebarSize)
+    ipc.send('request-initialise', e.target.width, e.target.height + titleBarSize)
     draw()
   }
   image.src = picture.dataURL
@@ -499,7 +506,7 @@ ipc.on('initialised', (event, w, h) => {
   }
 
   // width = window.innerWidth
-  // height = window.innerHeight - titlebarSize
+  // height = window.innerHeight - titleBarSize
 
   // setTitle(settings.scale)
   // ipc.send('console', 'initialised')
@@ -514,11 +521,13 @@ ipc.on('incognito', function(event, arg) {
     overlayContainer.style.opacity = 0
     overlayContainer.classList.remove('border')
     container.classList.remove('selected')
+    titleBarEl.style.visibility = 'hidden'
     draw()
   } else {
     overlayContainer.classList.add('border')
     overlayContainer.style.opacity = 1
     container.classList.add('selected')
+    titleBarEl.style.visibility = 'visible'
     draw()
   }
 })
