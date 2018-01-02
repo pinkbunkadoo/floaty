@@ -340,7 +340,7 @@ function createImageWindow(picture) {
   console.log('createImageWindow');
 
   let frame = new BrowserWindow({
-    // title: picture.imageFilename,
+    title: picture.imageFilename,
     minimizable: false,
     maximizable: false,
     transparent: true,
