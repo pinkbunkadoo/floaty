@@ -12,8 +12,8 @@
 }
 
 .border {
-  border: 3px solid rgba(255, 255, 255, 0);
-  border-radius: 2px;
+  border: 2px solid rgba(255, 255, 255, 0);
+  /* border-radius: 2px; */
 }
 
 .border.selected {
@@ -22,11 +22,13 @@
 
 #container {
   display: flex;
+  flex-direction: column;
   position: absolute;
   overflow: hidden;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
+  /* border-radius: 3px; */
 }
 
 #container.selected {
@@ -34,11 +36,11 @@
 
 #overlay-container {
   display: flex;
+  position: absolute;
   overflow: hidden;
   width: 100%;
   height: 100%;
   padding: 3px;
-  position: absolute;
   box-sizing: border-box;
   -webkit-user-select: none;
   -webkit-scrollbar: none;
@@ -46,11 +48,11 @@
 }
 
 #canvas-container {
-  position: absolute;
+  /* position: absolute; */
   overflow: hidden;
-  top: 24px;
+  /* top: 24px; */
   width: 100%;
-  height: calc(100% - 24px);
+  /* height: calc(100% - 24px); */
   -webkit-scrollbar: none;
 }
 
@@ -66,7 +68,7 @@
 
 #title-bar {
   display: flex;
-  position: fixed;
+  /* position: fixed; */
   align-items: center;
   justify-content: center;
   left: 0;

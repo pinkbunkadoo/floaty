@@ -498,10 +498,10 @@ ipc.on('initialised', (event, w, h) => {
     settings.scale = h / image.height
   }
 
-  width = window.innerWidth
-  height = window.innerHeight - titlebarSize
+  // width = window.innerWidth
+  // height = window.innerHeight - titlebarSize
 
-  setTitle(settings.scale)
+  // setTitle(settings.scale)
   // ipc.send('console', 'initialised')
   draw()
 })
