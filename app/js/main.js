@@ -8,9 +8,10 @@ const { Menu } = require('electron')
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
+
 const Picture = require('./picture')
 
-const appName = 'Floaty'
+const appName = 'Floaty!'
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -89,7 +90,7 @@ function createMenu() {
             }
           })(),
           click: (item, focusedWindow) => {
-            dropWindow.toggleDevTools()
+            focusedWindow.toggleDevTools()
           }
         }
       ]
@@ -151,7 +152,6 @@ function createMenu() {
   Menu.setApplicationMenu(menu)
 }
 
-
 function startup() {
   if (!mainWindow) {
 
@@ -190,8 +190,6 @@ function startup() {
       })
     }
 
-    // dropWindow.webContents.openDevTools({ mode:'bottom' })
-
     dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 480 })
     dropWindow.center()
 
@@ -200,6 +198,8 @@ function startup() {
       protocol: 'file:',
       slashes: true
     }))
+
+    // dropWindow.webContents.openDevTools({ mode: 'undocked' })
 
     dropWindow.on('focus', () => {
       setIncognito(false)
@@ -227,10 +227,10 @@ function startup() {
     })
 
     try {
-      iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray_light.png'
-      iconPath = app.getAppPath() + '/app/images/' + iconFilename;
+      let iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray_light.png'
+      let iconPath = app.getAppPath() + '/app/images/' + iconFilename;
 
-      tray = new Tray(iconPath)
+      let tray = new Tray(iconPath)
 
       if (process.platform === 'darwin') {
         pressedImage = nativeImage.createFromPath(app.getAppPath() + '/app/images/tray_light.png')
@@ -304,7 +304,7 @@ function generatePictureId(name) {
   return (count == 0 ? name : name + count)
 }
 
-function onImageDrop(imagePath, x, y) {
+function processImageDrop(imagePath, x, y) {
   let imageFilename = null
 
   index1 = imagePath.lastIndexOf('/')
@@ -318,19 +318,15 @@ function onImageDrop(imagePath, x, y) {
   }
 
   fs.readFile(imagePath, null, function(err, data) {
-    // img = new Image()
-    // img.src = 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64'))
-    // img.onload = (e) => {
-      let picture = new Picture({
-        id: generatePictureId(),
-        x: x,
-        y: y,
-        dataURL: 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64')),
-        imageFilename: imageFilename,
-        imagePath: imagePath
-      })
-      createImageWindow(picture)
-    // }
+    let picture = new Picture({
+      id: generatePictureId(),
+      x: x,
+      y: y,
+      dataURL: 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64')),
+      imageFilename: imageFilename,
+      imagePath: imagePath
+    })
+    createImageWindow(picture)
   })
 
 }
@@ -340,8 +336,8 @@ function createImageWindow(picture) {
 
   let frame = new BrowserWindow({
     title: picture.imageFilename,
-    width: 640,
-    height: 480,
+    // width: 640,
+    // height: 480,
     minWidth: 256,
     minHeight: 256,
     minimizable: false,
@@ -352,14 +348,14 @@ function createImageWindow(picture) {
     disableAutoHideCursor: true,
     skipTaskbar: true,
     acceptFirstMouse: true,
-    parent: process.platform === 'darwin' ? null : mainWindow
+    parent: process.platform === 'darwin' ? null : mainWindow,
+    show: true
   })
 
   frame.firstFocus = true
 
   let bounds = dropWindow.getBounds()
-
-  frame.setBounds({ x: bounds.x, y: bounds.y, width: 640, height: 480})
+  // frame.setBounds({ x: bounds.x, y: bounds.y, width: 640, height: 480})
   frame.center()
 
   frame.on('focus', () => {})
@@ -375,8 +371,7 @@ function createImageWindow(picture) {
   frame.picture = picture
   frames.push(frame)
 
-  // picture.frame = frame
-  // pictures.push(picture)
+  // dropWindow.send('new-picture', frame.picture)
 }
 
 // This method will be called when Electron has finished
@@ -421,13 +416,11 @@ ipcMain.on('console', function (event, arg) {
   console.log(arg)
 })
 
-ipcMain.on('thumbnail', function (event, arg) {
-  // console.log('thumbnail');
-  let handle = BrowserWindow.fromWebContents(event.sender)
-  handle.thumbnail = arg
-  // console.log(arg)
-  dropWindow.send('new-image', { data: handle.thumbnail, path: handle.imagePath })
-})
+// ipcMain.on('thumbnail', function (event, arg) {
+//   let handle = BrowserWindow.fromWebContents(event.sender)
+//   handle.thumbnail = arg
+//   dropWindow.send('new-image', { data: handle.thumbnail, path: handle.imagePath })
+// })
 
 ipcMain.on('request-thumbnails', function(event) {
   let list = frames.map((frame) => {
@@ -452,7 +445,7 @@ ipcMain.on('request-quit', function(event) {
   dropWindow.close()
 })
 
-ipcMain.on('resize-frame', (event, width, height) => {
+ipcMain.on('request-initialise', (event, width, height) => {
   let handle = BrowserWindow.fromWebContents(event.sender)
   let bounds = handle.getBounds()
 
@@ -490,14 +483,12 @@ ipcMain.on('resize-frame', (event, width, height) => {
   handle.setSize(width, height)
   handle.center()
 
-  handle.send('frame-resized', width, height)
+  handle.send('initialised', width, height)
 })
 
 ipcMain.on('image-drop', function(event, imagePath, x, y) {
   let bounds = dropWindow.getContentBounds()
-  onImageDrop(imagePath, bounds.x + x, bounds.y + y)
-  // processImageFile(imagePath)
-  // createWindow(imagePath, bounds.x + x, bounds.y + y)
+  processImageDrop(imagePath, bounds.x + x, bounds.y + y)
 })
 
 ipcMain.on('close-image', (event) => {

@@ -1,4 +1,5 @@
-const BrowserWindow = require('electron').remote.BrowserWindow
+const remote = require('electron').remote
+const BrowserWindow = remote.BrowserWindow
 const ipc = require('electron').ipcRenderer
 
 const Point = require('../point')
@@ -71,7 +72,10 @@ window.onload = function (event) {
   titleEl.innerHTML = ''
 
   initEventListeners()
+
   ipc.send('request-picture')
+
+  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 }
 
 function worldToCanvas(x, y) {
@@ -192,6 +196,14 @@ function setMode(newMode) {
   }
 }
 
+function centerImage() {
+  settings.left = 0
+  settings.top = 0
+  settings.scale = 1
+  draw()
+  // ipc.send('console', 'center')
+}
+
 function dragOn() {
   dragContainer.classList.add('draggable')
   // dragContainer.style.visibility = 'visible'
@@ -221,7 +233,6 @@ function start() {
 function stop() {
   active = false
   cancelAnimationFrame(requestAnimationFrameId)
-  draw('medium')
   // ipc.send('console', 'stop-animation')
 }
 
@@ -238,22 +249,21 @@ function setTitle(name) {
   titleEl.innerHTML = name
 }
 
-let thumbSize = 64
+// let thumbSize = 64
 
-function generateThumbnail() {
-  let img = image
-  let ratio = img.width / img.height
-  let canvas = document.createElement('canvas')
-  canvas.width = (thumbSize * ratio) >> 0
-  canvas.height = (thumbSize) >> 0
-  let ctx = canvas.getContext('2d')
-  ctx.fillStyle = 'black'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.imageSmoothingQuality = 'medium'
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-  let dataURL = canvas.toDataURL()
-  return dataURL
-}
+// function generateThumbnail() {
+//   let ratio = image.width / image.height
+//   let canvas = document.createElement('canvas')
+//   canvas.width = (thumbSize * ratio) >> 0
+//   canvas.height = (thumbSize) >> 0
+//   let ctx = canvas.getContext('2d')
+//   ctx.fillStyle = 'black'
+//   ctx.fillRect(0, 0, canvas.width, canvas.height)
+//   ctx.imageSmoothingQuality = 'medium'
+//   ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+//   let dataURL = canvas.toDataURL()
+//   return dataURL
+// }
 
 function onKeyDown(event) {
   if ((event.key == '=' || event.key == '+')) {
@@ -278,6 +288,8 @@ function onKeyUp(event) {
     if (!mouseLeft) setMode(null)
   } else if (event.key == 'Control' && !event.repeat) {
     if (!mouseLeft) setMode(null)
+  } else if (event.key == ' ' && !event.repeat) {
+    centerImage()
   }
 }
 
@@ -331,8 +343,11 @@ function onMouseDown(e) {
     setMode('zoom')
   } else {
     if (e.buttons & 2 || e.buttons & 3) {
+      // ipc.send('console', e.buttons)
       // settings.left = 0
       // settings.top = 0
+      // settings.scale = 1
+      draw()
     }
   }
 }
@@ -440,13 +455,13 @@ ipc.on('picture', (event, arg) => {
   image.onload = (e) => {
     initialised = true
     setTitle(picture.imageFilename)
-    ipc.send('resize-frame', e.target.width, e.target.height)
+    ipc.send('request-initialise', e.target.width, e.target.height)
     draw()
   }
   image.src = picture.dataURL
 })
 
-ipc.on('frame-resized', (event, width, height) => {
+ipc.on('initialised', (event, width, height) => {
   if (image.width > width && image.height > height) {
     let w = width / image.width
     let h = height / image.height
@@ -456,13 +471,6 @@ ipc.on('frame-resized', (event, width, height) => {
   } else if (height > image.height) {
     settings.scale = height / image.height
   }
-
-  // width = window.innerWidth
-  // height = window.innerHeight
-  // canvas.width = width
-  // canvas.height = height
-  // ipc.send('console', settings.scale)
-
   draw()
 })
 

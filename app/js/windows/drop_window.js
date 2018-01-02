@@ -1,11 +1,12 @@
-const BrowserWindow = require('electron').remote.BrowserWindow
+const remote = require('electron').remote
+const BrowserWindow = remote.BrowserWindow
 const ipcRenderer = require('electron').ipcRenderer
 const fs = require('fs')
 const Point = require('../point')
 const Picture = require('../picture')
 const Icon = require('../icon')
 
-const thumbWidth = 128
+const thumbSize = 64
 
 let container, perimeter, thumbnailContainer
 let isInitialised = false
@@ -17,13 +18,13 @@ let mx = 0
 let my = 0
 let previousmx = 0
 let previousmy = 0
-let eye, settings, close
+let title, eye, settings, close
 
 window.onload = function (event) {
-  console.log('onload');
-
   eye = document.getElementById('eye')
   close = document.getElementById('close')
+
+  title = document.getElementById('title')
 
   eye.onclick = function() {
     ipcRenderer.send('request-incognito')
@@ -41,6 +42,12 @@ window.onload = function (event) {
 
   initEventListeners()
 
+  title.innerHTML = remote.getCurrentWindow().getTitle()
+
+  remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+
+  // console.log('hi')
+  // console.error(':(')
   // ipc.send('request-thumbnails')
 }
 
@@ -51,7 +58,6 @@ function startup() {
 function onWheel(e) {
   e.preventDefault();
 }
-
 
 function onKeyDown(event) {
   if (event.key == '=' && !event.repeat) {
@@ -66,9 +72,6 @@ function onDragStart(e) {
 function onDrag(e) {
   e.preventDefault();
   e.stopPropagation();
-}
-
-function onImageLoad(e) {
 }
 
 function onDrop(e) {
@@ -158,47 +161,48 @@ function initEventListeners() {
   window.addEventListener('resize', onResize);
 }
 
-function createThumbnail(dataURL, imagePath) {
-  let image = new Image()
-  image.src = dataURL
-  image.onload = (e) => {
-    let img = e.target
-    let el = document.createElement('div')
-    el.dataset.path = imagePath
-    el.classList.add('thumbnail')
-    el.appendChild(img)
-    let w = (img.width * 0.5) >> 0
-    let h = (img.height * 0.5) >> 0
-    el.style.width = (w) + 'px'
-    el.style.height = (h) + 'px'
-    img.width = w
-    img.height = h
-    thumbnailContainer.appendChild(el)
-  }
-}
+// function generateThumbnail(dataURL) {
+//   let image = new Image()
+//   image.onload = (e) => {
+//     let img = e.target
+//     let ratio = img.width / img.height
+//     let canvas = document.createElement('canvas')
+//     canvas.width = (thumbSize * ratio) >> 0
+//     canvas.height = (thumbSize) >> 0
+//     let ctx = canvas.getContext('2d')
+//     ctx.fillStyle = 'black'
+//     ctx.fillRect(0, 0, canvas.width, canvas.height)
+//     ctx.imageSmoothingQuality = 'medium'
+//     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+//     let dataURL = canvas.toDataURL()
+//     // return dataURL
+//   }
+//   image.src = dataURL
+// }
 
 ipcRenderer.on('thumbnails', function(event, arg) {
-  for (let i = 0; i < arg.length; i++) {
-    createThumbnail(arg[i].data, arg[i].path)
-  }
+  // for (let i = 0; i < arg.length; i++) {
+  //   createThumbnail(arg[i].data, arg[i].path)
+  // }
 })
 
 ipcRenderer.on('remove-image', function(event, path) {
-  let found = null
-  for (let i = 0; i < thumbnailContainer.childNodes.length; i++) {
-    let node = thumbnailContainer.childNodes[i]
-    if (node.dataset.path === path) {
-      found = node
-      break
-    }
-  }
-  if (found) {
-    thumbnailContainer.removeChild(found)
-  }
+  // let found = null
+  // for (let i = 0; i < thumbnailContainer.childNodes.length; i++) {
+  //   let node = thumbnailContainer.childNodes[i]
+  //   if (node.dataset.path === path) {
+  //     found = node
+  //     break
+  //   }
+  // }
+  // if (found) {
+  //   thumbnailContainer.removeChild(found)
+  // }
 })
 
-ipcRenderer.on('new-image', function(event, arg) {
-  createThumbnail(arg.data, arg.path)
+ipcRenderer.on('new-picture', function(event, picture) {
+  // generateThumbnail(picture.dataURL)
+  // createThumbnail(arg.data, arg.path)
 })
 
 ipcRenderer.on('incognito', function(event, arg1) {

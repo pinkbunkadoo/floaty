@@ -17,7 +17,7 @@
   flex: auto;
 }
 
-.title {
+#title {
   flex: auto;
   align-items: center;
   justify-content: center;

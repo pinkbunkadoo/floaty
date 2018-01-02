@@ -1,0 +1,8 @@
+
+* Move image loading code to drop_window.js:
+
+  - Load the image and then notify the Main process for purposes of picture
+    frame creation. This would allow the calculation of the window width and
+    height prior to frame creation.
+
+  - Maybe generate thumbnail at same time?
