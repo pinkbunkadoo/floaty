@@ -44,7 +44,7 @@ window.onload = function (event) {
 
   title.innerHTML = remote.getCurrentWindow().getTitle()
 
-  remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 
   // console.log('hi')
   // console.error(':(')

@@ -35,6 +35,8 @@ let requestAnimationFrameId
 
 
 window.onload = function (event) {
+  ipc.send('console', 'image-window onload')
+
   container = document.getElementById('container')
   container.classList.add('selected');
 
@@ -76,6 +78,7 @@ window.onload = function (event) {
   ipc.send('request-picture')
 
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+
 }
 
 function worldToCanvas(x, y) {
@@ -412,13 +415,12 @@ function onResize(e) {
 
 
 function onScroll(e) {
-  // console.log('scroll')
-  // ipc.send('console', 'scroll')
 }
 
 
 function onContextMenu(e) {
-  // console.log('contextmenu')
+  e.preventDefault()
+  e.stopPropagation()
 }
 
 
@@ -471,6 +473,7 @@ ipc.on('initialised', (event, width, height) => {
   } else if (height > image.height) {
     settings.scale = height / image.height
   }
+  ipc.send('console', 'image-window initialised')
   draw()
 })
 
@@ -481,12 +484,12 @@ ipc.on('incognito', function(event, arg) {
   if (incognito) {
     overlayContainer.style.opacity = 0
     overlayContainer.classList.remove('border')
-    container.classList.remove('selected');
+    container.classList.remove('selected')
     draw()
   } else {
     overlayContainer.classList.add('border')
     overlayContainer.style.opacity = 1
-    container.classList.add('selected');
+    container.classList.add('selected')
     draw()
   }
 })

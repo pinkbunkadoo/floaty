@@ -27,22 +27,50 @@ let frames = []
 let pictures = []
 let imageId = 1
 
+let tray
+
+function createTrayIcon() {
+  try {
+    let iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray_light.png'
+    let iconPath = app.getAppPath() + '/app/images/' + iconFilename;
+
+    tray = new Tray(iconPath)
+
+    if (process.platform === 'darwin') {
+      pressedImage = nativeImage.createFromPath(app.getAppPath() + '/app/images/tray_light.png')
+      tray.setPressedImage(pressedImage)
+    }
+
+    contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'Freeze/Unfreeze', click: (menuItem) => {
+          setIncognito(!incognito)
+        }
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit ' + appName, click: (menuItem) => {
+          app.quit()
+        }
+      }
+    ])
+    tray.setToolTip(appName + '! :)')
+    tray.setContextMenu(contextMenu)
+    tray.on('click', () => {
+      setIncognito(false)
+      dropWindow.show()
+    })
+  } catch (e) {
+    console.log('Unable to create tray icon!');
+    console.log(e);
+  }
+}
 
 function setIncognito(value) {
   // if (value == true && frames.length == 0) return;
 
   if (value != incognito) {
     incognito = value
-
-    if (incognito) {
-      dropWindow.setIgnoreMouseEvents(true)
-      dropWindow.hide()
-      if (process.platform === 'darwin') app.dock.hide()
-    } else {
-      dropWindow.setIgnoreMouseEvents(false)
-      dropWindow.show()
-      if (process.platform === 'darwin') app.dock.show()
-    }
 
     for (var i = 0; i < frames.length; i++) {
       frame = frames[i]
@@ -54,6 +82,17 @@ function setIncognito(value) {
         frame.setAlwaysOnTop(false)
       }
       frame.send('incognito', value)
+    }
+
+    if (incognito) {
+      dropWindow.setIgnoreMouseEvents(true)
+      dropWindow.hide()
+      if (process.platform === 'darwin') app.dock.hide()
+      createTrayIcon()
+    } else {
+      dropWindow.setIgnoreMouseEvents(false)
+      dropWindow.show()
+      if (process.platform === 'darwin') app.dock.show()
     }
 
   }
@@ -165,17 +204,16 @@ function startup() {
       frame: false,
       minWidth: 320,
       minHeight: 320,
-      maximizable: false,
       fullscreenable: false,
       fullscreen: false,
       titleBarStyle: 'hiddenInset',
       disableAutoHideCursor: true,
       acceptFirstMouse: true,
-      minimizable: false,
+      minimizable: true,
       maximizable: false,
       autoHideMenuBar: true,
       // parent: null
-      parent: mainWindow
+      parent: null
     })
 
     // mainWindow = dropWindow
@@ -225,63 +263,28 @@ function startup() {
         frame.restore()
       }
     })
-
-    try {
-      let iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray_light.png'
-      let iconPath = app.getAppPath() + '/app/images/' + iconFilename;
-
-      let tray = new Tray(iconPath)
-
-      if (process.platform === 'darwin') {
-        pressedImage = nativeImage.createFromPath(app.getAppPath() + '/app/images/tray_light.png')
-        tray.setPressedImage(pressedImage)
-      }
-
-      contextMenu = Menu.buildFromTemplate([
-        {
-          label: 'Freeze/Unfreeze', click: (menuItem) => {
-            setIncognito(!incognito)
-          }
-        },
-        { type: 'separator' },
-        {
-          label: 'Quit ' + appName, click: (menuItem) => {
-            app.quit()
-          }
-        }
-      ])
-      tray.setToolTip(appName + '! :)')
-      tray.setContextMenu(contextMenu)
-      tray.on('click', () => {
-        setIncognito(false)
-        dropWindow.show()
-      })
-    } catch (e) {
-      console.log('Unable to create tray icon!');
-      console.log(e);
-    }
   }
 }
 
 function showAbout() {
-  if (aboutWindow) {
-    aboutWindow.close()
-  }
-
-  aboutWindow = new BrowserWindow({
-    show: true,
-    alwaysOnTop: true
-  })
-
-  aboutWindow.loadURL(url.format({
-    pathname: path.join(__dirname, '../about_window.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
-
-  aboutWindow.on('close', () => {
-    aboutWindow = null
-  })
+  // if (aboutWindow) {
+  //   aboutWindow.close()
+  // }
+  //
+  // aboutWindow = new BrowserWindow({
+  //   show: true,
+  //   alwaysOnTop: true
+  // })
+  //
+  // aboutWindow.loadURL(url.format({
+  //   pathname: path.join(__dirname, '../about_window.html'),
+  //   protocol: 'file:',
+  //   slashes: true
+  // }))
+  //
+  // aboutWindow.on('close', () => {
+  //   aboutWindow = null
+  // })
 
   // aboutWindow.webContents.openDevTools({ mode:'bottom' })
 }
@@ -334,29 +337,30 @@ function processImageDrop(imagePath, x, y) {
 function createImageWindow(picture) {
   options = {}
 
+  console.log('createImageWindow');
+
   let frame = new BrowserWindow({
-    title: picture.imageFilename,
-    // width: 640,
-    // height: 480,
-    minWidth: 256,
-    minHeight: 256,
+    // title: picture.imageFilename,
     minimizable: false,
     maximizable: false,
     transparent: true,
     hasShadow: false,
     frame: false,
     disableAutoHideCursor: true,
+    autoHideMenuBar: true,
     skipTaskbar: true,
     acceptFirstMouse: true,
-    parent: process.platform === 'darwin' ? null : mainWindow,
-    show: true
+    parent: process.platform === 'darwin' ? null : dropWindow,
+    show: false
   })
 
   frame.firstFocus = true
 
   let bounds = dropWindow.getBounds()
-  // frame.setBounds({ x: bounds.x, y: bounds.y, width: 640, height: 480})
+  frame.setBounds({ x: bounds.x, y: bounds.y, width: 1, height: 1})
   frame.center()
+
+  frame.show()
 
   frame.on('focus', () => {})
 
@@ -371,6 +375,7 @@ function createImageWindow(picture) {
   frame.picture = picture
   frames.push(frame)
 
+  // console.log(frame);
   // dropWindow.send('new-picture', frame.picture)
 }
 
@@ -402,15 +407,6 @@ app.on('activate', function () {
   }
 })
 
-
-ipcMain.on('move-window-by', function (event, x, y) {
-  // handle = BrowserWindow.fromWebContents(event.sender)
-  // bounds = handle.getBounds()
-  // bounds.x += x
-  // bounds.y += y
-  // handle.setBounds(bounds)
-  console.log('move-window-by')
-})
 
 ipcMain.on('console', function (event, arg) {
   console.log(arg)
@@ -481,14 +477,17 @@ ipcMain.on('request-initialise', (event, width, height) => {
   height = Math.round(height)
 
   handle.setSize(width, height)
+  handle.setMinimumSize(256, 256)
   handle.center()
 
   handle.send('initialised', width, height)
+  // console.log('request-initialise')
 })
 
 ipcMain.on('image-drop', function(event, imagePath, x, y) {
   let bounds = dropWindow.getContentBounds()
   processImageDrop(imagePath, bounds.x + x, bounds.y + y)
+  // console.log('drop')
 })
 
 ipcMain.on('close-image', (event) => {
@@ -499,7 +498,7 @@ ipcMain.on('close-image', (event) => {
     frame = frames[i]
     if (frame === handle) {
       index = i
-      break;
+      break
     }
   }
 
