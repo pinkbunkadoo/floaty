@@ -37,8 +37,7 @@ let canvas, ctx, overlayCanvas
 
 
 const load = async(event, args) => {
-  // ipcRenderer.send('console', 'image-window onload')
-
+// window.onload = function() {
   titleBarEl = document.getElementById('title-bar')
 
   // if (process.platform === 'darwin') {
@@ -84,21 +83,16 @@ const load = async(event, args) => {
   titleEl.classList.add('selected')
   titleEl.innerHTML = ''
 
-  colorOverlayEl = document.getElementById('color-overlay')
+  // colorOverlayEl = document.getElementById('color-overlay')
 
-
-  // info = document.getElementById('info')
-  // updateInfo()
+  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 
   initEventListeners()
 
+  // ipcRenderer.send('console', 'ya')
+
   picture = args.picture
-
-  // console.log(picture)
-
   createImage(args.firstShow)
-
-  // window.onload = reload
 }
 
 ipcRenderer.on('load', load)
@@ -154,30 +148,27 @@ function adjustFrame(width, height) {
   }
 }
 
-
 function createImage(firstShow=true) {
-  image = new Image()
-  image.onload = (e) => {
-    initialised = true
-
-    setTitle(picture.imageFilename)
-    titleEl.style.visibility = 'visible'
-
-    // console.log(firstShow)
-
-    if (firstShow) {
-
-      adjustFrame(e.target.width, e.target.height + titleBarSize)
-      // remote.getCurrentWindow().show()
-
-      // initialiseFrame(e.target.width, e.target.height + titleBarSize)
-      // ipcRenderer.send('request-initialise', e.target.width, e.target.height + titleBarSize)
-      ipcRenderer.send('frameInitialised')
+  // ipcRenderer.send('console', picture.imagePath)
+  // fs.readFile(picture.imagePath, null, (err, data) => {
+  //   ipcRenderer.send('console', err)
+    image = new Image()
+    image.onload = (e) => {
+      ipcRenderer.send('console', 'imgload')
+      initialised = true
+      setTitle(picture.imageFilename)
+      titleEl.style.visibility = 'visible'
+      if (firstShow) {
+        adjustFrame(e.target.width, e.target.height + titleBarSize)
+        // remote.getCurrentWindow().show()
+        // initialiseFrame(e.target.width, e.target.height + titleBarSize)
+        // ipcRenderer.send('request-initialise', e.target.width, e.target.height + titleBarSize)
+        ipcRenderer.send('frameInitialised')
+      }
+      draw()
     }
-
-    draw()
-  }
-  image.src = picture.dataURL
+    image.src = picture.dataURL //'data:image/jpeg;base64,' + data.toString('base64')
+  // })
 }
 
 function updateInfo() {

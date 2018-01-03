@@ -5,7 +5,7 @@ const { Tray } = require('electron')
 const { BrowserWindow } = require('electron')
 const { Menu } = require('electron')
 
-if (process.platform === 'win32') app.disableHardwareAcceleration()
+// if (process.platform === 'win32') app.disableHardwareAcceleration()
 
 console.log(process.platform)
 
@@ -215,6 +215,65 @@ function showAbout() {
   // aboutWindow.webContents.openDevTools({ mode:'bottom' })
 }
 
+function createImageWindow(picture) {
+  let bounds = dropWindow.getBounds()
+
+  let frame = new BrowserWindow({
+    title: picture.imageFilename,
+    x: bounds.x,
+    y: bounds.y,
+    width: 1,
+    height: 1,
+    // backgroundColor: '#80ffffff',
+    minimizable: false,
+    maximizable: false,
+    transparent: true,
+    frame: false,
+    hasShadow: false,
+    acceptFirstMouse: true,
+    parent: process.platform === 'darwin' ? null : null,
+    show: false
+  })
+
+  frame.initialised = false
+
+  frames.push(frame)
+
+  frame.loadURL(url.format({
+    pathname: path.join(__dirname, '../image_window.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+
+  frame.once('ready-to-show', () => {
+    frame.show()
+    // console.log('ready')
+  })
+
+  frame.webContents.on('dom-ready', () => {
+    frame.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
+  })
+
+  frame.on('focus', () => {
+
+  })
+
+  // frame.webContents.openDevTools()
+
+  // frame.on('load', () => {
+    // handle = BrowserWindow.fromWebContents(event.sender)
+    // let frame = frames.find((element) => {
+    //   return element === handle
+    // })
+    // frame.send('picture', frame.picture)
+  // })
+
+
+  // let hwnd = frame.getNativeWindowHandle()
+  // console.log(hwnd)
+  // dropWindow.send('new-picture', frame.picture)
+}
+
 function generatePictureId(name) {
   let count = 0
   while (1) {
@@ -246,6 +305,12 @@ function processImageDrop(imagePath, x, y) {
       imageFilename = imagePath.substring(index2 + 1)
   }
 
+  let picture = new Picture({
+    id: generatePictureId(),
+    imageFilename: imageFilename,
+    imagePath: imagePath
+  })
+
   fs.readFile(imagePath, null, function(err, data) {
     let buffer = Buffer.from(data)
 
@@ -270,78 +335,15 @@ function processImageDrop(imagePath, x, y) {
 
     console.log('drop', found)
 
+    // let found = true
+
     if (found) {
-      let picture = new Picture({
-        id: generatePictureId(),
-        x: x, y: y,
-        dataURL: 'data:image/jpeg;base64,' + buffer.toString('base64'),
-        imageFilename: imageFilename,
-        imagePath: imagePath
-      })
+      picture.dataURL = 'data:image/jpeg;base64,' + buffer.toString('base64'),
       createImageWindow(picture)
     }
   })
 }
 
-function createImageWindow(picture) {
-  let bounds = dropWindow.getBounds()
-
-  let frame = new BrowserWindow({
-    title: picture.imageFilename,
-    x: bounds.x,
-    y: bounds.y,
-    width: 1,
-    height: 1,
-    // backgroundColor: '#80ffffff',
-    minimizable: false,
-    maximizable: false,
-    transparent: true,
-    frame: false,
-    hasShadow: false,
-    acceptFirstMouse: true,
-    parent: process.platform === 'darwin' ? null : null,
-    show: true
-  })
-
-  frame.initialised = false
-
-  // frame.picture = picture
-  frames.push(frame)
-
-  frame.loadURL(url.format({
-    pathname: path.join(__dirname, '../image_window.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
-
-  frame.once('ready-to-show', () => {
-    // frame.show()
-  })
-
-  frame.webContents.on('dom-ready', () => {
-    // frame.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
-    frame.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
-  })
-
-  frame.on('focus', () => {
-
-  })
-
-  // frame.webContents.openDevTools()
-
-  // frame.on('load', () => {
-    // handle = BrowserWindow.fromWebContents(event.sender)
-    // let frame = frames.find((element) => {
-    //   return element === handle
-    // })
-    // frame.send('picture', frame.picture)
-  // })
-
-
-  // let hwnd = frame.getNativeWindowHandle()
-  // console.log(hwnd)
-  // dropWindow.send('new-picture', frame.picture)
-}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -369,6 +371,20 @@ app.on('activate', function () {
   } else {
     setIncognito(false)
   }
+})
+
+
+
+ipcMain.on('newWindow', (event) => {
+  let win = new BrowserWindow({
+    width: 320,
+    height: 200
+  })
+  win.loadURL(url.format({
+    pathname: path.join(__dirname, '../demo.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
 })
 
 ipcMain.on('openLayout', function(event) {

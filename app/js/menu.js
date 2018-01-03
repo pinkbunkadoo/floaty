@@ -45,6 +45,13 @@ let fileMenu = [
     click: () => {
       ipcRenderer.send('openLayout')
     }
+  },
+  {
+    label: 'New Window',
+    accelerator: 'Ctrl+N',
+    click: () => {
+      ipcRenderer.send('newWindow')
+    }
   }
 ]
 
