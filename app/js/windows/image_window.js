@@ -140,7 +140,7 @@ function adjustFrame(width, height) {
   height = Math.round(height)
 
   frame.setSize(width, height)
-  frame.setMinimumSize(256, 256)
+  frame.setMinimumSize(128, 128)
   frame.center()
 
   if (image.width > width && image.height > height) {
@@ -166,7 +166,10 @@ function createImage(firstShow=true) {
     // console.log(firstShow)
 
     if (firstShow) {
+
       adjustFrame(e.target.width, e.target.height + titleBarSize)
+      // remote.getCurrentWindow().show()
+
       // initialiseFrame(e.target.width, e.target.height + titleBarSize)
       // ipcRenderer.send('request-initialise', e.target.width, e.target.height + titleBarSize)
       ipcRenderer.send('frameInitialised')

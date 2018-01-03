@@ -130,10 +130,11 @@ function startup() {
       acceptFirstMouse: true,
       minimizable: true,
       maximizable: false,
-      autoHideMenuBar: true,
+      // autoHideMenuBar: true,
       show: false,
+      // transparent: true,
+      // hasShadow: false,
       parent: null
-      // parent: mainWindow
     })
 
     mainWindow = dropWindow
@@ -246,17 +247,40 @@ function processImageDrop(imagePath, x, y) {
   }
 
   fs.readFile(imagePath, null, function(err, data) {
-    let picture = new Picture({
-      id: generatePictureId(),
-      x: x,
-      y: y,
-      dataURL: 'data:image/jpeg;base64,' + (new Buffer(data).toString('base64')),
-      imageFilename: imageFilename,
-      imagePath: imagePath
-    })
-    createImageWindow(picture)
-  })
+    let buffer = Buffer.from(data)
 
+    let signatures = [
+      { name: 'bmp', bytes: [ 0x42, 0x4D ], offset: 0 },
+      { name: 'png', bytes: [ 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A ], offset: 0 },
+      { name: 'jpg', bytes: [ 0xFF, 0xD8, 0xFF ], offset: 0 },
+      { name: 'psd', bytes: [ 0x38, 0x42, 0x50, 0x53 ], offset: 0 },
+      { name: 'webp', bytes: [ 0x57, 0x45, 0x42, 0x50 ], offset: 8 }
+    ]
+
+    let found
+
+    for (var i = 0; i < signatures.length; i++) {
+      let offset = signatures[i].offset
+      let bytes = Buffer.from(signatures[i].bytes)
+      if (buffer.compare(bytes, 0, bytes.length, 0 + offset, bytes.length + offset) === 0) {
+        found = signatures[i].name
+        break;
+      }
+    }
+
+    console.log('drop', found)
+
+    if (found) {
+      let picture = new Picture({
+        id: generatePictureId(),
+        x: x, y: y,
+        dataURL: 'data:image/jpeg;base64,' + buffer.toString('base64'),
+        imageFilename: imageFilename,
+        imagePath: imagePath
+      })
+      createImageWindow(picture)
+    }
+  })
 }
 
 function createImageWindow(picture) {
@@ -268,14 +292,15 @@ function createImageWindow(picture) {
     y: bounds.y,
     width: 1,
     height: 1,
+    // backgroundColor: '#80ffffff',
     minimizable: false,
     maximizable: false,
     transparent: true,
     frame: false,
     hasShadow: false,
     acceptFirstMouse: true,
-    parent: process.platform === 'darwin' ? null : dropWindow,
-    show: false
+    parent: process.platform === 'darwin' ? null : null,
+    show: true
   })
 
   frame.initialised = false
@@ -290,19 +315,12 @@ function createImageWindow(picture) {
   }))
 
   frame.once('ready-to-show', () => {
-    // console.log('frame ready')
-    frame.show()
-    // frame.center()
-    // frame.firstShow = false
+    // frame.show()
   })
 
   frame.webContents.on('dom-ready', () => {
-    // console.log('dom-ready')
-    // console.log(picture.initialised)
+    // frame.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
     frame.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
-    // frame.initialised = true
-    // frame.send('picture', frame.picture, frame.firstShow)
-    // frame.firstShow = false
   })
 
   frame.on('focus', () => {

@@ -47,14 +47,16 @@ const load = async(event, args) => {
   title.innerHTML = remote.getCurrentWindow().getTitle()
 
   remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+
+  menu.show()
 }
 
 ipcRenderer.on('load', load)
 
-remote.getCurrentWindow().on('focus', () => {
+// remote.getCurrentWindow().on('focus', () => {
   // console.log('focus');
-  menu.show()
-})
+  // menu.show()
+// })
 
 function onWheel(e) {
   e.preventDefault();
