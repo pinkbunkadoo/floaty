@@ -22,7 +22,7 @@ let previousmx = 0
 let previousmy = 0
 let title, eye, settings, close
 
-const startup = async(event, args) => {
+const load = async(event, args) => {
   eye = document.getElementById('eye')
   close = document.getElementById('close')
 
@@ -46,10 +46,10 @@ const startup = async(event, args) => {
 
   title.innerHTML = remote.getCurrentWindow().getTitle()
 
-  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+  remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 }
 
-ipcRenderer.on('startup', startup)
+ipcRenderer.on('load', load)
 
 remote.getCurrentWindow().on('focus', () => {
   // console.log('focus');

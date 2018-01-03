@@ -140,7 +140,10 @@ function startup() {
 
     dropWindow.once('ready-to-show', () => {
       dropWindow.show()
-      dropWindow.webContents.send('startup')
+    })
+
+    dropWindow.webContents.on('dom-ready', () => {
+      dropWindow.webContents.send('load')
     })
 
     if (process.platform === 'darwin') {
@@ -158,7 +161,7 @@ function startup() {
       slashes: true
     }))
 
-    dropWindow.webContents.openDevTools({ mode: 'undocked' })
+    // dropWindow.webContents.openDevTools({ mode: 'undocked' })
 
     dropWindow.on('focus', () => {
       // setIncognito(false)
@@ -263,15 +266,14 @@ function createImageWindow(picture) {
     title: picture.imageFilename,
     x: bounds.x,
     y: bounds.y,
-    width: 10,
-    height: 10,
+    width: 1,
+    height: 1,
     minimizable: false,
     maximizable: false,
     transparent: true,
-    backgroundColor: '#20ffffff',
     frame: false,
-    // hasShadow: false,
-    // acceptFirstMouse: true,
+    hasShadow: false,
+    acceptFirstMouse: true,
     parent: process.platform === 'darwin' ? null : dropWindow,
     show: false
   })

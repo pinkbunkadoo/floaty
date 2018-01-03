@@ -265,7 +265,9 @@ function draw(quality='medium') {
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
-    ctx.fillStyle = 'rgb(0, 192, 255)'
+    ctx.fillStyle = 'rgb(0, 128, 255)'
+    // ctx.fillStyle = 'rgb(0, 0, 0)'
+    // ctx.fillStyle = 'white'
     ctx.globalAlpha = 0.1
     ctx.fillRect(0, 0, width, height)
     ctx.globalAlpha = 1
@@ -277,7 +279,9 @@ function draw(quality='medium') {
     h = image.height * settings.scale
     ctx.imageSmoothingQuality = quality
     ctx.globalAlpha = settings.opacity
+    // ctx.globalCompositeOperation = 'destination-out'
     ctx.drawImage(image, p.x - (w/2), p.y - (h/2), w, h)
+    // ctx.globalCompositeOperation = 'source-over'
     ctx.globalAlpha = 1
   }
 
