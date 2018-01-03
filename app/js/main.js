@@ -19,7 +19,6 @@ let mainWindow
 let dropWindow
 let aboutWindow
 let menuTemplate
-let menu = require('./menu').build()
 
 let incognito = false
 let frames = []
@@ -71,7 +70,7 @@ function setIncognito(value) {
   if (incognito != value) {
     incognito = value
 
-    console.log('incognito', incognito)
+    // console.log('incognito', incognito)
 
     for (var i = 0; i < frames.length; i++) {
       frame = frames[i]
@@ -137,10 +136,11 @@ function startup() {
 
     dropWindow.once('ready-to-show', () => {
       dropWindow.show()
+      dropWindow.webContents.send('startup')
     })
     // if (process.platform !== 'darwin') mainWindow = dropWindow
 
-    Menu.setApplicationMenu(menu)
+    // Menu.setApplicationMenu(menu)
 
     if (process.platform === 'darwin') {
       globalShortcut.register('Command+Option+/', () => {
@@ -157,7 +157,7 @@ function startup() {
       slashes: true
     }))
 
-    // dropWindow.webContents.openDevTools({ mode: 'undocked' })
+    dropWindow.webContents.openDevTools({ mode: 'undocked' })
 
     dropWindow.on('focus', () => {
       setIncognito(false)
@@ -263,25 +263,22 @@ function createImageWindow(picture) {
     title: picture.imageFilename,
     x: bounds.x,
     y: bounds.y,
-    width: 1,
-    height: 1,
+    width: 10,
+    height: 10,
     minimizable: false,
     maximizable: false,
     transparent: true,
+    backgroundColor: '#20ffffff',
     frame: false,
     hasShadow: false,
     acceptFirstMouse: true,
-    // type: 'toolbar',
-    // focusable: false,
-    // alwaysOnTop: true,
-    // parent: null
     parent: process.platform === 'darwin' ? null : dropWindow,
     show: false
   })
 
-  picture.initialised = false
+  frame.initialised = false
 
-  frame.picture = picture
+  // frame.picture = picture
   frames.push(frame)
 
   frame.loadURL(url.format({
@@ -291,12 +288,17 @@ function createImageWindow(picture) {
   }))
 
   frame.once('ready-to-show', () => {
+    // console.log('frame ready')
     frame.show()
     // frame.center()
     // frame.firstShow = false
   })
 
   frame.webContents.on('dom-ready', () => {
+    // console.log('dom-ready')
+    // console.log(picture.initialised)
+    frame.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
+    // frame.initialised = true
     // frame.send('picture', frame.picture, frame.firstShow)
     // frame.firstShow = false
   })
@@ -304,6 +306,8 @@ function createImageWindow(picture) {
   frame.on('focus', () => {
 
   })
+
+  // frame.webContents.openDevTools()
 
   // frame.on('load', () => {
     // handle = BrowserWindow.fromWebContents(event.sender)
@@ -347,6 +351,13 @@ app.on('activate', function () {
   }
 })
 
+ipcMain.on('openLayout', function(event) {
+  openLayout()
+})
+
+ipcMain.on('goIncognito', function(event) {
+  setIncognito(true)
+})
 
 ipcMain.on('console', function (event, arg) {
   console.log(arg)
@@ -358,19 +369,26 @@ ipcMain.on('console', function (event, arg) {
 //   dropWindow.send('new-image', { data: handle.thumbnail, path: handle.imagePath })
 // })
 
+ipcMain.on('frameInitialised', function(event) {
+  // let frame = event.sender
+  let handle = BrowserWindow.fromWebContents(event.sender)
+  handle.initialised = true
+  // console.log('frameInitialised')
+})
+
 ipcMain.on('request-thumbnails', function(event) {
-  let list = frames.map((frame) => {
-    return { data: frame.thumbnail, path: frame.imagePath };
-  })
-  event.sender.send('thumbnails', list)
+  // let list = frames.map((frame) => {
+  //   return { data: frame.thumbnail, path: frame.imagePath };
+  // })
+  // event.sender.send('thumbnails', list)
 })
 
 ipcMain.on('request-picture', function(event) {
-  handle = BrowserWindow.fromWebContents(event.sender)
-  let frame = frames.find((element) => {
-    return element === handle
-  })
-  event.sender.send('picture', frame.picture)
+  // handle = BrowserWindow.fromWebContents(event.sender)
+  // let frame = frames.find((element) => {
+  //   return element === handle
+  // })
+  // event.sender.send('picture', frame.picture)
 })
 
 ipcMain.on('request-incognito', function(event) {
@@ -381,55 +399,9 @@ ipcMain.on('request-quit', function(event) {
   dropWindow.close()
 })
 
-ipcMain.on('request-initialise', (event, width, height) => {
-  let frame = BrowserWindow.fromWebContents(event.sender)
-  let bounds = frame.getBounds()
-
-  let ratio = (width > height ? height / width : width / height);
-
-  let display = electron.screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y })
-  let dw = display.size.width
-  let dh = display.size.height
-
-  let wratio = dw / width
-  let hratio = dh / height
-
-  if (wratio < 1 && hratio < 1) {
-    // Both width and height are larger than display area
-    if (wratio < hratio) {
-      // Favour width
-      width = dw
-      height = height * wratio
-    } else {
-      // Favour height
-      width = width * hratio
-      height = dh
-    }
-  } else if (wratio < 1) {
-    width = dw
-    height = height * wratio
-  } else if (hratio < 1) {
-    width = width * hratio
-    height = dh
-  }
-
-  width = Math.round(width)
-  height = Math.round(height)
-
-  frame.setSize(width, height)
-  frame.setMinimumSize(256, 256)
-  frame.center()
-
-  frame.picture.initialised = true
-
-  frame.send('initialised', width, height)
-  // console.log('request-initialise')
-})
-
 ipcMain.on('image-drop', function(event, imagePath, x, y) {
   let bounds = dropWindow.getContentBounds()
   processImageDrop(imagePath, bounds.x + x, bounds.y + y)
-  // console.log('drop')
 })
 
 ipcMain.on('close-image', (event) => {

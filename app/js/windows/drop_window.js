@@ -2,6 +2,8 @@ const remote = require('electron').remote
 const BrowserWindow = remote.BrowserWindow
 const ipcRenderer = require('electron').ipcRenderer
 const fs = require('fs')
+const menu = require('../menu')
+
 const Point = require('../point')
 const Picture = require('../picture')
 const Icon = require('../icon')
@@ -20,7 +22,7 @@ let previousmx = 0
 let previousmy = 0
 let title, eye, settings, close
 
-window.onload = function (event) {
+const startup = async(event, args) => {
   eye = document.getElementById('eye')
   close = document.getElementById('close')
 
@@ -46,14 +48,17 @@ window.onload = function (event) {
 
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 
-  // console.log('hi')
+  console.log('hi')
   // console.error(':(')
   // ipc.send('request-thumbnails')
 }
 
-function startup() {
+ipcRenderer.on('startup', startup)
 
-}
+remote.getCurrentWindow().on('focus', () => {
+  // console.log('focus');
+  menu.show()
+})
 
 function onWheel(e) {
   e.preventDefault();

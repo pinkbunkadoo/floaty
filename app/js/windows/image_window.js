@@ -1,6 +1,6 @@
+const electron = require('electron')
 const remote = require('electron').remote
-const BrowserWindow = remote.BrowserWindow
-const ipc = require('electron').ipcRenderer
+const { ipcRenderer } = require('electron')
 
 const Point = require('../point')
 const Picture = require('../picture')
@@ -31,13 +31,13 @@ let hintTimerId
 let picture
 let image
 
-let container, titleEl, closeEl, titleBarEl
+let container, titleEl, closeEl, titleBarEl, colorOverlayEl
 let overlayContainer, canvasContainer
 let canvas, ctx, overlayCanvas
 
 
-window.onload = function (event) {
-  // ipc.send('console', 'image-window onload')
+const load = async(event, args) => {
+  // ipcRenderer.send('console', 'image-window onload')
 
   titleBarEl = document.getElementById('title-bar')
 
@@ -47,6 +47,7 @@ window.onload = function (event) {
   } else {
     titleBarEl.style.height = titleBarSize + 'px';
   }
+  // titleBarEl.style.height = titleBarSize + 'px';
 
   container = document.getElementById('container')
   container.classList.add('selected');
@@ -76,7 +77,7 @@ window.onload = function (event) {
   // overlayContainer.appendChild(closeEl)
 
   closeEl.addEventListener('click', (event) => {
-    ipc.send('close-image')
+    ipcRenderer.send('close-image')
   })
 
   titleEl = document.getElementById('title')
@@ -84,14 +85,97 @@ window.onload = function (event) {
   titleEl.classList.add('selected')
   titleEl.innerHTML = ''
 
+  colorOverlayEl = document.getElementById('color-overlay')
+
 
   // info = document.getElementById('info')
   // updateInfo()
 
   initEventListeners()
 
-  ipc.send('request-picture')
-  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+  picture = args.picture
+
+  // console.log(picture)
+
+  createImage(args.firstShow)
+
+  // window.onload = reload
+}
+
+ipcRenderer.on('load', load)
+
+
+function adjustFrame(width, height) {
+  let frame = remote.getCurrentWindow()
+  let bounds = frame.getBounds()
+
+  let ratio = (width > height ? height / width : width / height);
+
+  let display = electron.screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y })
+  let dw = display.size.width
+  let dh = display.size.height
+
+  let wratio = dw / width
+  let hratio = dh / height
+
+  if (wratio < 1 && hratio < 1) {
+    // Both width and height are larger than display area
+    if (wratio < hratio) {
+      // Favour width
+      width = dw
+      height = height * wratio
+    } else {
+      // Favour height
+      width = width * hratio
+      height = dh
+    }
+  } else if (wratio < 1) {
+    width = dw
+    height = height * wratio
+  } else if (hratio < 1) {
+    width = width * hratio
+    height = dh
+  }
+
+  width = Math.round(width)
+  height = Math.round(height)
+
+  frame.setSize(width, height)
+  frame.setMinimumSize(256, 256)
+  frame.center()
+
+  if (image.width > width && image.height > height) {
+    let wr = width / image.width
+    let hr = height / image.height
+    settings.scale = wr > hr ? hr : wr
+  } else if (image.width > width) {
+    settings.scale = width / image.width
+  } else if (image.height > height) {
+    settings.scale = height / image.height
+  }
+}
+
+
+function createImage(firstShow=true) {
+  image = new Image()
+  image.onload = (e) => {
+    initialised = true
+
+    setTitle(picture.imageFilename)
+    titleEl.style.visibility = 'visible'
+
+    // console.log(firstShow)
+
+    if (firstShow) {
+      adjustFrame(e.target.width, e.target.height + titleBarSize)
+      // initialiseFrame(e.target.width, e.target.height + titleBarSize)
+      // ipcRenderer.send('request-initialise', e.target.width, e.target.height + titleBarSize)
+      ipcRenderer.send('frameInitialised')
+    }
+
+    draw()
+  }
+  image.src = picture.dataURL
 }
 
 function updateInfo() {
@@ -140,7 +224,7 @@ function resetAnimationTimer(count=5) {
         clearInterval(timerId)
         stop()
       } else {
-        // ipc.send('console', timeout)
+        // ipcRenderer.send('console', timeout)
       }
     }, 50)
     start()
@@ -182,10 +266,10 @@ function draw(quality='medium') {
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
-    // ctx.fillStyle = 'rgb(0, 192, 255)'
-    // ctx.globalAlpha = 0.05
-    // ctx.fillRect(0, 0, width, height)
-    // ctx.globalAlpha = 1
+    ctx.fillStyle = 'rgb(0, 192, 255)'
+    ctx.globalAlpha = 0.1
+    ctx.fillRect(0, 0, width, height)
+    ctx.globalAlpha = 1
   }
 
   if (initialised) {
@@ -237,7 +321,7 @@ function centerImage() {
   settings.top = 0
   settings.scale = 1
   draw()
-  // ipc.send('console', 'center')
+  // ipcRenderer.send('console', 'center')
 }
 
 function dragOn() {
@@ -260,7 +344,7 @@ function frame() {
 function start() {
   active = true
   requestAnimationFrameId = requestAnimationFrame(frame)
-  // ipc.send('console', 'start-animation')
+  // ipcRenderer.send('console', 'start-animation')
 }
 
 function stop() {
@@ -268,7 +352,7 @@ function stop() {
   cancelAnimationFrame(requestAnimationFrameId)
   updateInfo()
   draw()
-  // ipc.send('console', 'stop-animation')
+  // ipcRenderer.send('console', 'stop-animation')
 }
 
 function updateOpacity(value) {
@@ -305,7 +389,7 @@ function onKeyDown(event) {
   } else if (event.key == '.') {
     zoomBy(0.5)
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
-    ipc.send('close-image')
+    ipcRenderer.send('close-image')
   } else if (event.key == 'Shift' && !event.repeat) {
     setMode('pan')
   } else if (event.key == 'Control' && !event.repeat) {
@@ -369,7 +453,7 @@ function onMouseDown(e) {
     setMode('zoom')
   } else {
     if (e.buttons & 2 || e.buttons & 3) {
-      // ipc.send('console', e.buttons)
+      // ipcRenderer.send('console', e.buttons)
       // settings.left = 0
       // settings.top = 0
       // settings.scale = 1
@@ -397,25 +481,28 @@ function onMouseMove(e) {
       zoomBy(e.movementX * (settings.scale * 0.0025))
     }
   }
-  // ipc.send('console', 'image-window-mouse')
+  // ipcRenderer.send('console', 'image-window-mouse')
 }
 
 function onBlur(e) {
-  // ipc.send('console', 'image-window-blur')
+  // ipcRenderer.send('console', 'image-window-blur')
   overlayContainer.classList.remove('selected')
-  container.classList.remove('selected');
-  closeEl.classList.remove('selected');
-  titleEl.classList.remove('selected');
+  container.classList.remove('selected')
+  closeEl.classList.remove('selected')
+  titleEl.classList.remove('selected')
+  // colorOverlayEl.style.visibility = 'visible'
   focused = false
   setMode(null)
 }
 
 function onFocus(e) {
-  // ipc.send('console', 'image-window-focus')
+  // ipcRenderer.send('console', 'image-window-focus')
   overlayContainer.classList.add('selected')
-  container.classList.add('selected');
-  closeEl.classList.add('selected');
-  titleEl.classList.add('selected');
+  container.classList.add('selected')
+  closeEl.classList.add('selected')
+  titleEl.classList.add('selected')
+  // colorOverlayEl.style.visibility = 'hidden'
+
   focused = true
   setMode(null)
 }
@@ -464,46 +551,28 @@ function initEventListeners() {
   window.addEventListener('resize', onResize)
 }
 
-ipc.on('settings', function(event, arg) {
+ipcRenderer.on('settings', function(event, arg) {
   for (i in arg) {
     settings[i] = arg[i]
   }
   updateOpacity(settings.opacity)
-  isInitialised = true
+  // isInitialised = true
 })
 
-ipc.on('picture', (event, arg) => {
-  picture = arg
-  image = new Image()
-  image.onload = (e) => {
-    initialised = true
+// ipcRenderer.on('initialised', (event, w, h) => {
+//   if (image.width > w && image.height > h) {
+//     let wr = w / image.width
+//     let hr = h / image.height
+//     settings.scale = wr > hr ? hr : wr
+//   } else if (image.width > w) {
+//     settings.scale = w / image.width
+//   } else if (image.height > h) {
+//     settings.scale = h / image.height
+//   }
+//   draw()
+// })
 
-    setTitle(picture.imageFilename)
-    titleEl.style.visibility = 'visible'
-
-    if (!picture.initialised) {
-      ipc.send('request-initialise', e.target.width, e.target.height + titleBarSize)
-      // picture.firstShow = false
-    }
-    draw()
-  }
-  image.src = picture.dataURL
-})
-
-ipc.on('initialised', (event, w, h) => {
-  if (image.width > w && image.height > h) {
-    let wr = w / image.width
-    let hr = h / image.height
-    settings.scale = wr > hr ? hr : wr
-  } else if (image.width > w) {
-    settings.scale = w / image.width
-  } else if (image.height > h) {
-    settings.scale = h / image.height
-  }
-  draw()
-})
-
-ipc.on('incognito', function(event, arg) {
+ipcRenderer.on('incognito', function(event, arg) {
   settings.incognito = arg
   incognito = arg
 
@@ -513,6 +582,7 @@ ipc.on('incognito', function(event, arg) {
     container.classList.remove('selected')
     titleBarEl.style.visibility = 'hidden'
     titleEl.style.visibility = 'hidden'
+    // colorOverlayEl.style.visibility = 'hidden'
     draw()
   } else {
     overlayContainer.classList.add('border')
@@ -520,6 +590,7 @@ ipc.on('incognito', function(event, arg) {
     container.classList.add('selected')
     titleBarEl.style.visibility = 'visible'
     titleEl.style.visibility = 'visible'
+    // colorOverlayEl.style.visibility = 'visible'
     draw()
   }
 })

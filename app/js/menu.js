@@ -1,4 +1,5 @@
-const { Menu } = require('electron')
+const { app, Menu } = require('electron').remote
+const { ipcRenderer } = require('electron')
 
 menuTemplate = [
   {
@@ -7,8 +8,8 @@ menuTemplate = [
       {
         label: 'Fix Images',
         accelerator: '/', //process.platform === 'darwin' ? 'Command+Option+/' : '/',
-        click: (item, focusedWindow) => {
-          setIncognito(!incognito)
+        click: function(item, focusedWindow) {
+          ipcRenderer.send('goIncognito')
         }
       },
       { type: 'separator' },
@@ -16,8 +17,8 @@ menuTemplate = [
         label: 'Reload',
         role: 'reload',
         accelerator: 'CommandOrControl+R',
-        click: () => {
-          mainWindow.reload()
+        click: (item, focusedWindow) => {
+          focusedWindow.reload()
         }
       },
       {
@@ -42,7 +43,7 @@ let fileMenu = [
     label: 'Open Layout...',
     accelerator: 'Ctrl+O',
     click: () => {
-      openLayout()
+      ipcRenderer.send('openLayout')
     }
   }
 ]
@@ -99,9 +100,11 @@ if (process.platform === 'darwin') {
   })
 }
 
+const mainMenu = Menu.buildFromTemplate(menuTemplate)
+
 
 module.exports = {
-  build: function() {
-    return Menu.buildFromTemplate(menuTemplate)
+  show: function() {
+    Menu.setApplicationMenu(mainMenu)
   }
 }
