@@ -17,7 +17,7 @@ let focused = true
 
 let settings = { scale: 1.0, opacity: 0.5, left: 0, top: 0 }
 
-let titleBarSize = 24
+let titleBarSize = 28
 
 let mouseLeft = false
 
@@ -38,6 +38,15 @@ let canvas, ctx, overlayCanvas
 
 window.onload = function (event) {
   // ipc.send('console', 'image-window onload')
+
+  titleBarEl = document.getElementById('title-bar')
+
+  if (process.platform === 'darwin') {
+    titleBarSize = 0
+    titleBarEl.style.display = 'none'
+  } else {
+    titleBarEl.style.height = titleBarSize + 'px';
+  }
 
   container = document.getElementById('container')
   container.classList.add('selected');
@@ -75,14 +84,6 @@ window.onload = function (event) {
   titleEl.classList.add('selected')
   titleEl.innerHTML = ''
 
-  titleBarEl = document.getElementById('title-bar')
-
-  if (process.platform === 'darwin') {
-    titleBarSize = 0
-    titleBarEl.style.display = 'none'
-  } else {
-    titleBarEl.style.height = titleBarSize + 'px';
-  }
 
   // info = document.getElementById('info')
   // updateInfo()
@@ -112,7 +113,6 @@ function worldToCanvas(x, y) {
 
   return new Point(sx + widthHalf, sy + heightHalf)
 }
-
 
 function canvasToWorld(x, y) {
   // var widthHalf = (width / 2) >> 0
@@ -176,17 +176,16 @@ function scrollBy(dx, dy) {
   resetAnimationTimer()
 }
 
-
 function draw(quality='medium') {
   ctx = canvas.getContext('2d')
   ctx.save()
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
-    ctx.fillStyle = 'rgb(0, 192, 255)'
-    ctx.globalAlpha = 0.05
-    ctx.fillRect(0, 0, width, height)
-    ctx.globalAlpha = 1
+    // ctx.fillStyle = 'rgb(0, 192, 255)'
+    // ctx.globalAlpha = 0.05
+    // ctx.fillRect(0, 0, width, height)
+    // ctx.globalAlpha = 1
   }
 
   if (initialised) {
@@ -214,6 +213,8 @@ function draw(quality='medium') {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
     ctx.fillRect(x - 8, y - fontSize, tm.width + 16, fontSize + fontSize * 0.2)
     ctx.fillStyle = 'white'
+    // ctx.lineWidth = 6
+    // ctx.strokeText(text, x, y)
     ctx.fillText(text, x, y)
   }
 
@@ -249,7 +250,6 @@ function dragOff() {
   // dragContainer.style.visibility = 'hidden'
 }
 
-
 function frame() {
   if (active) {
     requestAnimationFrameId = requestAnimationFrame(frame)
@@ -257,13 +257,11 @@ function frame() {
   }
 }
 
-
 function start() {
   active = true
   requestAnimationFrameId = requestAnimationFrame(frame)
   // ipc.send('console', 'start-animation')
 }
-
 
 function stop() {
   active = false
@@ -272,7 +270,6 @@ function stop() {
   draw()
   // ipc.send('console', 'stop-animation')
 }
-
 
 function updateOpacity(value) {
   settings.opacity = value
@@ -331,24 +328,20 @@ function onDragStart(e) {
   e.stopPropagation()
 }
 
-
 function onDrag(e) {
   e.preventDefault()
   e.stopPropagation()
 }
-
 
 function onDrop(e) {
   e.preventDefault()
   e.stopPropagation()
 }
 
-
 function onDragEnter(e) {
   e.preventDefault()
   e.stopPropagation()
 }
-
 
 function onDragOver(e) {
   e.preventDefault()
@@ -444,16 +437,13 @@ function onResize(e) {
   }
 }
 
-
 function onScroll(e) {
 }
-
 
 function onContextMenu(e) {
   e.preventDefault()
   e.stopPropagation()
 }
-
 
 function initEventListeners() {
   document.body.addEventListener("wheel", onWheel)
@@ -487,8 +477,14 @@ ipc.on('picture', (event, arg) => {
   image = new Image()
   image.onload = (e) => {
     initialised = true
+
     setTitle(picture.imageFilename)
-    ipc.send('request-initialise', e.target.width, e.target.height + titleBarSize)
+    titleEl.style.visibility = 'visible'
+
+    if (!picture.initialised) {
+      ipc.send('request-initialise', e.target.width, e.target.height + titleBarSize)
+      // picture.firstShow = false
+    }
     draw()
   }
   image.src = picture.dataURL
@@ -504,12 +500,6 @@ ipc.on('initialised', (event, w, h) => {
   } else if (image.height > h) {
     settings.scale = h / image.height
   }
-
-  // width = window.innerWidth
-  // height = window.innerHeight - titleBarSize
-
-  // setTitle(settings.scale)
-  // ipc.send('console', 'initialised')
   draw()
 })
 
@@ -522,12 +512,14 @@ ipc.on('incognito', function(event, arg) {
     overlayContainer.classList.remove('border')
     container.classList.remove('selected')
     titleBarEl.style.visibility = 'hidden'
+    titleEl.style.visibility = 'hidden'
     draw()
   } else {
     overlayContainer.classList.add('border')
     overlayContainer.style.opacity = 1
     container.classList.add('selected')
     titleBarEl.style.visibility = 'visible'
+    titleEl.style.visibility = 'visible'
     draw()
   }
 })

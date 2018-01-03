@@ -11,7 +11,7 @@ const fs = require('fs')
 
 const Picture = require('./picture')
 
-const appName = 'Floaty'
+const appName = app.getName()
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -42,7 +42,7 @@ function createTrayIcon() {
 
     contextMenu = Menu.buildFromTemplate([
       {
-        label: 'Freeze/Unfreeze', click: (menuItem) => {
+        label: 'Reveal', click: (menuItem) => {
           setIncognito(!incognito)
         }
       },
@@ -103,6 +103,10 @@ function setIncognito(value) {
   }
 }
 
+function openLayout() {
+  console.log('openLayout')
+}
+
 
 function createMenu() {
   menuTemplate = [
@@ -110,12 +114,13 @@ function createMenu() {
       label: 'View',
       submenu: [
         {
-          label: 'Freeze/Unfreeze',
+          label: 'Fix Images',
           accelerator: '/', //process.platform === 'darwin' ? 'Command+Option+/' : '/',
           click: (item, focusedWindow) => {
             setIncognito(!incognito)
           }
         },
+        { type: 'separator' },
         {
           label: 'Reload',
           role: 'reload',
@@ -141,20 +146,31 @@ function createMenu() {
     }
   ]
 
+  let fileMenu = [
+    {
+      label: 'Open Layout...',
+      accelerator: 'Ctrl+O',
+      click: () => {
+        openLayout()
+      }
+    }
+  ]
+
   if (process.platform !== 'darwin') {
-    menuTemplate.unshift({
-      label: 'File',
-      submenu: [
-        {
-          label: 'Quit',
-          accelerator: 'Ctrl+Q',
-          click: () => {
-            app.quit()
-          }
-        }
-      ]
+    fileMenu.unshift({ type: 'separator' })
+    fileMenu.unshift({
+      label: 'Quit',
+      accelerator: 'Ctrl+Q',
+      click: () => {
+        app.quit()
+      }
     })
   }
+
+  menuTemplate.unshift({
+    label: 'File',
+    submenu: fileMenu
+  })
 
   if (process.platform === 'darwin') {
     menuTemplate.unshift({
@@ -216,12 +232,16 @@ function startup() {
       minimizable: true,
       maximizable: false,
       autoHideMenuBar: true,
+      show: false,
       parent: null
       // parent: mainWindow
     })
 
     mainWindow = dropWindow
 
+    dropWindow.once('ready-to-show', () => {
+      dropWindow.show()
+    })
     // if (process.platform !== 'darwin') mainWindow = dropWindow
 
     createMenu()
@@ -354,15 +374,19 @@ function createImageWindow(picture) {
     transparent: true,
     frame: false,
     hasShadow: false,
+    acceptFirstMouse: true,
     // type: 'toolbar',
     // focusable: false,
     // alwaysOnTop: true,
     // parent: null
     parent: process.platform === 'darwin' ? null : dropWindow,
-    // show: false
+    show: false
   })
 
-  frame.on('focus', () => {})
+  picture.initialised = false
+
+  frame.picture = picture
+  frames.push(frame)
 
   frame.loadURL(url.format({
     pathname: path.join(__dirname, '../image_window.html'),
@@ -370,8 +394,29 @@ function createImageWindow(picture) {
     slashes: true
   }))
 
-  frame.picture = picture
-  frames.push(frame)
+  frame.once('ready-to-show', () => {
+    frame.show()
+    // frame.center()
+    // frame.firstShow = false
+  })
+
+  frame.webContents.on('dom-ready', () => {
+    // frame.send('picture', frame.picture, frame.firstShow)
+    // frame.firstShow = false
+  })
+
+  frame.on('focus', () => {
+
+  })
+
+  // frame.on('load', () => {
+    // handle = BrowserWindow.fromWebContents(event.sender)
+    // let frame = frames.find((element) => {
+    //   return element === handle
+    // })
+    // frame.send('picture', frame.picture)
+  // })
+
 
   // let hwnd = frame.getNativeWindowHandle()
   // console.log(hwnd)
@@ -441,8 +486,8 @@ ipcMain.on('request-quit', function(event) {
 })
 
 ipcMain.on('request-initialise', (event, width, height) => {
-  let handle = BrowserWindow.fromWebContents(event.sender)
-  let bounds = handle.getBounds()
+  let frame = BrowserWindow.fromWebContents(event.sender)
+  let bounds = frame.getBounds()
 
   let ratio = (width > height ? height / width : width / height);
 
@@ -475,11 +520,13 @@ ipcMain.on('request-initialise', (event, width, height) => {
   width = Math.round(width)
   height = Math.round(height)
 
-  handle.setSize(width, height)
-  handle.setMinimumSize(256, 256)
-  handle.center()
+  frame.setSize(width, height)
+  frame.setMinimumSize(256, 256)
+  frame.center()
 
-  handle.send('initialised', width, height)
+  frame.picture.initialised = true
+
+  frame.send('initialised', width, height)
   // console.log('request-initialise')
 })
 
@@ -503,12 +550,12 @@ ipcMain.on('close-image', (event) => {
 
   if (index != -1) {
     let path = frames[index].imagePath
-    dropWindow.send('remove-image', path)
+    // dropWindow.send('remove-image', path)
     frames.splice(index, 1)
   }
 
   handle.close()
-  dropWindow.focus()
+  // dropWindow.focus()
 })
 
 ipcMain.on('close-about', (event) => {
