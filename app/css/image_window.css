@@ -16,7 +16,7 @@
 }
 
 .border.selected {
-  border-color: rgba(255, 255, 255, 1);
+  /* border-color: rgba(255, 255, 255, 1); */
 }
 
 #container {
@@ -87,7 +87,7 @@
   width: 100vw;
   box-sizing: border-box;
   padding: 0px;
-  background: white;
+  background: black;
 }
 
 .spacer {

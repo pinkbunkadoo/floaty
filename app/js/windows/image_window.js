@@ -41,13 +41,12 @@ const load = async(event, args) => {
 
   titleBarEl = document.getElementById('title-bar')
 
-  if (process.platform === 'darwin') {
+  // if (process.platform === 'darwin') {
     titleBarSize = 0
     titleBarEl.style.display = 'none'
-  } else {
-    titleBarEl.style.height = titleBarSize + 'px';
-  }
-  // titleBarEl.style.height = titleBarSize + 'px';
+  // } else {
+  //   titleBarEl.style.height = titleBarSize + 'px';
+  // }
 
   container = document.getElementById('container')
   container.classList.add('selected');
@@ -485,24 +484,19 @@ function onMouseMove(e) {
 }
 
 function onBlur(e) {
-  // ipcRenderer.send('console', 'image-window-blur')
   overlayContainer.classList.remove('selected')
   container.classList.remove('selected')
   closeEl.classList.remove('selected')
   titleEl.classList.remove('selected')
-  // colorOverlayEl.style.visibility = 'visible'
   focused = false
   setMode(null)
 }
 
 function onFocus(e) {
-  // ipcRenderer.send('console', 'image-window-focus')
   overlayContainer.classList.add('selected')
   container.classList.add('selected')
   closeEl.classList.add('selected')
   titleEl.classList.add('selected')
-  // colorOverlayEl.style.visibility = 'hidden'
-
   focused = true
   setMode(null)
 }

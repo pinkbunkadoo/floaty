@@ -5,6 +5,10 @@ const { Tray } = require('electron')
 const { BrowserWindow } = require('electron')
 const { Menu } = require('electron')
 
+if (process.platform === 'win32') app.disableHardwareAcceleration()
+
+console.log(process.platform)
+
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
@@ -138,9 +142,6 @@ function startup() {
       dropWindow.show()
       dropWindow.webContents.send('startup')
     })
-    // if (process.platform !== 'darwin') mainWindow = dropWindow
-
-    // Menu.setApplicationMenu(menu)
 
     if (process.platform === 'darwin') {
       globalShortcut.register('Command+Option+/', () => {
@@ -160,8 +161,7 @@ function startup() {
     dropWindow.webContents.openDevTools({ mode: 'undocked' })
 
     dropWindow.on('focus', () => {
-      setIncognito(false)
-      // mainWindow.focus()
+      // setIncognito(false)
     })
 
     dropWindow.on('close', () => {
@@ -270,8 +270,8 @@ function createImageWindow(picture) {
     transparent: true,
     backgroundColor: '#20ffffff',
     frame: false,
-    hasShadow: false,
-    acceptFirstMouse: true,
+    // hasShadow: false,
+    // acceptFirstMouse: true,
     parent: process.platform === 'darwin' ? null : dropWindow,
     show: false
   })

@@ -47,10 +47,6 @@ const startup = async(event, args) => {
   title.innerHTML = remote.getCurrentWindow().getTitle()
 
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
-
-  console.log('hi')
-  // console.error(':(')
-  // ipc.send('request-thumbnails')
 }
 
 ipcRenderer.on('startup', startup)
