@@ -158,6 +158,7 @@ function createImage(firstShow=true) {
       remote.getCurrentWindow().setTitle(picture.file.name)
       ipcRenderer.send('frameInitialised')
     }
+
     draw()
   }
 
@@ -253,7 +254,7 @@ function draw(quality='medium') {
   ctx.clearRect(0, 0, width, height)
 
   if (!incognito) {
-    ctx.fillStyle = 'rgb(0, 128, 255)'
+    ctx.fillStyle = 'rgb(0, 160, 255)'
     // ctx.fillStyle = 'rgb(0, 0, 0)'
     // ctx.fillStyle = 'white'
     ctx.globalAlpha = 0.1
@@ -274,7 +275,7 @@ function draw(quality='medium') {
   }
 
   if (hintTimerId) {
-    let fontSize = 40
+    let fontSize = 32
 
     ctx.fillStyle = 'white'
     ctx.font = fontSize + 'px sans-serif'
@@ -285,7 +286,7 @@ function draw(quality='medium') {
     let x = 16
     let y = height - 16
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
     ctx.fillRect(x - 8, y - fontSize, tm.width + 16, fontSize + fontSize * 0.2)
     ctx.fillStyle = 'white'
     // ctx.lineWidth = 6
