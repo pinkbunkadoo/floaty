@@ -7,10 +7,9 @@
   padding-left: 12px;
   padding-right: 12px;
   box-sizing: border-box;
-  /* background-color: #3a3c40; */
-  -webkit-app-region: drag;
-  /* border: 1px solid red; */
   margin:4px;
+
+  -webkit-app-region: drag;
 }
 
 .spacer {
@@ -32,8 +31,9 @@
   min-height: 1em;
   margin-left: 6px;
   margin-right: 6px;
-  -webkit-app-region: no-drag;
   fill: rgba(0, 0, 0, 0.75);
+
+  -webkit-app-region: no-drag;
 }
 
 #title-icons {
@@ -88,7 +88,8 @@
   /* background-color: #16d2f6; */
   /* background-color: #3eb2de; */
   background-color: #4c5054;
-  -webkit-app-region: no-drag;
+
+  /* -webkit-app-region: no-drag; */
 }
 
 .container-icon {

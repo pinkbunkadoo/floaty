@@ -29,11 +29,11 @@ const load = async(event, args) => {
   title = document.getElementById('title')
 
   eye.onclick = function() {
-    ipcRenderer.send('request-incognito')
+    ipcRenderer.send('requestIncognito')
   }
 
   close.onclick = function() {
-    ipcRenderer.send('request-quit')
+    ipcRenderer.send('requestQuit')
   }
 
   if (process.platform === 'darwin') close.style.display = 'none'
@@ -46,7 +46,7 @@ const load = async(event, args) => {
 
   title.innerHTML = remote.getCurrentWindow().getTitle()
 
-  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+  remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 
   menu.show()
 }
@@ -82,8 +82,21 @@ function onDrop(e) {
   e.preventDefault()
   e.stopPropagation()
 
-  let file = e.dataTransfer.files[0]
-  ipcRenderer.send('image-drop', file.path, e.clientX, e.clientY)
+  let list = []
+
+  for (var i = 0; i < e.dataTransfer.files.length; i++) {
+    let file = e.dataTransfer.files[i]
+    switch (file.type) {
+      case 'image/webp':
+      case 'image/bmp':
+      case 'image/jpeg':
+      case 'image/png':
+        list.push({ name: file.name, path: file.path, type: file.type, size: file.size })
+      default:
+    }
+  }
+
+  if (list.length) ipcRenderer.send('imageDrop', list)
 }
 
 function onDragEnter(e) {
@@ -190,7 +203,7 @@ ipcRenderer.on('thumbnails', function(event, arg) {
   // }
 })
 
-ipcRenderer.on('remove-image', function(event, path) {
+ipcRenderer.on('removeImage', function(event, path) {
   // let found = null
   // for (let i = 0; i < thumbnailContainer.childNodes.length; i++) {
   //   let node = thumbnailContainer.childNodes[i]
@@ -204,7 +217,7 @@ ipcRenderer.on('remove-image', function(event, path) {
   // }
 })
 
-ipcRenderer.on('new-picture', function(event, picture) {
+ipcRenderer.on('newPicture', function(event, picture) {
   // generateThumbnail(picture.dataURL)
   // createThumbnail(arg.data, arg.path)
 })

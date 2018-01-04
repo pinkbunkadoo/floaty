@@ -37,12 +37,17 @@ let canvas, ctx, overlayCanvas
 
 
 const load = async(event, args) => {
-// window.onload = function() {
+  // ipcRenderer.send('console', 'load')
+  picture = args.picture
+  createImage(args.firstShow)
+}
+
+window.onload = function() {
   titleBarEl = document.getElementById('title-bar')
 
   // if (process.platform === 'darwin') {
-    titleBarSize = 0
-    titleBarEl.style.display = 'none'
+  titleBarSize = 0
+  titleBarEl.style.display = 'none'
   // } else {
   //   titleBarEl.style.height = titleBarSize + 'px';
   // }
@@ -75,7 +80,8 @@ const load = async(event, args) => {
   // overlayContainer.appendChild(closeEl)
 
   closeEl.addEventListener('click', (event) => {
-    ipcRenderer.send('close-image')
+    remote.getCurrentWebContents().closeDevTools()
+    ipcRenderer.send('closeImage', picture ? picture.id : undefined)
   })
 
   titleEl = document.getElementById('title')
@@ -83,20 +89,10 @@ const load = async(event, args) => {
   titleEl.classList.add('selected')
   titleEl.innerHTML = ''
 
-  // colorOverlayEl = document.getElementById('color-overlay')
-
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 
   initEventListeners()
-
-  // ipcRenderer.send('console', 'ya')
-
-  picture = args.picture
-  createImage(args.firstShow)
 }
-
-ipcRenderer.on('load', load)
-
 
 function adjustFrame(width, height) {
   let frame = remote.getCurrentWindow()
@@ -149,26 +145,24 @@ function adjustFrame(width, height) {
 }
 
 function createImage(firstShow=true) {
-  // ipcRenderer.send('console', picture.imagePath)
-  // fs.readFile(picture.imagePath, null, (err, data) => {
-  //   ipcRenderer.send('console', err)
-    image = new Image()
-    image.onload = (e) => {
-      ipcRenderer.send('console', 'imgload')
-      initialised = true
-      setTitle(picture.imageFilename)
-      titleEl.style.visibility = 'visible'
-      if (firstShow) {
-        adjustFrame(e.target.width, e.target.height + titleBarSize)
-        // remote.getCurrentWindow().show()
-        // initialiseFrame(e.target.width, e.target.height + titleBarSize)
-        // ipcRenderer.send('request-initialise', e.target.width, e.target.height + titleBarSize)
-        ipcRenderer.send('frameInitialised')
-      }
-      draw()
+  image = new Image()
+  image.onload = (e) => {
+    initialised = true
+
+    setTitle(picture.file.name)
+    titleEl.style.visibility = 'visible'
+
+    if (firstShow) {
+      adjustFrame(e.target.width, e.target.height + titleBarSize)
+      remote.getCurrentWindow().show()
+      remote.getCurrentWindow().setTitle(picture.file.name)
+      ipcRenderer.send('frameInitialised')
     }
-    image.src = picture.dataURL //'data:image/jpeg;base64,' + data.toString('base64')
-  // })
+    draw()
+  }
+
+  image.src = picture.file.path
+  // image.src = picture.dataURL //'data:image/jpeg;base64,' + data.toString('base64')
 }
 
 function updateInfo() {
@@ -386,7 +380,7 @@ function onKeyDown(event) {
   } else if (event.key == '.') {
     zoomBy(0.5)
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
-    ipcRenderer.send('close-image')
+    ipcRenderer.send('closeImage')
   } else if (event.key == 'Shift' && !event.repeat) {
     setMode('pan')
   } else if (event.key == 'Control' && !event.repeat) {
@@ -542,6 +536,9 @@ function initEventListeners() {
   window.addEventListener('focus', onFocus)
   window.addEventListener('resize', onResize)
 }
+
+
+ipcRenderer.on('load', load)
 
 ipcRenderer.on('settings', function(event, arg) {
   for (i in arg) {

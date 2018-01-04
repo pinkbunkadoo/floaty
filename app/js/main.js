@@ -5,10 +5,6 @@ const { Tray } = require('electron')
 const { BrowserWindow } = require('electron')
 const { Menu } = require('electron')
 
-// if (process.platform === 'win32') app.disableHardwareAcceleration()
-
-console.log(process.platform)
-
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
@@ -26,10 +22,14 @@ let menuTemplate
 
 let incognito = false
 let frames = []
+let empties = []
 let pictures = []
 let imageId = 1
+let pictureId = 1
 
 let tray
+
+// if (process.platform === 'win32') app.disableHardwareAcceleration()
 
 function createTrayIcon() {
   try {
@@ -77,15 +77,15 @@ function setIncognito(value) {
     // console.log('incognito', incognito)
 
     for (var i = 0; i < frames.length; i++) {
-      frame = frames[i]
+      let handle = frames[i].handle
       if (incognito) {
-        frame.setIgnoreMouseEvents(true)
-        frame.setAlwaysOnTop(true)
+        handle.setIgnoreMouseEvents(true)
+        handle.setAlwaysOnTop(true)
       } else {
-        frame.setIgnoreMouseEvents(false)
-        frame.setAlwaysOnTop(false)
+        handle.setIgnoreMouseEvents(false)
+        handle.setAlwaysOnTop(false)
       }
-      frame.send('incognito', value)
+      handle.send('incognito', value)
     }
 
     if (incognito) {
@@ -113,10 +113,7 @@ function openLayout() {
 
 function startup() {
   if (!mainWindow) {
-
-    // mainWindow = new BrowserWindow({
-    //   show: false
-    // })
+    // mainWindow = new BrowserWindow({ show: false})
 
     dropWindow = new BrowserWindow({
       title: appName,
@@ -130,10 +127,8 @@ function startup() {
       acceptFirstMouse: true,
       minimizable: true,
       maximizable: false,
-      // autoHideMenuBar: true,
+      autoHideMenuBar: true,
       show: false,
-      // transparent: true,
-      // hasShadow: false,
       parent: null
     })
 
@@ -189,6 +184,8 @@ function startup() {
       //   frame.show()
       // }
     })
+
+    createEmpty()
   }
 }
 
@@ -216,132 +213,88 @@ function showAbout() {
 }
 
 function createImageWindow(picture) {
-  let bounds = dropWindow.getBounds()
+  if (!empties.length) {
+    createEmpty()
+  }
 
-  let frame = new BrowserWindow({
-    title: picture.imageFilename,
-    x: bounds.x,
-    y: bounds.y,
+  let frame = empties.pop()
+  let handle = frame.handle;
+
+  if (!handle.webContents.isLoading()) {
+    handle.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
+  }
+
+  handle.webContents.on('dom-ready', () => { handle.send('load', { picture: picture, firstShow: !frame.initialised }) })
+
+  handle.setTitle(picture.file.name)
+
+  frames.push(frame)
+
+  createEmpty()
+}
+
+function createEmpty() {
+  let win = new BrowserWindow({
+    title: 'Empty',
     width: 1,
     height: 1,
-    // backgroundColor: '#80ffffff',
     minimizable: false,
     maximizable: false,
     transparent: true,
     frame: false,
     hasShadow: false,
     acceptFirstMouse: true,
-    parent: process.platform === 'darwin' ? null : null,
+    parent: null,
     show: false
   })
 
-  frame.initialised = false
+  let frame = { handle: win, initialised: false }
 
-  frames.push(frame)
-
-  frame.loadURL(url.format({
+  win.loadURL(url.format({
     pathname: path.join(__dirname, '../image_window.html'),
     protocol: 'file:',
     slashes: true
   }))
 
-  frame.once('ready-to-show', () => {
-    frame.show()
-    // console.log('ready')
-  })
-
-  frame.webContents.on('dom-ready', () => {
-    frame.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
-  })
-
-  frame.on('focus', () => {
-
-  })
-
-  // frame.webContents.openDevTools()
-
-  // frame.on('load', () => {
-    // handle = BrowserWindow.fromWebContents(event.sender)
-    // let frame = frames.find((element) => {
-    //   return element === handle
-    // })
-    // frame.send('picture', frame.picture)
-  // })
-
-
-  // let hwnd = frame.getNativeWindowHandle()
-  // console.log(hwnd)
-  // dropWindow.send('new-picture', frame.picture)
+  empties.push(frame)
 }
 
-function generatePictureId(name) {
-  let count = 0
-  while (1) {
-    let found = false
-    let id = (count == 0 ? name : name + count)
-    for (var i = 0; i < pictures.length; i++) {
-      let picture = pictures[i]
-      if (picture.id === id) {
-        found = true
-        break
-      }
-    }
-    if (!found) break
-    count++
+function createEmpties(count=1) {
+  for (var i = 0; i < count; i++) {
+    createEmpty()
   }
-  return (count == 0 ? name : name + count)
 }
 
-function processImageDrop(imagePath, x, y) {
-  let imageFilename = null
+// function generatePictureId(name) {
+//   let count = 0
+//   while (1) {
+//     let found = false
+//     let id = (count == 0 ? name : name + count)
+//     for (var i = 0; i < pictures.length; i++) {
+//       let picture = pictures[i]
+//       if (picture.id === id) {
+//         found = true
+//         break
+//       }
+//     }
+//     if (!found) break
+//     count++
+//   }
+//   return (count == 0 ? name : name + count)
+// }
 
-  index1 = imagePath.lastIndexOf('/')
-  index2 = imagePath.lastIndexOf('\\')
-
-  if (index1 > index2) {
-    imageFilename = imagePath.substring(index1 + 1)
-  } else {
-    if (index2 != -1)
-      imageFilename = imagePath.substring(index2 + 1)
-  }
-
+function processImageFile(file) {
+  console.log('processing', file.name);
   let picture = new Picture({
-    id: generatePictureId(),
-    imageFilename: imageFilename,
-    imagePath: imagePath
+    // id: generatePictureId(file.name),
+    id: pictureId++,
+    file: file
   })
 
-  fs.readFile(imagePath, null, function(err, data) {
-    let buffer = Buffer.from(data)
+  pictures.push(picture)
 
-    let signatures = [
-      { name: 'bmp', bytes: [ 0x42, 0x4D ], offset: 0 },
-      { name: 'png', bytes: [ 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A ], offset: 0 },
-      { name: 'jpg', bytes: [ 0xFF, 0xD8, 0xFF ], offset: 0 },
-      { name: 'psd', bytes: [ 0x38, 0x42, 0x50, 0x53 ], offset: 0 },
-      { name: 'webp', bytes: [ 0x57, 0x45, 0x42, 0x50 ], offset: 8 }
-    ]
+  createImageWindow(picture)
 
-    let found
-
-    for (var i = 0; i < signatures.length; i++) {
-      let offset = signatures[i].offset
-      let bytes = Buffer.from(signatures[i].bytes)
-      if (buffer.compare(bytes, 0, bytes.length, 0 + offset, bytes.length + offset) === 0) {
-        found = signatures[i].name
-        break;
-      }
-    }
-
-    console.log('drop', found)
-
-    // let found = true
-
-    if (found) {
-      picture.dataURL = 'data:image/jpeg;base64,' + buffer.toString('base64'),
-      createImageWindow(picture)
-    }
-  })
 }
 
 
@@ -408,54 +361,42 @@ ipcMain.on('console', function (event, arg) {
 ipcMain.on('frameInitialised', function(event) {
   // let frame = event.sender
   let handle = BrowserWindow.fromWebContents(event.sender)
-  handle.initialised = true
+  let frame = frames.find((element) => {
+    return element.handle === handle
+  })
+  if (frame) frame.initialised = true
   // console.log('frameInitialised')
 })
 
-ipcMain.on('request-thumbnails', function(event) {
-  // let list = frames.map((frame) => {
-  //   return { data: frame.thumbnail, path: frame.imagePath };
-  // })
-  // event.sender.send('thumbnails', list)
-})
-
-ipcMain.on('request-picture', function(event) {
-  // handle = BrowserWindow.fromWebContents(event.sender)
-  // let frame = frames.find((element) => {
-  //   return element === handle
-  // })
-  // event.sender.send('picture', frame.picture)
-})
-
-ipcMain.on('request-incognito', function(event) {
+ipcMain.on('requestIncognito', function(event) {
   setIncognito(true)
 })
 
-ipcMain.on('request-quit', function(event) {
+ipcMain.on('requestQuit', function(event) {
   dropWindow.close()
 })
 
-ipcMain.on('image-drop', function(event, imagePath, x, y) {
-  let bounds = dropWindow.getContentBounds()
-  processImageDrop(imagePath, bounds.x + x, bounds.y + y)
+ipcMain.on('imageDrop', function(event, files) {
+  // let bounds = dropWindow.getContentBounds()
+  if (empties.length < files.length) {
+    createEmpties(files.length - empties.length)
+  }
+  for (var i = 0; i < files.length; i++) {
+    processImageFile(files[i])
+  }
 })
 
-ipcMain.on('close-image', (event) => {
+ipcMain.on('closeImage', (event, id) => {
   let handle = BrowserWindow.fromWebContents(event.sender)
-  let index = -1
 
-  for (var i = 0; i < frames.length; i++) {
-    frame = frames[i]
-    if (frame === handle) {
-      index = i
-      break
-    }
+  let index = frames.findIndex((element) => { return element.handle === handle })
+  if (index != -1) {
+    frames.splice(index, 1)
   }
 
+  index = pictures.findIndex((element) => { return element.id === id })
   if (index != -1) {
-    let path = frames[index].imagePath
-    // dropWindow.send('remove-image', path)
-    frames.splice(index, 1)
+    pictures.splice(index, 1)
   }
 
   handle.close()
