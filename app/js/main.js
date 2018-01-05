@@ -1,7 +1,7 @@
 
 const electron = require('electron')
 const { app, nativeImage, ipcMain, globalShortcut } = require('electron')
-const { Tray } = require('electron')
+const { Tray, dialog } = require('electron')
 const { BrowserWindow } = require('electron')
 const { Menu } = require('electron')
 
@@ -23,8 +23,8 @@ let menuTemplate
 let incognito = false
 let frames = []
 let empties = []
-let pictures = []
-let imageId = 1
+// let pictures = []
+// let imageId = 1
 let pictureId = 1
 
 let tray
@@ -75,6 +75,7 @@ function setIncognito(value) {
     incognito = value
 
     // console.log('incognito', incognito)
+    console.log('incognito frames', frames.length)
 
     for (var i = 0; i < frames.length; i++) {
       let handle = frames[i].handle
@@ -106,8 +107,15 @@ function setIncognito(value) {
   }
 }
 
-function openLayout() {
-  console.log('openLayout')
+function openLayoutDialog() {
+  // console.log('openLayout')
+  // console.log(BrowserWindow.getFocusedWindow())
+  dialog.showOpenDialog(mainWindow, {
+    title: 'Open Layout File...',
+    filters: [
+      { name: 'Layout File ',  extensions: [ 'layout' ] }
+    ]
+  })
 }
 
 
@@ -186,6 +194,8 @@ function startup() {
     })
 
     createEmpty()
+
+    loadLayoutFile()
   }
 }
 
@@ -218,17 +228,18 @@ function createImageWindow(picture) {
   }
 
   let frame = empties.pop()
-  let handle = frame.handle;
+  let handle = frame.handle
+  frame.picture = picture
+  frames.push(frame)
 
-  if (!handle.webContents.isLoading()) {
-    handle.webContents.send('load', { picture: picture, firstShow: !frame.initialised })
-  }
+  let domReady = () => { handle.send('load', { picture: picture, firstShow: !frame.initialised }) }
 
-  handle.webContents.on('dom-ready', () => { handle.send('load', { picture: picture, firstShow: !frame.initialised }) })
+  if (!handle.webContents.isLoading()) { domReady() }
+
+  handle.webContents.on('dom-ready', domReady)
 
   handle.setTitle(picture.file.name)
-
-  frames.push(frame)
+  handle.show()
 
   createEmpty()
 }
@@ -238,6 +249,8 @@ function createEmpty() {
     title: 'Empty',
     width: 1,
     height: 1,
+    minWidth: 128,
+    minHeight: 128,
     minimizable: false,
     maximizable: false,
     transparent: true,
@@ -256,6 +269,13 @@ function createEmpty() {
     slashes: true
   }))
 
+  win.on('ready-to-show', () => {
+  })
+
+  win.on('close', () => {
+    closeImage(win)
+  })
+
   empties.push(frame)
 }
 
@@ -265,38 +285,73 @@ function createEmpties(count=1) {
   }
 }
 
-// function generatePictureId(name) {
-//   let count = 0
-//   while (1) {
-//     let found = false
-//     let id = (count == 0 ? name : name + count)
-//     for (var i = 0; i < pictures.length; i++) {
-//       let picture = pictures[i]
-//       if (picture.id === id) {
-//         found = true
-//         break
-//       }
-//     }
-//     if (!found) break
-//     count++
-//   }
-//   return (count == 0 ? name : name + count)
-// }
-
 function processImageFile(file) {
-  console.log('processing', file.name);
   let picture = new Picture({
-    // id: generatePictureId(file.name),
     id: pictureId++,
     file: file
   })
-
-  pictures.push(picture)
-
   createImageWindow(picture)
-
 }
 
+function closeImage(handle) {
+  let frameIndex = frames.findIndex((element) => { return element.handle === handle })
+  if (frameIndex != -1) {
+    frames.splice(frameIndex, 1)
+  }
+}
+
+function loadLayoutFile() {
+  // console.log('loading layout')
+  let filename = path.join(app.getPath('home'), '.floaty')
+  fs.readFile(filename, (err, data) => {
+    if (err) throw err
+    let obj = JSON.parse(data)
+    // console.log(obj)
+    for (var i = 0; i < obj.pictures.length; i++) {
+      let pic = obj.pictures[i]
+      let picture = new Picture({ id: pictureId++ })
+      for (let name in pic) { picture[name] = pic[name] }
+
+      // console.log(picture)
+
+      //   bounds: { x: pic.bounds.x, y: pic.bounds.y, width: pic.bounds.width, height: pic.bounds.height },
+      //   opacity: pic.opacity,
+      //   scale: pic.scale,
+      //   offset: { x: pic.offset.x, y: pic.offset.y }
+      // })
+      // picture.id = pictureId++
+      // let picture = new Picture({
+      //   id: pictureId++,
+      //   file: file
+      // })
+      createImageWindow(picture)
+    }
+  })
+}
+
+function saveLayoutFile() {
+  let data = { pictures: [] }
+
+  for (var i = 0; i < frames.length; i++) {
+    let frame = frames[i]
+    let bounds = frame.handle.getBounds()
+    data.pictures.push({
+      bounds: bounds,
+      opacity: parseFloat(frame.picture.opacity.toPrecision(2)),
+      scale: parseFloat(frame.picture.scale.toPrecision(2)),
+      offset: frame.picture.offset,
+      file: frame.picture.file
+    })
+  }
+  let filename = path.join(app.getPath('home'), '.floaty')
+  // let path = path.join()
+  let string = JSON.stringify(data, null, 2)
+
+  fs.writeFile(filename, string, (err) => {
+    if (err) throw err
+    console.log('saved:', filename)
+  })
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -312,11 +367,19 @@ app.on('window-all-closed', function () {
   }
 })
 
-app.on('show', function() {
+app.on('show', () => {
   app.dock.show()
 })
 
-app.on('activate', function () {
+app.on('before-quit', (event) => {
+  saveLayoutFile()
+})
+
+// app.on('quit' () => {
+//   console.log('quit')
+// })
+
+app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
@@ -329,19 +392,19 @@ app.on('activate', function () {
 
 
 ipcMain.on('newWindow', (event) => {
-  let win = new BrowserWindow({
-    width: 320,
-    height: 200
-  })
-  win.loadURL(url.format({
-    pathname: path.join(__dirname, '../demo.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
+  // let win = new BrowserWindow({
+  //   width: 320,
+  //   height: 200
+  // })
+  // win.loadURL(url.format({
+  //   pathname: path.join(__dirname, '../demo.html'),
+  //   protocol: 'file:',
+  //   slashes: true
+  // }))
 })
 
 ipcMain.on('openLayout', function(event) {
-  openLayout()
+  openLayoutDialog()
 })
 
 ipcMain.on('goIncognito', function(event) {
@@ -358,14 +421,19 @@ ipcMain.on('console', function (event, arg) {
 //   dropWindow.send('new-image', { data: handle.thumbnail, path: handle.imagePath })
 // })
 
-ipcMain.on('frameInitialised', function(event) {
+ipcMain.on('frameInitialised', function(event, id) {
   // let frame = event.sender
   let handle = BrowserWindow.fromWebContents(event.sender)
   let frame = frames.find((element) => {
     return element.handle === handle
   })
   if (frame) frame.initialised = true
-  // console.log('frameInitialised')
+
+  // for (var i = 0; i < pictures.length; i++) {
+  //   if (pictures[i].id === id) {
+  //     console.log('picture done!', id)
+  //   }
+  // }
 })
 
 ipcMain.on('requestIncognito', function(event) {
@@ -374,6 +442,14 @@ ipcMain.on('requestIncognito', function(event) {
 
 ipcMain.on('requestQuit', function(event) {
   dropWindow.close()
+})
+
+ipcMain.on('frameUpdate', (event, picture) => {
+  let handle = BrowserWindow.fromWebContents(event.sender)
+  let frame = frames.find((element) => {
+    return element.handle === handle
+  })
+  if (frame) frame.picture = picture
 })
 
 ipcMain.on('imageDrop', function(event, files) {
@@ -386,24 +462,7 @@ ipcMain.on('imageDrop', function(event, files) {
   }
 })
 
-ipcMain.on('closeImage', (event, id) => {
-  let handle = BrowserWindow.fromWebContents(event.sender)
-
-  let index = frames.findIndex((element) => { return element.handle === handle })
-  if (index != -1) {
-    frames.splice(index, 1)
-  }
-
-  index = pictures.findIndex((element) => { return element.id === id })
-  if (index != -1) {
-    pictures.splice(index, 1)
-  }
-
-  handle.close()
-  // dropWindow.focus()
-})
-
-ipcMain.on('close-about', (event) => {
+ipcMain.on('closeAbout', (event) => {
   if (aboutWindow) {
     aboutWindow.close()
     aboutWindow = null

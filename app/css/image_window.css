@@ -11,8 +11,11 @@
 }
 
 .border {
-  border: 2px solid;
+  border: 3px solid;
   border-color: transparent;
+}
+
+.border.macos {
   border-radius: 4px;
 }
 
@@ -53,8 +56,6 @@
   overflow: hidden;
   width: 100%;
   -webkit-scrollbar: none;
-  /* display: none; */
-  border-radius: 4px;
 }
 
 .draggable {
@@ -72,7 +73,7 @@
 /* Covers up annoying title bar flicker on Windows - possible GPU driver glitch ? */
 
 #title-bar {
-  display: flex;
+  display: none;
   overflow: hidden;
   align-items: center;
   justify-content: center;

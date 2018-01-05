@@ -15,8 +15,6 @@ let mode = null
 let incognito = false
 let focused = true
 
-let settings = { scale: 1.0, opacity: 0.5, left: 0, top: 0 }
-
 let titleBarSize = 28
 
 let mouseLeft = false
@@ -25,73 +23,73 @@ let timerId = null
 let timeout = 0
 let requestAnimationFrameId
 let active = false
-let hintOpacity
+let hintTimerCount
 let hintTimerId
+let updateTimerId
+let updateCooldown
 
 let picture
 let image
 
-let container, titleEl, closeEl, titleBarEl, colorOverlayEl
-let overlayContainer, canvasContainer
+let containerEl, titleEl, closeEl, titleBarEl, colorOverlayEl
+let overlayContainerEl, canvasContainerEl
 let canvas, ctx, overlayCanvas
-
+let ui = []
 
 const load = async(event, args) => {
-  // ipcRenderer.send('console', 'load')
   picture = args.picture
   createImage(args.firstShow)
+
+  if (remote.getCurrentWindow().isFocused()) {
+    setFocused(true)
+  }
 }
 
 window.onload = function() {
-  titleBarEl = document.getElementById('title-bar')
-
-  // if (process.platform === 'darwin') {
-  titleBarSize = 0
-  titleBarEl.style.display = 'none'
-  // } else {
-  //   titleBarEl.style.height = titleBarSize + 'px';
-  // }
-
-  container = document.getElementById('container')
-  container.classList.add('selected');
-
-  canvasContainer = document.getElementById('canvas-container')
-
-  canvas = document.getElementById('surface')
-  // canvasContainer.appendChild(canvas)
   width = window.innerWidth
   height = window.innerHeight - titleBarSize
+  titleBarSize = 0
+
+  titleBarEl = document.getElementById('title-bar')
+  containerEl = document.getElementById('container')
+
+  canvasContainerEl = document.getElementById('canvas-container')
+  if (process.platform === 'darwin') canvasContainerEl.classList.add('macos')
+  canvas = document.getElementById('surface')
   canvas.width = width
   canvas.height = height
 
-  overlayContainer = document.getElementById('overlay-container')
-  overlayContainer.classList.add('border')
-  overlayContainer.classList.add('selected')
-
+  overlayContainerEl = document.getElementById('overlay-container')
   dragContainer = document.getElementById('drag-container')
-  dragContainer.classList.add('draggable')
-
-  // overlayContainer.appendChild(dragContainer)
 
   closeEl = document.getElementById('close')
-  closeEl.classList.add('background')
-  closeEl.classList.add('selected')
-
-  // overlayContainer.appendChild(closeEl)
 
   closeEl.addEventListener('click', (event) => {
     remote.getCurrentWebContents().closeDevTools()
-    ipcRenderer.send('closeImage', picture ? picture.id : undefined)
+    window.close()
+    // remote.getCurrentWindow().close()
   })
 
   titleEl = document.getElementById('title')
-  titleEl.classList.add('background')
-  titleEl.classList.add('selected')
-  titleEl.innerHTML = ''
 
-  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+  ui = [ overlayContainerEl, containerEl, closeEl, titleEl ]
 
   initEventListeners()
+
+  // remote.getCurrentWindow().show()
+  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+}
+
+function setFocused(focused=true) {
+  if (focused) {
+    for (var i = 0; i < ui.length; i++) { ui[i].classList.add('selected') }
+    focused = true
+    setMode(null)
+  } else {
+    for (var i = 0; i < ui.length; i++) { ui[i].classList.remove('selected') }
+    focused = false
+    setMode(null)
+  }
 }
 
 function adjustFrame(width, height) {
@@ -130,18 +128,24 @@ function adjustFrame(width, height) {
   height = Math.round(height)
 
   frame.setSize(width, height)
-  frame.setMinimumSize(128, 128)
+  // frame.setMinimumSize(128, 128)
   frame.center()
 
   if (image.width > width && image.height > height) {
     let wr = width / image.width
     let hr = height / image.height
-    settings.scale = wr > hr ? hr : wr
+    picture.scale = wr > hr ? hr : wr
   } else if (image.width > width) {
-    settings.scale = width / image.width
+    picture.scale = width / image.width
   } else if (image.height > height) {
-    settings.scale = height / image.height
+    picture.scale = height / image.height
   }
+
+  bounds = frame.getBounds()
+  updatePicture({ bounds: { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height } })
+  // ipcRenderer.send('console', picture.bounds)
+
+  // startUpdateTimer()
 }
 
 function createImage(firstShow=true) {
@@ -153,10 +157,18 @@ function createImage(firstShow=true) {
     titleEl.style.visibility = 'visible'
 
     if (firstShow) {
-      adjustFrame(e.target.width, e.target.height + titleBarSize)
-      remote.getCurrentWindow().show()
-      remote.getCurrentWindow().setTitle(picture.file.name)
-      ipcRenderer.send('frameInitialised')
+      // ipcRenderer.send('console', 'firstShow')
+      if (picture.bounds) {
+        let frame = remote.getCurrentWindow()
+        frame.setBounds(picture.bounds)
+      } else {
+        // adjustFrame(e.target.width, e.target.height + titleBarSize)
+        adjustFrame(e.target.width, e.target.height)
+      }
+      // remote.getCurrentWindow().show()
+      // remote.getCurrentWindow().setTitle(picture.file.name)
+      // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+      ipcRenderer.send('frameInitialised', picture.id)
     }
 
     draw()
@@ -166,16 +178,12 @@ function createImage(firstShow=true) {
   // image.src = picture.dataURL //'data:image/jpeg;base64,' + data.toString('base64')
 }
 
-function updateInfo() {
-  // info.innerHTML = Math.round(settings.opacity * 100) + '%'
-}
-
 function worldToCanvas(x, y) {
-  var tx = x - settings.left
-  var ty = y - settings.top
+  var tx = x - picture.offset.x
+  var ty = y - picture.offset.y
 
-  var sx = (tx * settings.scale)
-  var sy = (ty * settings.scale)
+  var sx = (tx * picture.scale)
+  var sy = (ty * picture.scale)
 
   // var widthHalf = (width * 0.5) >> 0
   // var heightHalf = (height * 0.5) >> 0
@@ -195,13 +203,39 @@ function canvasToWorld(x, y) {
   var px = x - widthHalf
   var py = y - heightHalf
 
-  var sx = px / settings.scale
-  var sy = py / settings.scale
+  var sx = px / picture.scale
+  var sy = py / picture.scale
 
-  var tx = sx + settings.left
-  var ty = sy + settings.top
+  var tx = sx + picture.offset.x
+  var ty = sy + picture.offset.y
 
   return new Point(tx, ty)
+}
+
+function updateNotify() {
+  // ipcRenderer.send('console', 'update')
+  ipcRenderer.send('frameUpdate', picture)
+}
+
+function updatePicture(params={}) {
+  for (let property in params) {
+    picture[property] = params[property]
+  }
+  startUpdateTimer()
+}
+
+function startUpdateTimer() {
+  if (!updateTimerId) {
+    updateTimerId = setInterval(() => {
+      updateCooldown--
+      if (updateCooldown == 0) {
+        updateNotify()
+        clearInterval(updateTimerId)
+        updateTimerId = null
+      }
+    }, 100)
+  }
+  updateCooldown = 5
 }
 
 function resetAnimationTimer(count=5) {
@@ -211,8 +245,6 @@ function resetAnimationTimer(count=5) {
       if (timeout == 0) {
         clearInterval(timerId)
         stop()
-      } else {
-        // ipcRenderer.send('console', timeout)
       }
     }, 50)
     start()
@@ -221,31 +253,33 @@ function resetAnimationTimer(count=5) {
 }
 
 function zoomBy(x) {
-  settings.scale += x
-  if (settings.scale < 0.1) settings.scale = 0.1
-  if (settings.scale > 4) settings.scale = 4
+  picture.scale += x
+  if (picture.scale < 0.1) picture.scale = 0.1
+  if (picture.scale > 4) picture.scale = 4
   resetAnimationTimer()
+  updatePicture()
 }
 
 function scrollBy(dx, dy) {
-  settings.left += dx
-  settings.top += dy
+  picture.offset.x += dx
+  picture.offset.y += dy
 
   let xmax = image.width / 2
   let ymax = image.height / 2
 
-  if (settings.left < -xmax) {
-    settings.left = -xmax
-  } else if (settings.left > xmax) {
-    settings.left = xmax
+  if (picture.offset.x < -xmax) {
+    picture.offset.x = -xmax
+  } else if (picture.offset.x > xmax) {
+    picture.offset.x = xmax
   }
-  if (settings.top < -ymax) {
-    settings.top = -ymax
-  } else if (settings.top > ymax) {
-    settings.top = ymax
+  if (picture.offset.y < -ymax) {
+    picture.offset.y = -ymax
+  } else if (picture.offset.y > ymax) {
+    picture.offset.y = ymax
   }
 
   resetAnimationTimer()
+  updatePicture()
 }
 
 function draw(quality='medium') {
@@ -264,12 +298,12 @@ function draw(quality='medium') {
 
   if (initialised) {
     p = worldToCanvas(0, 0)
-    w = image.width * settings.scale
-    h = image.height * settings.scale
+    w = image.width * picture.scale
+    h = image.height * picture.scale
     ctx.imageSmoothingQuality = quality
-    ctx.globalAlpha = settings.opacity
+    ctx.globalAlpha = picture.opacity
     // ctx.globalCompositeOperation = 'destination-out'
-    ctx.drawImage(image, p.x - (w/2), p.y - (h/2), w, h)
+    ctx.drawImage(image, p.x - (w/2) >> 0, p.y - (h/2) >> 0, w >> 0, h >> 0)
     // ctx.globalCompositeOperation = 'source-over'
     ctx.globalAlpha = 1
   }
@@ -279,7 +313,7 @@ function draw(quality='medium') {
 
     ctx.fillStyle = 'white'
     ctx.font = fontSize + 'px sans-serif'
-    let text = Math.round(settings.opacity * 100) + '%'
+    let text = Math.round(picture.opacity * 100) + '%'
     let tm = ctx.measureText(text)
 
     // let x = width / 2 - tm.width / 2
@@ -309,9 +343,10 @@ function setMode(newMode) {
 }
 
 function centerImage() {
-  settings.left = 0
-  settings.top = 0
-  settings.scale = 1
+  picture.offset.x = 0
+  picture.offset.y = 0
+  picture.scale = 1
+  updatePicture()
   draw()
   // ipcRenderer.send('console', 'center')
 }
@@ -342,23 +377,23 @@ function start() {
 function stop() {
   active = false
   cancelAnimationFrame(requestAnimationFrameId)
-  updateInfo()
   draw()
   // ipcRenderer.send('console', 'stop-animation')
 }
 
 function updateOpacity(value) {
-  settings.opacity = value
-  settings.opacity = (settings.opacity >= 0.05 ? settings.opacity : 0.05)
-  settings.opacity = (settings.opacity <= 1 ? settings.opacity : 1)
+  picture.opacity = value
+  picture.opacity = (picture.opacity >= 0.05 ? picture.opacity : 0.05)
+  picture.opacity = (picture.opacity <= 1 ? picture.opacity : 1)
   resetAnimationTimer(10)
+  updatePicture()
 
-  hintOpacity = 1
+  hintTimerCount = 10
 
   if (!hintTimerId) {
     hintTimerId = setInterval(() => {
-      hintOpacity = hintOpacity - 0.1
-      if (hintOpacity <= 0) {
+      hintTimerCount = hintTimerCount - 1
+      if (hintTimerCount <= 0) {
         clearInterval(hintTimerId)
         hintTimerId = null
         draw()
@@ -373,9 +408,9 @@ function setTitle(name) {
 
 function onKeyDown(event) {
   if ((event.key == '=' || event.key == '+')) {
-    updateOpacity(settings.opacity + 0.05)
+    updateOpacity(picture.opacity + 0.05)
   } else if (event.key == '-') {
-    updateOpacity(settings.opacity - 0.05)
+    updateOpacity(picture.opacity - 0.05)
   } else if (event.key == ',') {
     zoomBy(-0.5)
   } else if (event.key == '.') {
@@ -427,10 +462,10 @@ function onDragOver(e) {
 
 function onWheel(e) {
   e.preventDefault()
-  let x = e.deltaX / settings.scale
-  let y = e.deltaY / settings.scale
+  let x = e.deltaX / picture.scale
+  let y = e.deltaY / picture.scale
   if (e.ctrlKey) {
-    zoomBy(-e.deltaY * (settings.scale * 0.01))
+    zoomBy(-e.deltaY * (picture.scale * 0.01))
   } else {
     scrollBy(x, y)
   }
@@ -446,9 +481,9 @@ function onMouseDown(e) {
   } else {
     if (e.buttons & 2 || e.buttons & 3) {
       // ipcRenderer.send('console', e.buttons)
-      // settings.left = 0
-      // settings.top = 0
-      // settings.scale = 1
+      // picture.offset.x = 0
+      // picture.offset.y = 0
+      // picture.scale = 1
       draw()
     }
   }
@@ -466,32 +501,22 @@ function onMouseUp(e) {
 function onMouseMove(e) {
   if (e.buttons & 1) {
     if (mode === 'pan') {
-      scrollBy(-e.movementX / settings.scale, -e.movementY / settings.scale)
+      scrollBy(-e.movementX / picture.scale, -e.movementY / picture.scale)
     }
     else if (mode === 'zoom') {
-      // zoomBy(e.movementX * (settings.scale * 0.002))
-      zoomBy(e.movementX * (settings.scale * 0.0025))
+      // zoomBy(e.movementX * (picture.scale * 0.002))
+      zoomBy(e.movementX * (picture.scale * 0.0025))
     }
   }
   // ipcRenderer.send('console', 'image-window-mouse')
 }
 
 function onBlur(e) {
-  overlayContainer.classList.remove('selected')
-  container.classList.remove('selected')
-  closeEl.classList.remove('selected')
-  titleEl.classList.remove('selected')
-  focused = false
-  setMode(null)
+  setFocused(false)
 }
 
 function onFocus(e) {
-  overlayContainer.classList.add('selected')
-  container.classList.add('selected')
-  closeEl.classList.add('selected')
-  titleEl.classList.add('selected')
-  focused = true
-  setMode(null)
+  setFocused(true)
 }
 
 let resizeTimeoutId
@@ -505,6 +530,11 @@ function onResize(e) {
       if (canvas) {
         canvas.width = width
         canvas.height = height
+      }
+      if (picture) {
+        picture.bounds.width = width
+        picture.bounds.height = height
+        updatePicture()
       }
       draw()
    }, 1000 / 30)
@@ -542,10 +572,10 @@ function initEventListeners() {
 ipcRenderer.on('load', load)
 
 ipcRenderer.on('settings', function(event, arg) {
-  for (i in arg) {
-    settings[i] = arg[i]
-  }
-  updateOpacity(settings.opacity)
+  // for (i in arg) {
+  //   settings[i] = arg[i]
+  // }
+  // updateOpacity(picture.opacity)
   // isInitialised = true
 })
 
@@ -553,34 +583,26 @@ ipcRenderer.on('settings', function(event, arg) {
 //   if (image.width > w && image.height > h) {
 //     let wr = w / image.width
 //     let hr = h / image.height
-//     settings.scale = wr > hr ? hr : wr
+//     picture.scale = wr > hr ? hr : wr
 //   } else if (image.width > w) {
-//     settings.scale = w / image.width
+//     picture.scale = w / image.width
 //   } else if (image.height > h) {
-//     settings.scale = h / image.height
+//     picture.scale = h / image.height
 //   }
 //   draw()
 // })
 
 ipcRenderer.on('incognito', function(event, arg) {
-  settings.incognito = arg
+  // settings.incognito = arg
   incognito = arg
 
   if (incognito) {
-    overlayContainer.style.opacity = 0
-    overlayContainer.classList.remove('border')
-    container.classList.remove('selected')
-    titleBarEl.style.visibility = 'hidden'
-    titleEl.style.visibility = 'hidden'
-    // colorOverlayEl.style.visibility = 'hidden'
+    overlayContainerEl.style.opacity = 0
+    // overlayContainerEl.classList.remove('border')
     draw()
   } else {
-    overlayContainer.classList.add('border')
-    overlayContainer.style.opacity = 1
-    container.classList.add('selected')
-    titleBarEl.style.visibility = 'visible'
-    titleEl.style.visibility = 'visible'
-    // colorOverlayEl.style.visibility = 'visible'
+    // overlayContainerEl.classList.add('border')
+    overlayContainerEl.style.opacity = 1
     draw()
   }
 })
