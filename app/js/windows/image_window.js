@@ -39,10 +39,9 @@ let ui = []
 const load = async(event, args) => {
   picture = args.picture
   createImage(args.firstShow)
-
-  if (remote.getCurrentWindow().isFocused()) {
-    setFocused(true)
-  }
+  // if (remote.getCurrentWindow().isFocused()) {
+  //   setFocused(true)
+  // }
 }
 
 window.onload = function() {
@@ -157,10 +156,11 @@ function createImage(firstShow=true) {
     titleEl.style.visibility = 'visible'
 
     if (firstShow) {
+      let handle = remote.getCurrentWindow()
+      handle.show()
       // ipcRenderer.send('console', 'firstShow')
       if (picture.bounds) {
-        let frame = remote.getCurrentWindow()
-        frame.setBounds(picture.bounds)
+        handle.setBounds(picture.bounds)
       } else {
         // adjustFrame(e.target.width, e.target.height + titleBarSize)
         adjustFrame(e.target.width, e.target.height)
@@ -168,7 +168,10 @@ function createImage(firstShow=true) {
       // remote.getCurrentWindow().show()
       // remote.getCurrentWindow().setTitle(picture.file.name)
       // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
-      ipcRenderer.send('frameInitialised', picture.id)
+      ipcRenderer.send('frameInitialised')
+      setFocused(true)
+
+
     }
 
     draw()
@@ -531,10 +534,8 @@ function onResize(e) {
         canvas.width = width
         canvas.height = height
       }
-      if (picture) {
-        picture.bounds.width = width
-        picture.bounds.height = height
-        updatePicture()
+      if (picture && picture.bounds) {
+        updatePicture({ x: picture.bounds.x, y: picture.bounds.y, width: width, height: height })
       }
       draw()
    }, 1000 / 30)

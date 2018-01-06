@@ -5,6 +5,7 @@ html, body {
   user-select: none;
   cursor: default;
   font-family: sans-serif;
+  font-size: 10px;
 }
 
 .icon {

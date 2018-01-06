@@ -51,12 +51,27 @@ const load = async(event, args) => {
   menu.show()
 }
 
-ipcRenderer.on('load', load)
-
 // remote.getCurrentWindow().on('focus', () => {
   // console.log('focus');
   // menu.show()
 // })
+
+function addPicture(id) {
+  let el = document.createElement('div')
+  // with (el.style) {
+  //   width = 64
+  //   height = 64
+  //   background = 'white'
+  // }
+  el.innerHTML = id
+  el.classList.add('thumbnail')
+  el.dataset.id = id
+  el.onclick = () => {
+    ipcRenderer.send('focusWindow', id)
+  }
+  thumbnailContainer.appendChild(el)
+  // console.log('addPicture', id)
+}
 
 function onWheel(e) {
   e.preventDefault();
@@ -197,13 +212,31 @@ function initEventListeners() {
 //   image.src = dataURL
 // }
 
+ipcRenderer.on('load', load)
+
 ipcRenderer.on('thumbnails', function(event, arg) {
   // for (let i = 0; i < arg.length; i++) {
   //   createThumbnail(arg[i].data, arg[i].path)
   // }
 })
 
-ipcRenderer.on('removeImage', function(event, path) {
+ipcRenderer.on('removePicture', function(event, id) {
+  console.log('removePicture', id)
+  let found
+  for (var i = 0; i < thumbnailContainer.childNodes.length; i++) {
+    let childEl = thumbnailContainer.childNodes[i]
+    // console.log(childEl.dataset.id)
+    if (childEl.dataset.id == id) {
+      // console.log('found');
+      found = childEl
+      break
+    }
+  }
+  if (found) {
+    // console.log('found', id)
+    thumbnailContainer.removeChild(found)
+  }
+
   // let found = null
   // for (let i = 0; i < thumbnailContainer.childNodes.length; i++) {
   //   let node = thumbnailContainer.childNodes[i]
@@ -217,9 +250,9 @@ ipcRenderer.on('removeImage', function(event, path) {
   // }
 })
 
-ipcRenderer.on('newPicture', function(event, picture) {
-  // generateThumbnail(picture.dataURL)
-  // createThumbnail(arg.data, arg.path)
+ipcRenderer.on('newPicture', function(event, id) {
+  console.log('newPicture', id)
+  addPicture(id)
 })
 
 ipcRenderer.on('incognito', function(event, arg1) {
