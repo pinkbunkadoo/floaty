@@ -46,7 +46,7 @@ const load = async(event, args) => {
 
   title.innerHTML = remote.getCurrentWindow().getTitle()
 
-  remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 
   menu.show()
 }

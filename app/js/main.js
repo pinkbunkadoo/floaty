@@ -119,11 +119,20 @@ function openLayoutDialog() {
   })
 }
 
+function show() {
+  dropWindow.show()
+  for (var i = 0; i < frames.length; i++) {
+    frames[i].handle.show()
+  }
+}
+
 
 function startup() {
   dropWindow = new BrowserWindow({
     title: appName,
     frame: false,
+    width: 480,
+    height: 480,
     minWidth: 320,
     minHeight: 320,
     fullscreenable: false,
@@ -141,10 +150,7 @@ function startup() {
   mainWindow = dropWindow
 
   dropWindow.once('ready-to-show', () => {
-    dropWindow.show()
-    // dropWindow.webContents.openDevTools({ mode: 'undocked' })
-    createEmpty()
-    loadLayoutFile()
+    console.log('ready-to-show')
   })
 
   dropWindow.webContents.on('dom-ready', () => {
@@ -157,7 +163,7 @@ function startup() {
     })
   }
 
-  dropWindow.setSize(480, 480)
+  // dropWindow.setSize(480, 480)
   // dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 480 })
   // dropWindow.center()
 
@@ -176,7 +182,7 @@ function startup() {
   dropWindow.on('close', () => {
     console.log('dropWindow close')
     dropWindow = null
-    // app.quit()
+    app.quit()
   })
 
   dropWindow.on('minimize', function() {
@@ -184,6 +190,10 @@ function startup() {
 
   dropWindow.on('restore', function() {
   })
+
+  loadLayoutFile()
+  // dropWindow.webContents.openDevTools({ mode: 'undocked' })
+  createEmpty()
 }
 
 function showAbout() {
@@ -316,14 +326,14 @@ function loadLayoutFile() {
                 createImageWindow(picture)
               }
             }
-            if (obj.window) {
-              dropWindow.setBounds(obj.window)
-            }
+            if (obj.window) dropWindow.setBounds(obj.window)
           }
         } catch (err) {
           console.log(err)
         }
       }
+      console.log('layout loaded')
+      show()
     })
   } catch(err) {
     console.log(err);
@@ -453,14 +463,14 @@ ipcMain.on('frameInitialised', function(event) {
   })
   if (frame) frame.initialised = true
 
-  console.log('frameInitialised', handle.id)
+  // console.log('frameInitialised', handle.id)
 
   if (pictureLoadCount > 0) {
     pictureLoadCount--
   }
 
   if (pictureLoadCount == 0) {
-    console.log('pictureLoadCount == 0')
+    // console.log('pictureLoadCount == 0')
     dropWindow.focus()
     pictureLoadCount = -1
   }

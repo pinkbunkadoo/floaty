@@ -91,7 +91,7 @@ function setFocused(focused=true) {
   }
 }
 
-function adjustFrame(width, height) {
+function adjustBounds(width, height) {
   let frame = remote.getCurrentWindow()
   let bounds = frame.getBounds()
 
@@ -157,21 +157,21 @@ function createImage(firstShow=true) {
 
     if (firstShow) {
       let handle = remote.getCurrentWindow()
-      handle.show()
+
+      // handle.show()
+
       // ipcRenderer.send('console', 'firstShow')
       if (picture.bounds) {
         handle.setBounds(picture.bounds)
       } else {
         // adjustFrame(e.target.width, e.target.height + titleBarSize)
-        adjustFrame(e.target.width, e.target.height)
+        adjustBounds(e.target.width, e.target.height)
       }
       // remote.getCurrentWindow().show()
       // remote.getCurrentWindow().setTitle(picture.file.name)
       // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
       ipcRenderer.send('frameInitialised')
       setFocused(true)
-
-
     }
 
     draw()
