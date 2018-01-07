@@ -64,7 +64,7 @@ window.onload = function() {
   closeEl = document.getElementById('close')
 
   closeEl.addEventListener('click', (event) => {
-    remote.getCurrentWebContents().closeDevTools()
+    // remote.getCurrentWebContents().closeDevTools()
     window.close()
     // remote.getCurrentWindow().close()
   })
@@ -241,7 +241,7 @@ function startUpdateTimer() {
   updateCooldown = 5
 }
 
-function resetAnimationTimer(count=5) {
+function resetAnimationTimer(count=10) {
   if (!active) {
     timerId = setInterval(() => {
       timeout--
@@ -249,7 +249,7 @@ function resetAnimationTimer(count=5) {
         clearInterval(timerId)
         stop()
       }
-    }, 50)
+    }, 100)
     start()
   }
   timeout = count
@@ -384,13 +384,7 @@ function stop() {
   // ipcRenderer.send('console', 'stop-animation')
 }
 
-function updateOpacity(value) {
-  picture.opacity = value
-  picture.opacity = (picture.opacity >= 0.05 ? picture.opacity : 0.05)
-  picture.opacity = (picture.opacity <= 1 ? picture.opacity : 1)
-  resetAnimationTimer(10)
-  updatePicture()
-
+function startHintTimer() {
   hintTimerCount = 10
 
   if (!hintTimerId) {
@@ -401,8 +395,18 @@ function updateOpacity(value) {
         hintTimerId = null
         draw()
       }
-    }, 50)
+    }, 100)
   }
+
+  resetAnimationTimer(20)
+}
+
+function updateOpacity(value) {
+  picture.opacity = value
+  picture.opacity = (picture.opacity >= 0.05 ? picture.opacity : 0.05)
+  picture.opacity = (picture.opacity <= 1 ? picture.opacity : 1)
+  updatePicture()
+  startHintTimer()
 }
 
 function setTitle(name) {
@@ -419,7 +423,8 @@ function onKeyDown(event) {
   } else if (event.key == '.') {
     zoomBy(0.5)
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
-    ipcRenderer.send('closeImage')
+    // ipcRenderer.send('closeImage')
+    window.close()
   } else if (event.key == 'Shift' && !event.repeat) {
     setMode('pan')
   } else if (event.key == 'Control' && !event.repeat) {
@@ -519,6 +524,7 @@ function onBlur(e) {
 }
 
 function onFocus(e) {
+  startHintTimer()
   setFocused(true)
 }
 
