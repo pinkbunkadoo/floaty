@@ -18,7 +18,7 @@ const appName = app.getName()
 let mainWindow
 let dropWindow
 let aboutWindow
-let menuTemplate
+let bounds
 
 let incognito = false
 let frames = []
@@ -121,9 +121,9 @@ function openLayoutDialog() {
 
 function show() {
   dropWindow.show()
-  for (var i = 0; i < frames.length; i++) {
-    frames[i].handle.show()
-  }
+  // for (var i = 0; i < frames.length; i++) {
+  //   frames[i].handle.show()
+  // }
 }
 
 
@@ -133,8 +133,8 @@ function startup() {
     frame: false,
     width: 480,
     height: 480,
-    minWidth: 320,
-    minHeight: 320,
+    minWidth: 360,
+    minHeight: 360,
     fullscreenable: false,
     fullscreen: false,
     titleBarStyle: 'hiddenInset',
@@ -173,15 +173,14 @@ function startup() {
     slashes: true
   }))
 
-  // dropWindow.webContents.openDevTools({ mode: 'undocked' })
+  dropWindow.webContents.openDevTools({ mode: 'undocked' })
 
   dropWindow.on('focus', () => {
-    console.log('dropWindow-focus')
+    // console.log('dropWindow-focus')
   })
 
   dropWindow.on('close', () => {
     console.log('dropWindow close')
-    dropWindow = null
     app.quit()
   })
 
@@ -229,7 +228,7 @@ function createImageWindow(picture) {
   frame.picture = picture
   frames.push(frame)
 
-  let domReady = () => { handle.send('load', { picture: picture, firstShow: !frame.initialised }) }
+  let domReady = () => { handle.send('load', { picture: picture, firstShow: true }) }
 
   if (!handle.webContents.isLoading()) { domReady() }
 
@@ -242,8 +241,6 @@ function createImageWindow(picture) {
 
   handle.setTitle(picture.file.name)
   // handle.show()
-
-  dropWindow.send('newPicture', handle.id)
 
   createEmpty()
 }
@@ -274,6 +271,10 @@ function createEmpty() {
   }))
 
   win.on('ready-to-show', () => {
+  })
+
+  win.on('focus', () => {
+    // console.log('focus')
   })
 
   empties.push(frame)
@@ -316,6 +317,7 @@ function loadLayoutFile() {
         try {
           let obj = JSON.parse(data)
           if (obj) {
+            // console.log(obj)
             if (obj.pictures && obj.pictures.length) {
               pictureLoadCount = 0
               for (var i = 0; i < obj.pictures.length; i++) {
@@ -325,14 +327,18 @@ function loadLayoutFile() {
                 pictureLoadCount++
                 createImageWindow(picture)
               }
+              console.log('pictures:', pictureLoadCount)
             }
-            if (obj.window) dropWindow.setBounds(obj.window)
+            if (obj.window) {
+              console.log(obj.window)
+              dropWindow.setBounds(obj.window)
+            }
           }
         } catch (err) {
           console.log(err)
         }
       }
-      console.log('layout loaded')
+      // console.log('layout loaded')
       show()
     })
   } catch(err) {
@@ -344,11 +350,7 @@ function saveLayoutFile() {
   let filename = path.join(app.getPath('home'), '.floaty')
   let string = ''
 
-  let obj = { pictures: [] }
-
-  if (dropWindow) {
-    obj.window = dropWindow.getBounds()
-  }
+  let obj = { window: bounds, pictures: [] }
 
   if (frames.length) {
     // console.log('frames', frames.length)
@@ -399,6 +401,10 @@ app.on('show', () => {
 
 app.on('before-quit', (event) => {
   console.log('before-quit');
+  if (dropWindow) {
+    bounds = dropWindow.getBounds()
+    // console.log(bounds)
+  }
   saveLayoutFile()
 })
 
@@ -461,9 +467,17 @@ ipcMain.on('frameInitialised', function(event) {
   let frame = frames.find((element) => {
     return element.handle === handle
   })
-  if (frame) frame.initialised = true
 
-  // console.log('frameInitialised', handle.id)
+  if (frame) {
+    frame.initialised = true
+    // console.log('frameInitialised', handle.id)
+    dropWindow.send('newPicture', handle.id)
+
+    // frame.handle.webContents.focus()
+    frame.handle.show()
+
+    // console.log(frame.handle.webContents.isFocused())
+  }
 
   if (pictureLoadCount > 0) {
     pictureLoadCount--

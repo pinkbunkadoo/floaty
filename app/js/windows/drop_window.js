@@ -49,6 +49,13 @@ const load = async(event, args) => {
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 
   menu.show()
+
+  // ipcRenderer.send('console', 'drop-loaded')
+}
+
+window.onbeforeunload = () => {
+  // ipcRenderer.send('console', 'onbeforeunload')
+  // ipcRenderer.send('console', remote.getCurrentWindow().getBounds())
 }
 
 // remote.getCurrentWindow().on('focus', () => {
@@ -252,6 +259,7 @@ ipcRenderer.on('removePicture', function(event, id) {
 
 ipcRenderer.on('newPicture', function(event, id) {
   console.log('newPicture', id)
+  // ipcRenderer.send('console', id)
   addPicture(id)
 })
 

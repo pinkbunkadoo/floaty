@@ -142,6 +142,7 @@ function adjustBounds(width, height) {
 
   bounds = frame.getBounds()
   updatePicture({ bounds: { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height } })
+
   // ipcRenderer.send('console', picture.bounds)
 
   // startUpdateTimer()
@@ -162,16 +163,20 @@ function createImage(firstShow=true) {
 
       // ipcRenderer.send('console', 'firstShow')
       if (picture.bounds) {
+        // ipcRenderer.send('console', 'had-bounds')
         handle.setBounds(picture.bounds)
       } else {
+        // ipcRenderer.send('console', 'no-bounds')
         // adjustFrame(e.target.width, e.target.height + titleBarSize)
         adjustBounds(e.target.width, e.target.height)
       }
+
+      setFocused(true)
       // remote.getCurrentWindow().show()
       // remote.getCurrentWindow().setTitle(picture.file.name)
       // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
       ipcRenderer.send('frameInitialised')
-      setFocused(true)
+      // setFocused(true)
     }
 
     draw()
@@ -524,6 +529,7 @@ function onBlur(e) {
 }
 
 function onFocus(e) {
+  // ipcRenderer.send('console','onFocus')
   startHintTimer()
   setFocused(true)
 }
