@@ -39,9 +39,6 @@ let ui = []
 const load = async(event, args) => {
   picture = args.picture
   createImage(args.firstShow)
-  // if (remote.getCurrentWindow().isFocused()) {
-  //   setFocused(true)
-  // }
 }
 
 window.onload = function() {
@@ -64,9 +61,7 @@ window.onload = function() {
   closeEl = document.getElementById('close')
 
   closeEl.addEventListener('click', (event) => {
-    // remote.getCurrentWebContents().closeDevTools()
     window.close()
-    // remote.getCurrentWindow().close()
   })
 
   titleEl = document.getElementById('title')
@@ -77,6 +72,7 @@ window.onload = function() {
 
   // remote.getCurrentWindow().show()
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+  // ipcRenderer.send('frameReady')
 }
 
 function setFocused(focused=true) {
@@ -142,10 +138,6 @@ function adjustBounds(width, height) {
 
   bounds = frame.getBounds()
   updatePicture({ bounds: { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height } })
-
-  // ipcRenderer.send('console', picture.bounds)
-
-  // startUpdateTimer()
 }
 
 function createImage(firstShow=true) {
@@ -158,25 +150,13 @@ function createImage(firstShow=true) {
 
     if (firstShow) {
       let handle = remote.getCurrentWindow()
-
-      // handle.show()
-
-      // ipcRenderer.send('console', 'firstShow')
       if (picture.bounds) {
-        // ipcRenderer.send('console', 'had-bounds')
         handle.setBounds(picture.bounds)
       } else {
-        // ipcRenderer.send('console', 'no-bounds')
-        // adjustFrame(e.target.width, e.target.height + titleBarSize)
         adjustBounds(e.target.width, e.target.height)
       }
-
       setFocused(true)
-      // remote.getCurrentWindow().show()
-      // remote.getCurrentWindow().setTitle(picture.file.name)
-      // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
       ipcRenderer.send('frameInitialised')
-      // setFocused(true)
     }
 
     draw()
@@ -193,9 +173,6 @@ function worldToCanvas(x, y) {
   var sx = (tx * picture.scale)
   var sy = (ty * picture.scale)
 
-  // var widthHalf = (width * 0.5) >> 0
-  // var heightHalf = (height * 0.5) >> 0
-
   var widthHalf = (width / 2)
   var heightHalf = (height / 2)
 
@@ -203,8 +180,6 @@ function worldToCanvas(x, y) {
 }
 
 function canvasToWorld(x, y) {
-  // var widthHalf = (width / 2) >> 0
-  // var heightHalf = (height / 2) >> 0
   var widthHalf = (width / 2)
   var heightHalf = (height / 2)
 
@@ -379,14 +354,12 @@ function frame() {
 function start() {
   active = true
   requestAnimationFrameId = requestAnimationFrame(frame)
-  // ipcRenderer.send('console', 'start-animation')
 }
 
 function stop() {
   active = false
   cancelAnimationFrame(requestAnimationFrameId)
   draw()
-  // ipcRenderer.send('console', 'stop-animation')
 }
 
 function startHintTimer() {
@@ -416,6 +389,17 @@ function updateOpacity(value) {
 
 function setTitle(name) {
   titleEl.innerHTML = name
+}
+
+function setIncognito(value) {
+  incognito = value
+  if (incognito) {
+    overlayContainerEl.style.opacity = 0
+    draw()
+  } else {
+    overlayContainerEl.style.opacity = 1
+    draw()
+  }
 }
 
 function onKeyDown(event) {
@@ -491,14 +475,6 @@ function onMouseDown(e) {
     setMode('pan')
   } else if (e.ctrlKey) {
     setMode('zoom')
-  } else {
-    if (e.buttons & 2 || e.buttons & 3) {
-      // ipcRenderer.send('console', e.buttons)
-      // picture.offset.x = 0
-      // picture.offset.y = 0
-      // picture.scale = 1
-      draw()
-    }
   }
 }
 
@@ -585,37 +561,8 @@ function initEventListeners() {
 ipcRenderer.on('load', load)
 
 ipcRenderer.on('settings', function(event, arg) {
-  // for (i in arg) {
-  //   settings[i] = arg[i]
-  // }
-  // updateOpacity(picture.opacity)
-  // isInitialised = true
 })
 
-// ipcRenderer.on('initialised', (event, w, h) => {
-//   if (image.width > w && image.height > h) {
-//     let wr = w / image.width
-//     let hr = h / image.height
-//     picture.scale = wr > hr ? hr : wr
-//   } else if (image.width > w) {
-//     picture.scale = w / image.width
-//   } else if (image.height > h) {
-//     picture.scale = h / image.height
-//   }
-//   draw()
-// })
-
 ipcRenderer.on('incognito', function(event, arg) {
-  // settings.incognito = arg
-  incognito = arg
-
-  if (incognito) {
-    overlayContainerEl.style.opacity = 0
-    // overlayContainerEl.classList.remove('border')
-    draw()
-  } else {
-    // overlayContainerEl.classList.add('border')
-    overlayContainerEl.style.opacity = 1
-    draw()
-  }
+  setIncognito(arg)
 })

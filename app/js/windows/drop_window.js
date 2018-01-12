@@ -3,6 +3,7 @@ const BrowserWindow = remote.BrowserWindow
 const ipcRenderer = require('electron').ipcRenderer
 const fs = require('fs')
 const menu = require('../menu')
+const Menu = remote.Menu;
 
 const Point = require('../point')
 const Picture = require('../picture')
@@ -10,7 +11,6 @@ const Icon = require('../icon')
 
 const thumbSize = 64
 
-let container, perimeter, thumbnailContainer
 let isInitialised = false
 let mode = null
 let incognito = false
@@ -20,84 +20,172 @@ let mx = 0
 let my = 0
 let previousmx = 0
 let previousmy = 0
-let title, eye, settings, close
+
+let pictures = []
+
+let containerEl, perimeterEl, thumbnailContainerEl, dropContainerEl, settingsContainerEl, pictureListContainerEl
+let titleEl, eyeIconEl, settingsIconEl, closeIconEl, backIconEl
 
 const load = async(event, args) => {
-  eye = document.getElementById('eye')
-  close = document.getElementById('close')
+  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
+  menu.show()
+}
 
-  title = document.getElementById('title')
+window.onload = () => {
+  eyeIconEl = document.getElementById('eye-icon')
+  closeIconEl = document.getElementById('close-icon')
+  settingsIconEl = document.getElementById('settings-icon')
+  backIconEl = document.getElementById('back-icon')
 
-  eye.onclick = function() {
+  titleEl = document.getElementById('title')
+  dropContainerEl = document.getElementById('drop-container')
+  settingsContainerEl = document.getElementById('settings-container')
+
+  pictureListContainerEl = document.getElementById('picture-list-container')
+
+  eyeIconEl.onclick = function() {
     ipcRenderer.send('requestIncognito')
   }
 
-  close.onclick = function() {
+  closeIconEl.onclick = function() {
     ipcRenderer.send('requestQuit')
   }
 
-  if (process.platform === 'darwin') close.style.display = 'none'
+  settingsIconEl.onclick = function() {
+    showPage('settings')
+  }
 
-  thumbnailContainer = document.getElementById('thumbnail-container')
-  container = document.getElementById('container')
-  perimeter = document.getElementById('perimeter')
+  backIconEl.onclick = function() {
+    showPage('drop')
+  }
+
+  if (process.platform === 'darwin') closeIconEl.style.display = 'none'
+
+  thumbnailContainerEl = document.getElementById('thumbnail-container')
+  containerEl = document.getElementById('container')
+  perimeterEl = document.getElementById('perimeter')
+
+  titleEl.innerHTML = remote.getCurrentWindow().getTitle()
 
   initEventListeners()
 
-  title.innerHTML = remote.getCurrentWindow().getTitle()
-
-  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
-
-  menu.show()
-
-  // ipcRenderer.send('console', 'drop-loaded')
+  for (var i = 0; i < 30; i++) {
+    newPicture(i + 100, 'bungalo' + i + '.png')
+  }
 }
 
 window.onbeforeunload = () => {
-  // ipcRenderer.send('console', 'onbeforeunload')
-  // ipcRenderer.send('console', remote.getCurrentWindow().getBounds())
 }
 
-// remote.getCurrentWindow().on('focus', () => {
-  // console.log('focus');
-  // menu.show()
-// })
+function showPopup() {
+  // popupMenu = Menu.buildFromTemplate([
+  //   {
+  //     label: 'Close All Images',
+  //     click: () => {
+  //       console.log('close all images')
+  //     }
+  //   }
+  // ])
+  // popupMenu.popup()
+}
 
-function addPicture(id) {
-  let el = document.createElement('div')
-  // with (el.style) {
-  //   width = 64
-  //   height = 64
-  //   background = 'white'
+function showDrop() {
+  dropContainerEl.style.display = 'flex'
+}
+
+function showSettings() {
+  settingsContainerEl.style.display = 'flex'
+  pictureListContainerEl.innerHTML = ''
+  for (var i = 0; i < pictures.length; i++) {
+    let picture = pictures[i]
+    let el = document.createElement('div')
+    let titleEl = document.createElement('div')
+    let closeEl = document.createElement('div')
+
+    el.classList.add('picture-list-item')
+    titleEl.style.flex = 'auto'
+    closeEl.style.padding = '0 0 0 12px'
+
+    el.dataset.id = picture.id
+
+
+    titleEl.innerHTML = picture.filename
+    closeEl.innerHTML = 'X'
+
+    el.appendChild(titleEl)
+    el.appendChild(closeEl)
+
+    closeEl.onclick = () => {
+      ipcRenderer.send('requestCloseImage', picture.id)
+    }
+    pictureListContainerEl.appendChild(el)
+  }
+}
+
+function showPage(name) {
+  if (name === 'drop') {
+    settingsContainerEl.style.display = 'none'
+    showDrop()
+  } else if (name === 'settings') {
+    dropContainerEl.style.display = 'none'
+    showSettings()
+  }
+}
+
+function newPicture(id, filename) {
+  // let el = document.createElement('div')
+  // el.classList.add('thumbnail')
+  // el.dataset.id = id
+  // el.onclick = () => {
+  //   ipcRenderer.send('focusWindow', id)
   // }
-  el.innerHTML = id
-  el.classList.add('thumbnail')
-  el.dataset.id = id
-  el.onclick = () => {
-    ipcRenderer.send('focusWindow', id)
-  }
-  thumbnailContainer.appendChild(el)
-  // console.log('addPicture', id)
+  // thumbnailContainerEl.appendChild(el)
+  pictures.push({ id: id, filename: filename })
 }
 
-function onWheel(e) {
-  e.preventDefault();
+function removePicture(id) {
+  let index = pictures.findIndex((element) => { return element.id == id })
+  if (index > -1) {
+    pictures.splice(index, 1)
+  }
+
+  // for (var i = 0; i < thumbnailContainerEl.childNodes.length; i++) {
+  //   let childEl = thumbnailContainerEl.childNodes[i]
+  //   if (childEl.dataset.id == id) {
+  //     thumbnailContainerEl.removeChild(childEl)
+  //     break
+  //   }
+  // }
+
+  for (var i = 0; i < pictureListContainerEl.childNodes.length; i++) {
+    let childEl = pictureListContainerEl.childNodes[i]
+    if (childEl.dataset.id == id) {
+      pictureListContainerEl.removeChild(childEl)
+      break
+    }
+  }
 }
 
-function onKeyDown(event) {
-  // console.log(event.key)
-  if (event.key == '=' && !event.repeat) {
+function setIncognito(value) {
+  incognito = value
+  if (incognito) {
+    containerEl.style.opacity = 0
+  } else {
+    containerEl.style.opacity = 1.0
   }
+}
+
+function onKeyDown(e) {
 }
 
 function onDragStart(e) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault()
+  e.stopPropagation()
 }
 
 function onDrag(e) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault()
+  e.stopPropagation()
 }
 
 function onDrop(e) {
@@ -135,32 +223,19 @@ function onMouseDown(e) {
 }
 
 function onMouseUp(e) {
-  mx = 0
-  my = 0
-  previousmx = 0
-  previousmy = 0
+  // mx = 0
+  // my = 0
+  // previousmx = 0
+  // previousmy = 0
 }
 
 function onMouseMove(e) {
-  mx = e.clientX
-  my = e.clientY
-  let dx = mx - previousmx
-  let dy = my - previousmy
-
-  previousmx = mx
-  previousmy = my
-}
-
-function onMouseEnter(e) {
-}
-
-function onMouseLeave(e) {
-}
-
-function onMouseOver(e) {
-}
-
-function onMouseOut(e) {
+  // mx = e.clientX
+  // my = e.clientY
+  // let dx = mx - previousmx
+  // let dy = my - previousmy
+  // previousmx = mx
+  // previousmy = my
 }
 
 function onBlur(e) {
@@ -179,95 +254,48 @@ function onResize(e) {
 }
 
 function initEventListeners() {
-  document.body.addEventListener("wheel", onWheel);
-  window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('dragstart', onDragStart);
-  window.addEventListener('drag', onDrag);
-  window.addEventListener('drop', onDrop);
-  window.addEventListener('dragover', onDragOver);
-  window.addEventListener('dragenter', onDragEnter);
-  window.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mouseup', onMouseUp);
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('mouseenter', onMouseEnter);
-  window.addEventListener('mouseleave', onMouseLeave);
-  window.addEventListener('mouseout', onMouseOut);
-  window.addEventListener('mouseover', onMouseOver);
-  window.addEventListener('scroll', onScroll);
-  window.addEventListener('contextmenu', onContextMenu);
-  window.addEventListener('blur', onBlur);
-  window.addEventListener('focus', onFocus);
-  window.addEventListener('resize', onResize);
-}
 
-// function generateThumbnail(dataURL) {
-//   let image = new Image()
-//   image.onload = (e) => {
-//     let img = e.target
-//     let ratio = img.width / img.height
-//     let canvas = document.createElement('canvas')
-//     canvas.width = (thumbSize * ratio) >> 0
-//     canvas.height = (thumbSize) >> 0
-//     let ctx = canvas.getContext('2d')
-//     ctx.fillStyle = 'black'
-//     ctx.fillRect(0, 0, canvas.width, canvas.height)
-//     ctx.imageSmoothingQuality = 'medium'
-//     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-//     let dataURL = canvas.toDataURL()
-//     // return dataURL
-//   }
-//   image.src = dataURL
-// }
+  document.addEventListener('dragover', (event) => {
+    event.dataTransfer.dropEffect = 'none'
+    event.preventDefault()
+  })
+  document.addEventListener('drop', (event) => {
+    event.dataTransfer.dropEffect = 'none'
+    event.preventDefault()
+  })
+  document.addEventListener('dragenter', (event) => {
+    event.dataTransfer.dropEffect = 'none'
+    event.preventDefault()
+  })
+
+  // dropContainerEl.addEventListener('dragstart', onDragStart)
+  // dropContainerEl.addEventListener('drag', onDrag)
+
+  dropContainerEl.addEventListener('drop', onDrop)
+  dropContainerEl.addEventListener('dragover', onDragOver)
+  dropContainerEl.addEventListener('dragenter', onDragEnter)
+
+  window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('mousedown', onMouseDown)
+  window.addEventListener('mouseup', onMouseUp)
+  window.addEventListener('mousemove', onMouseMove)
+  window.addEventListener('scroll', onScroll)
+  window.addEventListener('contextmenu', onContextMenu)
+  window.addEventListener('blur', onBlur)
+  window.addEventListener('focus', onFocus)
+  window.addEventListener('resize', onResize)
+}
 
 ipcRenderer.on('load', load)
 
-ipcRenderer.on('thumbnails', function(event, arg) {
-  // for (let i = 0; i < arg.length; i++) {
-  //   createThumbnail(arg[i].data, arg[i].path)
-  // }
-})
-
 ipcRenderer.on('removePicture', function(event, id) {
-  console.log('removePicture', id)
-  let found
-  for (var i = 0; i < thumbnailContainer.childNodes.length; i++) {
-    let childEl = thumbnailContainer.childNodes[i]
-    // console.log(childEl.dataset.id)
-    if (childEl.dataset.id == id) {
-      // console.log('found');
-      found = childEl
-      break
-    }
-  }
-  if (found) {
-    // console.log('found', id)
-    thumbnailContainer.removeChild(found)
-  }
-
-  // let found = null
-  // for (let i = 0; i < thumbnailContainer.childNodes.length; i++) {
-  //   let node = thumbnailContainer.childNodes[i]
-  //   if (node.dataset.path === path) {
-  //     found = node
-  //     break
-  //   }
-  // }
-  // if (found) {
-  //   thumbnailContainer.removeChild(found)
-  // }
+  removePicture(id)
 })
 
-ipcRenderer.on('newPicture', function(event, id) {
-  console.log('newPicture', id)
-  // ipcRenderer.send('console', id)
-  addPicture(id)
+ipcRenderer.on('newPicture', function(event, id, filename) {
+  newPicture(id, filename)
 })
 
-ipcRenderer.on('incognito', function(event, arg1) {
-  incognito = arg1
-  if (incognito) {
-    container.style.opacity = 0
-  } else {
-    container.style.opacity = 1.0
-  }
+ipcRenderer.on('incognito', function(event, value) {
+  setIncognito(value)
 })

@@ -18,19 +18,15 @@ const appName = app.getName()
 let mainWindow
 let dropWindow
 let aboutWindow
+let tray
 let bounds
 
 let incognito = false
 let frames = []
 let empties = []
-// let pictures = []
-// let imageId = 1
+let pictures = []
 let pictureId = 1
 let pictureLoadCount = -1
-
-let tray
-
-// if (process.platform === 'win32') app.disableHardwareAcceleration()
 
 function createTrayIcon() {
   try {
@@ -70,14 +66,8 @@ function createTrayIcon() {
 }
 
 function setIncognito(value) {
-  // if (value == true && frames.length == 0) return;
-
   if (incognito != value) {
     incognito = value
-
-    // console.log('incognito', incognito)
-    // console.log('incognito frames', frames.length)
-
     for (var i = 0; i < frames.length; i++) {
       let handle = frames[i].handle
       if (incognito) {
@@ -119,15 +109,7 @@ function openLayoutDialog() {
   })
 }
 
-function show() {
-  dropWindow.show()
-  // for (var i = 0; i < frames.length; i++) {
-  //   frames[i].handle.show()
-  // }
-}
-
-
-function startup() {
+function createMainWindow() {
   dropWindow = new BrowserWindow({
     title: appName,
     frame: false,
@@ -149,23 +131,12 @@ function startup() {
 
   mainWindow = dropWindow
 
-  dropWindow.once('ready-to-show', () => {
-    console.log('ready-to-show')
-  })
+  dropWindow.once('ready-to-show', () => { })
 
-  dropWindow.webContents.on('dom-ready', () => {
+  dropWindow.webContents.once('dom-ready', () => {
     dropWindow.webContents.send('load')
+    createPictureWindows()
   })
-
-  if (process.platform === 'darwin') {
-    globalShortcut.register('Command+Option+/', () => {
-      setIncognito(!incognito)
-    })
-  }
-
-  // dropWindow.setSize(480, 480)
-  // dropWindow.setContentBounds({ x: 0, y: 0, width: 480, height: 480 })
-  // dropWindow.center()
 
   dropWindow.loadURL(url.format({
     pathname: path.join(__dirname, '../drop_window.html'),
@@ -175,78 +146,73 @@ function startup() {
 
   dropWindow.webContents.openDevTools({ mode: 'undocked' })
 
-  dropWindow.on('focus', () => {
-    // console.log('dropWindow-focus')
-  })
+  dropWindow.on('focus', () => { })
 
   dropWindow.on('close', () => {
-    console.log('dropWindow close')
     app.quit()
   })
 
-  dropWindow.on('minimize', function() {
-  })
+  dropWindow.on('minimize', function() { })
 
-  dropWindow.on('restore', function() {
-  })
+  dropWindow.on('restore', function() { })
 
-  loadLayoutFile()
+  if (process.platform === 'darwin') {
+    globalShortcut.register('Command+Option+/', () => {
+      setIncognito(!incognito)
+    })
+  }
+
   // dropWindow.webContents.openDevTools({ mode: 'undocked' })
+
+  bounds ? dropWindow.setBounds(bounds) : dropWindow.center()
+  dropWindow.show()
+}
+
+function startup() {
+  console.log('startup');
+  loadLayoutFile()
+  createMainWindow()
   createEmpty()
 }
 
 function showAbout() {
-  // if (aboutWindow) {
-  //   aboutWindow.close()
-  // }
-  //
-  // aboutWindow = new BrowserWindow({
-  //   show: true,
-  //   alwaysOnTop: true
-  // })
-  //
-  // aboutWindow.loadURL(url.format({
-  //   pathname: path.join(__dirname, '../about_window.html'),
-  //   protocol: 'file:',
-  //   slashes: true
-  // }))
-  //
-  // aboutWindow.on('close', () => {
-  //   aboutWindow = null
-  // })
-
-  // aboutWindow.webContents.openDevTools({ mode:'bottom' })
 }
 
-function createImageWindow(picture) {
-  if (!empties.length) {
-    createEmpty()
-  }
+function createPictureWindow(picture) {
+  if (!empties.length) createEmpty()
 
   let frame = empties.pop()
-  let handle = frame.handle
   frame.picture = picture
   frames.push(frame)
 
-  let domReady = () => { handle.send('load', { picture: picture, firstShow: true }) }
+  let loadFunc = () => { frame.handle.send('load', { picture: picture, firstShow: true }) }
 
-  if (!handle.webContents.isLoading()) { domReady() }
+  if (frame.isDomReady) {
+    loadFunc()
+  } else {
+    setTimeout(() => { loadFunc() }, 500)
+  }
 
-  handle.webContents.on('dom-ready', domReady)
-  handle.on('close', () => {
-    // closeImage(handle)
-    closeImage(handle.id)
+  frame.handle.on('close', () => {
+    closeImage(frame.handle.id)
   })
 
+  frame.handle.setTitle(picture.file.name)
 
-  handle.setTitle(picture.file.name)
-  // handle.show()
+  picture.windowId = frame.handle.id
 
-  createEmpty()
+  if (!empties.length) createEmpty()
+}
+
+function createPictureWindows() {
+  for (var i = 0; i < pictures.length; i++) {
+    let picture = pictures[i]
+    createPictureWindow(picture)
+  }
 }
 
 function createEmpty() {
-  let win = new BrowserWindow({
+  let handle = new BrowserWindow({
     title: 'Empty',
     width: 1,
     height: 1,
@@ -262,20 +228,17 @@ function createEmpty() {
     show: false
   })
 
-  let frame = { handle: win, initialised: false }
+  let frame = { handle: handle, isDomReady: false, initialised: false }
 
-  win.loadURL(url.format({
+  handle.webContents.on('dom-ready', () => {
+    frame.isDomReady = true
+  })
+
+  handle.loadURL(url.format({
     pathname: path.join(__dirname, '../image_window.html'),
     protocol: 'file:',
     slashes: true
   }))
-
-  win.on('ready-to-show', () => {
-  })
-
-  win.on('focus', () => {
-    // console.log('focus')
-  })
 
   empties.push(frame)
 }
@@ -291,56 +254,45 @@ function processImageFile(file) {
     id: pictureId++,
     file: file
   })
-  createImageWindow(picture)
+  createPictureWindow(picture)
 }
 
 function closeImage(id) {
-  // console.log('closeImage', id)
   let handle = BrowserWindow.fromId(id)
   if (handle) {
-    // console.log('closing...', id)
     let frameIndex = frames.findIndex((element) => { return element.handle === handle })
     if (frameIndex != -1) {
       frames.splice(frameIndex, 1)
-      if (dropWindow) dropWindow.send('removePicture', id)
     }
+    // handle.close()
   }
+  if (dropWindow) dropWindow.send('removePicture', id)
 }
 
 function loadLayoutFile() {
   let filename = path.join(app.getPath('home'), '.floaty')
   try {
-    fs.readFile(filename, (err, data) => {
-      if (err) {
-        console.log(err)
-      } else {
-        try {
-          let obj = JSON.parse(data)
-          if (obj) {
-            // console.log(obj)
-            if (obj.pictures && obj.pictures.length) {
-              pictureLoadCount = 0
-              for (var i = 0; i < obj.pictures.length; i++) {
-                let pic = obj.pictures[i]
-                let picture = new Picture({ id: pictureId++ })
-                for (let name in pic) { picture[name] = pic[name] }
-                pictureLoadCount++
-                createImageWindow(picture)
-              }
-              console.log('pictures:', pictureLoadCount)
-            }
-            if (obj.window) {
-              console.log(obj.window)
-              dropWindow.setBounds(obj.window)
-            }
+    let data = fs.readFileSync(filename)
+    try {
+      let obj = JSON.parse(data)
+      if (obj) {
+        if (obj.pictures && obj.pictures.length) {
+          pictureLoadCount = 0
+          for (var i = 0; i < obj.pictures.length; i++) {
+            let picture = new Picture(obj.pictures[i])
+            picture.id = pictureId++
+            pictureLoadCount++
+            pictures.push(picture)
           }
-        } catch (err) {
-          console.log(err)
+          console.log('pictures:', pictureLoadCount)
+          createEmpties(pictureLoadCount)
         }
+        if (obj.window) bounds = obj.window;
       }
-      // console.log('layout loaded')
-      show()
-    })
+    } catch (err) {
+      console.log(err)
+    }
+    console.log('loaded: ', filename)
   } catch(err) {
     console.log(err);
   }
@@ -353,7 +305,6 @@ function saveLayoutFile() {
   let obj = { window: bounds, pictures: [] }
 
   if (frames.length) {
-    // console.log('frames', frames.length)
     for (var i = 0; i < frames.length; i++) {
       let frame = frames[i]
       let bounds = frame.handle.getBounds()
@@ -365,20 +316,19 @@ function saveLayoutFile() {
         file: frame.picture.file
       })
     }
-
   }
   try {
     string = JSON.stringify(obj, null, 2)
   } catch (err) {
     console.log(err)
   }
-  fs.writeFile(filename, string, (err) => {
-    if (err) {
-      console.log(err)
-    } else {
-      console.log('saved:', filename)
-    }
-  })
+  try {
+    fs.writeFileSync(filename, string)
+    console.log('saved:', filename)
+  } catch (e) {
+    console.log(e)
+  }
+
 }
 
 // This method will be called when Electron has finished
@@ -400,17 +350,11 @@ app.on('show', () => {
 })
 
 app.on('before-quit', (event) => {
-  console.log('before-quit');
   if (dropWindow) {
     bounds = dropWindow.getBounds()
-    // console.log(bounds)
   }
   saveLayoutFile()
 })
-
-// app.on('quit' () => {
-//   console.log('quit')
-// })
 
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
@@ -420,20 +364,6 @@ app.on('activate', () => {
   } else {
     setIncognito(false)
   }
-})
-
-
-
-ipcMain.on('newWindow', (event) => {
-  // let win = new BrowserWindow({
-  //   width: 320,
-  //   height: 200
-  // })
-  // win.loadURL(url.format({
-  //   pathname: path.join(__dirname, '../demo.html'),
-  //   protocol: 'file:',
-  //   slashes: true
-  // }))
 })
 
 ipcMain.on('openLayout', function(event) {
@@ -448,12 +378,6 @@ ipcMain.on('console', function (event, arg) {
   console.log(arg)
 })
 
-// ipcMain.on('thumbnail', function (event, arg) {
-//   let handle = BrowserWindow.fromWebContents(event.sender)
-//   handle.thumbnail = arg
-//   dropWindow.send('new-image', { data: handle.thumbnail, path: handle.imagePath })
-// })
-
 ipcMain.on('focusWindow', function(event, id) {
   let handle = BrowserWindow.fromId(id)
   if (handle) {
@@ -461,8 +385,20 @@ ipcMain.on('focusWindow', function(event, id) {
   }
 })
 
+// function sendPictureToFrame(frame) {
+//   frame.handle.send('load', { picture: frame.picture, firstShow: true })
+// }
+
+ipcMain.on('frameReady', (event) => {
+  // console.log('frameReady')
+  // let handle = BrowserWindow.fromWebContents(event.sender)
+  // let frame = frames.find((element) => { return element.handle === handle })
+  // if (frame) {
+  //   sendPictureToFrame(frame)
+  // }
+})
+
 ipcMain.on('frameInitialised', function(event) {
-  // let frame = event.sender
   let handle = BrowserWindow.fromWebContents(event.sender)
   let frame = frames.find((element) => {
     return element.handle === handle
@@ -470,13 +406,8 @@ ipcMain.on('frameInitialised', function(event) {
 
   if (frame) {
     frame.initialised = true
-    // console.log('frameInitialised', handle.id)
-    dropWindow.send('newPicture', handle.id)
-
-    // frame.handle.webContents.focus()
+    dropWindow.send('newPicture', handle.id, frame.picture.file.name)
     frame.handle.show()
-
-    // console.log(frame.handle.webContents.isFocused())
   }
 
   if (pictureLoadCount > 0) {
@@ -484,24 +415,25 @@ ipcMain.on('frameInitialised', function(event) {
   }
 
   if (pictureLoadCount == 0) {
-    // console.log('pictureLoadCount == 0')
     dropWindow.focus()
     pictureLoadCount = -1
   }
-
-  // for (var i = 0; i < pictures.length; i++) {
-  //   if (pictures[i].id === id) {
-  //     console.log('picture done!', id)
-  //   }
-  // }
 })
 
 ipcMain.on('requestIncognito', function(event) {
   setIncognito(true)
 })
 
+ipcMain.on('requestCloseImage', function(event, id) {
+  console.log('requestCloseImage', id)
+  // closeImage(id)
+  let handle = BrowserWindow.fromId(id)
+  if (handle) {
+    handle.close()
+  }
+})
+
 ipcMain.on('requestQuit', function(event) {
-  // dropWindow.close()
   app.quit()
 })
 
@@ -514,18 +446,10 @@ ipcMain.on('frameUpdate', (event, picture) => {
 })
 
 ipcMain.on('imageDrop', function(event, files) {
-  // let bounds = dropWindow.getContentBounds()
   if (empties.length < files.length) {
     createEmpties(files.length - empties.length)
   }
   for (var i = 0; i < files.length; i++) {
     processImageFile(files[i])
-  }
-})
-
-ipcMain.on('closeAbout', (event) => {
-  if (aboutWindow) {
-    aboutWindow.close()
-    aboutWindow = null
   }
 })
