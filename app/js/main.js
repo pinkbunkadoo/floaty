@@ -71,11 +71,11 @@ function setIncognito(value) {
     for (var i = 0; i < frames.length; i++) {
       let handle = frames[i].handle
       if (incognito) {
-        if (process.platform === 'win32') handle.setSkipTaskbar(true)
+        if (process.platform == 'win32') handle.setSkipTaskbar(true)
         handle.setIgnoreMouseEvents(true)
         handle.setAlwaysOnTop(true)
       } else {
-        if (process.platform === 'win32') handle.setSkipTaskbar(false)
+        if (process.platform == 'win32') handle.setSkipTaskbar(false)
         handle.setIgnoreMouseEvents(false)
         handle.setAlwaysOnTop(false)
       }

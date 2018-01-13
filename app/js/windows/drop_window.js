@@ -23,7 +23,7 @@ let previousmy = 0
 
 let pictures = []
 
-let containerEl, perimeterEl, thumbnailContainerEl, dropContainerEl, settingsContainerEl, pictureListContainerEl
+let containerEl, perimeterEl, dropContainerEl, settingsContainerEl, pictureListContainerEl
 let titleEl, eyeIconEl, settingsIconEl, closeIconEl, backIconEl, helpIconEl
 
 const load = async(event, args) => {
@@ -66,7 +66,7 @@ window.onload = () => {
 
   if (process.platform === 'darwin') closeIconEl.style.display = 'none'
 
-  thumbnailContainerEl = document.getElementById('thumbnail-container')
+  // thumbnailContainerEl = document.getElementById('thumbnail-container')
   containerEl = document.getElementById('container')
   perimeterEl = document.getElementById('perimeter')
 
