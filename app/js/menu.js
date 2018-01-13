@@ -31,7 +31,7 @@ menuTemplate = [
           }
         })(),
         click: (item, focusedWindow) => {
-          focusedWindow.toggleDevTools()
+          focusedWindow.toggleDevTools({ mode: 'undocked' })
         }
       }
     ]

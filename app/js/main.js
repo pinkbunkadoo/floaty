@@ -131,7 +131,9 @@ function createMainWindow() {
 
   mainWindow = dropWindow
 
-  dropWindow.once('ready-to-show', () => { })
+  dropWindow.once('ready-to-show', () => {
+    dropWindow.show()
+  })
 
   dropWindow.webContents.once('dom-ready', () => {
     dropWindow.webContents.send('load')
@@ -144,7 +146,7 @@ function createMainWindow() {
     slashes: true
   }))
 
-  dropWindow.webContents.openDevTools({ mode: 'undocked' })
+  // dropWindow.webContents.openDevTools({ mode: 'undocked' })
 
   dropWindow.on('focus', () => { })
 
@@ -165,7 +167,7 @@ function createMainWindow() {
   // dropWindow.webContents.openDevTools({ mode: 'undocked' })
 
   bounds ? dropWindow.setBounds(bounds) : dropWindow.center()
-  dropWindow.show()
+  // dropWindow.show()
 }
 
 function startup() {

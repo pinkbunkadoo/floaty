@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" href="./css/drop_window.css">
   </head>
   <body>
+  <div id="main">
     <div class="title-bar">
       <div class="spacer"></div>
       <div id="title"></div>
@@ -16,7 +17,7 @@
       <div id="close-icon" class="title-icon"><svg class="icon"><use xlink:href="./images/icons.svg#close"></use></svg></div>
     </div>
     <div id="container">
-      <div id="drop-container" class="content">
+      <div id="drop-container" class="content dark">
         <div class="container-icons">
           <div id="settings-icon" class="container-icon"><svg class="icon"><use xlink:href="./images/icons.svg#settings"></use></svg></div>
           <div style="flex:auto"></div>
@@ -35,7 +36,7 @@
         </div>
         <div id="thumbnail-container"></div>
       </div>
-      <div id="settings-container" class="content" style="display:none">
+      <div id="settings-container" class="content dark" style="display:none">
         <div class="container-icons">
           <div id="back-icon" class="container-icon"><svg class="icon"><use xlink:href="./images/icons.svg#back"></use></svg></div>
           <div class="container-title">Settings</div>
@@ -52,20 +53,36 @@
           <div class="container-icon"></div>
         </div>
         <div id="help-content">
-          <div class='heading'>Global Shortcuts</div><br>
+          <div>
+            Floaty takes images and turns them into transparent desktop windows.
+            As with a regular window, the size and position of each image can be adjusted. The opacity, scale and placement of the image, within its frame, can also be altered.
+          </div>
+          <br>
+          <div class='heading'>How?</div>
+          To begin, simply drag one or more images onto the drop area.
+          A separate window will be created for each image.
+          To freeze the images in place click the eye icon or press the '/' key.
+          The main window will disappear and an icon will appear in the system tray area.
+          Click the tray icon to unfreeze the images and reveal the main window.
+          <br><br>
+          <div class='heading'>Global Shortcuts</div>
           <div class="shortcuts">
-            <div class="cell">Slash (/)</div><div class="cell">Freeze images in place and hide main window</div>
+            <div class="cell">Slash (/)</div><div class="cell">Freeze image windows in place (main window becomes tray icon)</div>
             <div class="cell">Ctrl + Q</div><div class="cell">Quit</div>
           </div>
-          <br><br><br>
-          <div class='heading'>Image Shortcuts</div><br>
+          <br><br>
+          <div class='heading'>Image Shortcuts</div>
           <div class="shortcuts">
-            <div class="cell">Shift + Drag</div><div class="cell">Pan image</div>
-            <div class="cell">Ctrl + Drag</div><div class="cell">Zoom image</div>
+            <div class="cell">Plus (+)</div><div class="cell">Increase opacity</div>
+            <div class="cell">Minus (-)</div><div class="cell">Decrease opacity</div>
+            <div class="cell">Shift + Drag</div><div class="cell">Pan</div>
+            <div class="cell">Ctrl + Drag</div><div class="cell">Zoom</div>
           </div>
+          <br>
         </div>
       </div>
     </div>
+  </div>
   </body>
   <script>
     require('./js/windows/drop_window.js');

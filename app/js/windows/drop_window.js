@@ -74,7 +74,7 @@ window.onload = () => {
 
   initEventListeners()
 
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 50; i++) {
     newPicture(i + 100, 'bungalo-magic-' + i + '.png')
   }
 
