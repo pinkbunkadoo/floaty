@@ -111,6 +111,9 @@ const mainMenu = Menu.buildFromTemplate(menuTemplate)
 
 
 module.exports = {
+  hide: function() {
+    Menu.setApplicationMenu(null)
+  },
   show: function() {
     Menu.setApplicationMenu(mainMenu)
   }

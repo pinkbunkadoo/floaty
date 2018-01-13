@@ -24,22 +24,23 @@ let previousmy = 0
 let pictures = []
 
 let containerEl, perimeterEl, thumbnailContainerEl, dropContainerEl, settingsContainerEl, pictureListContainerEl
-let titleEl, eyeIconEl, settingsIconEl, closeIconEl, backIconEl
+let titleEl, eyeIconEl, settingsIconEl, closeIconEl, backIconEl, helpIconEl
 
 const load = async(event, args) => {
   // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
-  menu.show()
 }
 
 window.onload = () => {
   eyeIconEl = document.getElementById('eye-icon')
   closeIconEl = document.getElementById('close-icon')
   settingsIconEl = document.getElementById('settings-icon')
-  backIconEl = document.getElementById('back-icon')
+  // backIconEl = document.getElementById('back-icon')
+  helpIconEl = document.getElementById('help-icon')
 
   titleEl = document.getElementById('title')
   dropContainerEl = document.getElementById('drop-container')
   settingsContainerEl = document.getElementById('settings-container')
+  helpContainerEl = document.getElementById('help-container')
 
   pictureListContainerEl = document.getElementById('picture-list-container')
 
@@ -55,8 +56,12 @@ window.onload = () => {
     showPage('settings')
   }
 
-  backIconEl.onclick = function() {
-    showPage('drop')
+  // backIconEl.onclick = function() {
+  //   showPage('drop')
+  // }
+
+  helpIconEl.onclick = function() {
+    showPage('help')
   }
 
   if (process.platform === 'darwin') closeIconEl.style.display = 'none'
@@ -69,12 +74,15 @@ window.onload = () => {
 
   initEventListeners()
 
-  for (var i = 0; i < 30; i++) {
-    newPicture(i + 100, 'bungalo' + i + '.png')
+  for (var i = 0; i < 10; i++) {
+    newPicture(i + 100, 'bungalo-magic-' + i + '.png')
   }
+
+  menu.show()
 }
 
 window.onbeforeunload = () => {
+  menu.hide()
 }
 
 function showPopup() {
@@ -90,12 +98,20 @@ function showPopup() {
 }
 
 function showDrop() {
+  settingsContainerEl.style.display = 'none'
+  helpContainerEl.style.display = 'none'
   dropContainerEl.style.display = 'flex'
 }
 
 function showSettings() {
+  console.log('showSettings')
+
+  dropContainerEl.style.display = 'none'
+
   settingsContainerEl.style.display = 'flex'
+
   pictureListContainerEl.innerHTML = ''
+
   for (var i = 0; i < pictures.length; i++) {
     let picture = pictures[i]
     let el = document.createElement('div')
@@ -103,14 +119,13 @@ function showSettings() {
     let closeEl = document.createElement('div')
 
     el.classList.add('picture-list-item')
-    titleEl.style.flex = 'auto'
-    closeEl.style.padding = '0 0 0 12px'
+    titleEl.classList.add('picture-list-item-title')
+    closeEl.classList.add('picture-list-item-close')
 
     el.dataset.id = picture.id
 
-
     titleEl.innerHTML = picture.filename
-    closeEl.innerHTML = 'X'
+    closeEl.innerHTML = '<svg class="icon"><use xlink:href="./images/icons.svg#close"></svg>'
 
     el.appendChild(titleEl)
     el.appendChild(closeEl)
@@ -118,17 +133,40 @@ function showSettings() {
     closeEl.onclick = () => {
       ipcRenderer.send('requestCloseImage', picture.id)
     }
+
+    titleEl.onclick = () => {
+      ipcRenderer.send('focusWindow', picture.id)
+    }
+
     pictureListContainerEl.appendChild(el)
+
+
   }
+
+  settingsContainerEl.querySelector('#back-icon').onclick = () => {
+    showPage('drop')
+  }
+
+
+}
+
+function showHelp() {
+  dropContainerEl.style.display = 'none'
+  helpContainerEl.style.display = 'flex'
+
+  helpContainerEl.querySelector('#back-icon').onclick = () => {
+    showPage('drop')
+  }
+
 }
 
 function showPage(name) {
   if (name === 'drop') {
-    settingsContainerEl.style.display = 'none'
     showDrop()
   } else if (name === 'settings') {
-    dropContainerEl.style.display = 'none'
     showSettings()
+  } else if (name === 'help') {
+    showHelp()
   }
 }
 

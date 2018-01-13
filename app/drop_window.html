@@ -19,6 +19,8 @@
       <div id="drop-container" class="content">
         <div class="container-icons">
           <div id="settings-icon" class="container-icon"><svg class="icon"><use xlink:href="./images/icons.svg#settings"></use></svg></div>
+          <div style="flex:auto"></div>
+          <div id="help-icon" class="container-icon"><svg class="icon"><use xlink:href="./images/icons.svg#help"></use></svg></div>
         </div>
         <div id="drop-content">
           <div id="perimeter">
@@ -36,9 +38,31 @@
       <div id="settings-container" class="content" style="display:none">
         <div class="container-icons">
           <div id="back-icon" class="container-icon"><svg class="icon"><use xlink:href="./images/icons.svg#back"></use></svg></div>
+          <div class="container-title">Settings</div>
+          <div class="container-icon"></div>
         </div>
         <div id="settings-content">
           <div id="picture-list-container"></div>
+        </div>
+      </div>
+      <div id="help-container" class="content" style="display:none">
+        <div class="container-icons">
+          <div id="back-icon" class="container-icon"><svg class="icon"><use xlink:href="./images/icons.svg#back"></use></svg></div>
+          <div class="container-title">Help</div>
+          <div class="container-icon"></div>
+        </div>
+        <div id="help-content">
+          <div class='heading'>Global Shortcuts</div><br>
+          <div class="shortcuts">
+            <div class="cell">Slash (/)</div><div class="cell">Freeze images in place and hide main window</div>
+            <div class="cell">Ctrl + Q</div><div class="cell">Quit</div>
+          </div>
+          <br><br><br>
+          <div class='heading'>Image Shortcuts</div><br>
+          <div class="shortcuts">
+            <div class="cell">Shift + Drag</div><div class="cell">Pan image</div>
+            <div class="cell">Ctrl + Drag</div><div class="cell">Zoom image</div>
+          </div>
         </div>
       </div>
     </div>
