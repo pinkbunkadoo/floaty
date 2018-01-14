@@ -242,20 +242,16 @@ function onContextMenu(e) {
 function onResize(e) {
 }
 
-function initEventListeners() {
+function onDragDefault(e) {
+  event.dataTransfer.allowedEffect = 'none'
+  event.preventDefault()
+}
 
-  document.addEventListener('dragover', (event) => {
-    event.dataTransfer.allowedEffect = 'none'
-    event.preventDefault()
-  })
-  document.addEventListener('drop', (event) => {
-    event.dataTransfer.allowedEffect = 'none'
-    event.preventDefault()
-  })
-  document.addEventListener('dragenter', (event) => {
-    event.dataTransfer.allowedEffect = 'none'
-    event.preventDefault()
-  })
+function initEventListeners() {
+  document.addEventListener('dragover', onDragDefault)
+  document.addEventListener('drop', onDragDefault)
+  document.addEventListener('dragenter', onDragDefault)
+  document.addEventListener('dragstart', onDragDefault)
 
   pages['drop'].addEventListener('drop', onDrop)
   pages['drop'].addEventListener('dragover', onDragOver)

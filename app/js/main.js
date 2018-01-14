@@ -13,6 +13,8 @@ const Picture = require('./picture')
 
 const appName = app.getName()
 
+const layoutFilename = 'default.floaty'
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
@@ -281,7 +283,7 @@ function closeImage(id) {
 }
 
 function loadLayoutFile() {
-  let filename = path.join(app.getPath('home'), 'default.floaty.txt')
+  let filename = path.join(app.getPath('home'), layoutFilename)
   try {
     let data = fs.readFileSync(filename)
     try {
@@ -310,7 +312,7 @@ function loadLayoutFile() {
 }
 
 function saveLayoutFile() {
-  let filename = path.join(app.getPath('home'), 'default.floaty.txt')
+  let filename = path.join(app.getPath('home'), layoutFilename)
   let string = ''
 
   let obj = { window: bounds, pictures: [] }
