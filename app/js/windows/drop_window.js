@@ -16,73 +16,61 @@ let mode = null
 let incognito = false
 let image
 let icons = {}
-let mx = 0
-let my = 0
-let previousmx = 0
-let previousmy = 0
+let pages = {}
 
 let pictures = []
 
-let containerEl, perimeterEl, dropContainerEl, settingsContainerEl, pictureListContainerEl
-let titleEl, eyeIconEl, settingsIconEl, closeIconEl, backIconEl, helpIconEl
+let containerEl, pictureListContainerEl
+let titleEl
 
 const load = async(event, args) => {
-  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 }
 
 window.onload = () => {
-  eyeIconEl = document.getElementById('eye-icon')
-  closeIconEl = document.getElementById('close-icon')
-  settingsIconEl = document.getElementById('settings-icon')
-  // backIconEl = document.getElementById('back-icon')
-  helpIconEl = document.getElementById('help-icon')
+  icons['eye'] = document.getElementById('eye-icon')
+  icons['close'] = document.getElementById('close-icon')
+  icons['settings'] = document.getElementById('settings-icon')
+  icons['help'] = document.getElementById('help-icon')
 
   titleEl = document.getElementById('title')
-  dropContainerEl = document.getElementById('drop-container')
-  settingsContainerEl = document.getElementById('settings-container')
-  helpContainerEl = document.getElementById('help-container')
+
+  pages['drop'] = document.getElementById('drop-container')
+  pages['settings'] = document.getElementById('settings-container')
+  pages['help'] = document.getElementById('help-container')
 
   pictureListContainerEl = document.getElementById('picture-list-container')
 
-  eyeIconEl.onclick = function() {
-    ipcRenderer.send('requestIncognito')
+  icons['eye'].onclick = function() {
+    ipcRenderer.send('request-incognito')
   }
 
-  closeIconEl.onclick = function() {
-    ipcRenderer.send('requestQuit')
+  icons['close'].onclick = function() {
+    ipcRenderer.send('request-quit')
   }
 
-  settingsIconEl.onclick = function() {
+  icons['settings'].onclick = function() {
     showPage('settings')
   }
 
-  // backIconEl.onclick = function() {
-  //   showPage('drop')
-  // }
-
-  helpIconEl.onclick = function() {
+  icons['help'].onclick = function() {
     showPage('help')
   }
 
-  if (process.platform === 'darwin') closeIconEl.style.display = 'none'
+  if (process.platform === 'darwin') icons['close'].style.display = 'none'
 
-  // thumbnailContainerEl = document.getElementById('thumbnail-container')
   containerEl = document.getElementById('container')
-  perimeterEl = document.getElementById('perimeter')
 
   titleEl.innerHTML = remote.getCurrentWindow().getTitle()
 
   initEventListeners()
-
-  // for (var i = 0; i < 50; i++) {
-  //   newPicture(i + 100, 'bungalo-magic-' + i + '.png')
-  // }
+  showPage('drop')
 
   menu.show()
+  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
 }
 
 window.onbeforeunload = () => {
-  menu.hide()
+  // menu.hide()
 }
 
 function showPopup() {
@@ -98,17 +86,11 @@ function showPopup() {
 }
 
 function showDrop() {
-  settingsContainerEl.style.display = 'none'
-  helpContainerEl.style.display = 'none'
-  dropContainerEl.style.display = 'flex'
+  pages['drop'].style.display = 'flex'
 }
 
 function showSettings() {
-  console.log('showSettings')
-
-  dropContainerEl.style.display = 'none'
-
-  settingsContainerEl.style.display = 'flex'
+  pages['settings'].style.display = 'flex'
 
   pictureListContainerEl.innerHTML = ''
 
@@ -131,36 +113,30 @@ function showSettings() {
     el.appendChild(closeEl)
 
     closeEl.onclick = () => {
-      ipcRenderer.send('requestCloseImage', picture.id)
+      ipcRenderer.send('request-close', picture.id)
     }
 
     titleEl.onclick = () => {
-      ipcRenderer.send('focusWindow', picture.id)
+      ipcRenderer.send('focus-window', picture.id)
     }
 
     pictureListContainerEl.appendChild(el)
-
-
   }
 
-  settingsContainerEl.querySelector('#back-icon').onclick = () => {
+  pages['settings'].querySelector('#back-icon').onclick = () => {
     showPage('drop')
   }
-
-
 }
 
 function showHelp() {
-  dropContainerEl.style.display = 'none'
-  helpContainerEl.style.display = 'flex'
-
-  helpContainerEl.querySelector('#back-icon').onclick = () => {
+  pages['help'].style.display = 'flex'
+  pages['help'].querySelector('#back-icon').onclick = () => {
     showPage('drop')
   }
-
 }
 
 function showPage(name) {
+  for (let name in pages) pages[name].style.display = 'none'
   if (name === 'drop') {
     showDrop()
   } else if (name === 'settings') {
@@ -171,13 +147,6 @@ function showPage(name) {
 }
 
 function newPicture(id, filename) {
-  // let el = document.createElement('div')
-  // el.classList.add('thumbnail')
-  // el.dataset.id = id
-  // el.onclick = () => {
-  //   ipcRenderer.send('focusWindow', id)
-  // }
-  // thumbnailContainerEl.appendChild(el)
   pictures.push({ id: id, filename: filename })
 }
 
@@ -186,14 +155,6 @@ function removePicture(id) {
   if (index > -1) {
     pictures.splice(index, 1)
   }
-
-  // for (var i = 0; i < thumbnailContainerEl.childNodes.length; i++) {
-  //   let childEl = thumbnailContainerEl.childNodes[i]
-  //   if (childEl.dataset.id == id) {
-  //     thumbnailContainerEl.removeChild(childEl)
-  //     break
-  //   }
-  // }
 
   for (var i = 0; i < pictureListContainerEl.childNodes.length; i++) {
     let childEl = pictureListContainerEl.childNodes[i]
@@ -244,7 +205,7 @@ function onDrop(e) {
     }
   }
 
-  if (list.length) ipcRenderer.send('imageDrop', list)
+  if (list.length) ipcRenderer.send('image-drop', list)
 }
 
 function onDragEnter(e) {
@@ -261,19 +222,9 @@ function onMouseDown(e) {
 }
 
 function onMouseUp(e) {
-  // mx = 0
-  // my = 0
-  // previousmx = 0
-  // previousmy = 0
 }
 
 function onMouseMove(e) {
-  // mx = e.clientX
-  // my = e.clientY
-  // let dx = mx - previousmx
-  // let dy = my - previousmy
-  // previousmx = mx
-  // previousmy = my
 }
 
 function onBlur(e) {
@@ -294,24 +245,21 @@ function onResize(e) {
 function initEventListeners() {
 
   document.addEventListener('dragover', (event) => {
-    event.dataTransfer.dropEffect = 'none'
+    event.dataTransfer.allowedEffect = 'none'
     event.preventDefault()
   })
   document.addEventListener('drop', (event) => {
-    event.dataTransfer.dropEffect = 'none'
+    event.dataTransfer.allowedEffect = 'none'
     event.preventDefault()
   })
   document.addEventListener('dragenter', (event) => {
-    event.dataTransfer.dropEffect = 'none'
+    event.dataTransfer.allowedEffect = 'none'
     event.preventDefault()
   })
 
-  // dropContainerEl.addEventListener('dragstart', onDragStart)
-  // dropContainerEl.addEventListener('drag', onDrag)
-
-  dropContainerEl.addEventListener('drop', onDrop)
-  dropContainerEl.addEventListener('dragover', onDragOver)
-  dropContainerEl.addEventListener('dragenter', onDragEnter)
+  pages['drop'].addEventListener('drop', onDrop)
+  pages['drop'].addEventListener('dragover', onDragOver)
+  pages['drop'].addEventListener('dragenter', onDragEnter)
 
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('mousedown', onMouseDown)
@@ -326,11 +274,11 @@ function initEventListeners() {
 
 ipcRenderer.on('load', load)
 
-ipcRenderer.on('removePicture', function(event, id) {
+ipcRenderer.on('remove-picture', function(event, id) {
   removePicture(id)
 })
 
-ipcRenderer.on('newPicture', function(event, id, filename) {
+ipcRenderer.on('new-picture', function(event, id, filename) {
   newPicture(id, filename)
 })
 

@@ -7,9 +7,9 @@ menuTemplate = [
     submenu: [
       {
         label: 'Fix Images',
-        accelerator: '/', //process.platform === 'darwin' ? 'Command+Option+/' : '/',
+        accelerator: '/',
         click: function(item, focusedWindow) {
-          ipcRenderer.send('goIncognito')
+          ipcRenderer.send('request-incognito')
         }
       },
       { type: 'separator' },
@@ -43,14 +43,7 @@ let fileMenu = [
     label: 'Open Layout...',
     accelerator: 'Ctrl+O',
     click: () => {
-      ipcRenderer.send('openLayout')
-    }
-  },
-  {
-    label: 'New Window',
-    accelerator: 'Ctrl+N',
-    click: () => {
-      ipcRenderer.send('newWindow')
+      ipcRenderer.send('open-layout')
     }
   }
 ]

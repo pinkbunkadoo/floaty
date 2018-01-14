@@ -43,7 +43,7 @@ function createTrayIcon() {
     contextMenu = Menu.buildFromTemplate([
       {
         label: 'Reveal', click: (menuItem) => {
-          setIncognito(!incognito)
+          setIncognito(false)
         }
       },
       { type: 'separator' },
@@ -57,7 +57,7 @@ function createTrayIcon() {
     tray.setContextMenu(contextMenu)
     tray.on('click', () => {
       setIncognito(false)
-      dropWindow.show()
+      // dropWindow.show()
     })
   } catch (e) {
     console.log('Unable to create tray icon!');
@@ -68,6 +68,7 @@ function createTrayIcon() {
 function setIncognito(value) {
   if (incognito != value) {
     incognito = value
+    // console.log(frames.length)
     for (var i = 0; i < frames.length; i++) {
       let handle = frames[i].handle
       if (incognito) {
@@ -91,12 +92,7 @@ function setIncognito(value) {
       dropWindow.setIgnoreMouseEvents(false)
       dropWindow.show()
       if (process.platform === 'darwin') app.dock.show()
-      if (tray) {
-        tray.destroy()
-        tray = null
-      }
     }
-
   }
 }
 
@@ -134,12 +130,22 @@ function createMainWindow() {
   mainWindow = dropWindow
 
   dropWindow.once('ready-to-show', () => {
+    // console.log('ready-to-show');
+    createPictureWindows()
     dropWindow.show()
+  })
+
+  dropWindow.on('show', () => {
+    // console.log('show');
+    if (tray) {
+      tray.destroy()
+      tray = null
+    }
   })
 
   dropWindow.webContents.once('dom-ready', () => {
     dropWindow.webContents.send('load')
-    createPictureWindows()
+    // createPictureWindows()
   })
 
   dropWindow.loadURL(url.format({
@@ -153,6 +159,7 @@ function createMainWindow() {
   dropWindow.on('focus', () => { })
 
   dropWindow.on('close', () => {
+    // console.log('close')
     app.quit()
   })
 
@@ -270,11 +277,11 @@ function closeImage(id) {
     }
     // handle.close()
   }
-  if (dropWindow) dropWindow.send('removePicture', id)
+  if (dropWindow) dropWindow.send('remove-picture', id)
 }
 
 function loadLayoutFile() {
-  let filename = path.join(app.getPath('home'), '.floaty')
+  let filename = path.join(app.getPath('home'), 'default.floaty.txt')
   try {
     let data = fs.readFileSync(filename)
     try {
@@ -303,7 +310,7 @@ function loadLayoutFile() {
 }
 
 function saveLayoutFile() {
-  let filename = path.join(app.getPath('home'), '.floaty')
+  let filename = path.join(app.getPath('home'), 'default.floaty.txt')
   let string = ''
 
   let obj = { window: bounds, pictures: [] }
@@ -350,6 +357,7 @@ app.on('window-all-closed', function () {
 })
 
 app.on('show', () => {
+  console.log('app.show');
   app.dock.show()
 })
 
@@ -370,19 +378,18 @@ app.on('activate', () => {
   }
 })
 
-ipcMain.on('openLayout', function(event) {
-  openLayoutDialog()
-})
 
-ipcMain.on('goIncognito', function(event) {
-  setIncognito(true)
-})
+
 
 ipcMain.on('console', function (event, arg) {
   console.log(arg)
 })
 
-ipcMain.on('focusWindow', function(event, id) {
+ipcMain.on('open-layout', function(event) {
+  openLayoutDialog()
+})
+
+ipcMain.on('focus-window', function(event, id) {
   let handle = BrowserWindow.fromId(id)
   if (handle) {
     handle.focus()
@@ -393,7 +400,7 @@ ipcMain.on('focusWindow', function(event, id) {
 //   frame.handle.send('load', { picture: frame.picture, firstShow: true })
 // }
 
-ipcMain.on('frameReady', (event) => {
+ipcMain.on('frame-ready', (event) => {
   // console.log('frameReady')
   // let handle = BrowserWindow.fromWebContents(event.sender)
   // let frame = frames.find((element) => { return element.handle === handle })
@@ -402,7 +409,7 @@ ipcMain.on('frameReady', (event) => {
   // }
 })
 
-ipcMain.on('frameInitialised', function(event) {
+ipcMain.on('frame-initialised', function(event) {
   let handle = BrowserWindow.fromWebContents(event.sender)
   let frame = frames.find((element) => {
     return element.handle === handle
@@ -410,7 +417,7 @@ ipcMain.on('frameInitialised', function(event) {
 
   if (frame) {
     frame.initialised = true
-    dropWindow.send('newPicture', handle.id, frame.picture.file.name)
+    dropWindow.send('new-picture', handle.id, frame.picture.file.name)
     frame.handle.show()
   }
 
@@ -424,12 +431,12 @@ ipcMain.on('frameInitialised', function(event) {
   }
 })
 
-ipcMain.on('requestIncognito', function(event) {
+ipcMain.on('request-incognito', function(event) {
   setIncognito(true)
 })
 
-ipcMain.on('requestCloseImage', function(event, id) {
-  console.log('requestCloseImage', id)
+ipcMain.on('request-close', function(event, id) {
+  // console.log('request-close', id)
   // closeImage(id)
   let handle = BrowserWindow.fromId(id)
   if (handle) {
@@ -437,11 +444,11 @@ ipcMain.on('requestCloseImage', function(event, id) {
   }
 })
 
-ipcMain.on('requestQuit', function(event) {
+ipcMain.on('request-quit', function(event) {
   app.quit()
 })
 
-ipcMain.on('frameUpdate', (event, picture) => {
+ipcMain.on('frame-update', (event, picture) => {
   let handle = BrowserWindow.fromWebContents(event.sender)
   let frame = frames.find((element) => {
     return element.handle === handle
@@ -449,7 +456,7 @@ ipcMain.on('frameUpdate', (event, picture) => {
   if (frame) frame.picture = picture
 })
 
-ipcMain.on('imageDrop', function(event, files) {
+ipcMain.on('image-drop', function(event, files) {
   if (empties.length < files.length) {
     createEmpties(files.length - empties.length)
   }

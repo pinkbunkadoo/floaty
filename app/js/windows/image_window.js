@@ -70,9 +70,6 @@ window.onload = function() {
 
   initEventListeners()
 
-  // remote.getCurrentWindow().show()
-  // remote.getCurrentWebContents().openDevTools({ mode: 'undocked' })
-  // ipcRenderer.send('frameReady')
 }
 
 function setFocused(focused=true) {
@@ -156,7 +153,7 @@ function createImage(firstShow=true) {
         adjustBounds(e.target.width, e.target.height)
       }
       setFocused(true)
-      ipcRenderer.send('frameInitialised')
+      ipcRenderer.send('frame-initialised')
     }
 
     draw()
@@ -196,8 +193,7 @@ function canvasToWorld(x, y) {
 }
 
 function updateNotify() {
-  // ipcRenderer.send('console', 'update')
-  ipcRenderer.send('frameUpdate', picture)
+  ipcRenderer.send('frame-update', picture)
 }
 
 function updatePicture(params={}) {
@@ -331,17 +327,14 @@ function centerImage() {
   picture.scale = 1
   updatePicture()
   draw()
-  // ipcRenderer.send('console', 'center')
 }
 
 function dragOn() {
   dragContainer.classList.add('draggable')
-  // dragContainer.style.visibility = 'visible'
 }
 
 function dragOff() {
   dragContainer.classList.remove('draggable')
-  // dragContainer.style.visibility = 'hidden'
 }
 
 function frame() {
@@ -412,7 +405,6 @@ function onKeyDown(event) {
   } else if (event.key == '.') {
     zoomBy(0.5)
   } else if ((event.key == 'Delete' || event.key == 'Backspace') && !event.repeat) {
-    // ipcRenderer.send('closeImage')
     window.close()
   } else if (event.key == 'Shift' && !event.repeat) {
     setMode('pan')
@@ -497,7 +489,6 @@ function onMouseMove(e) {
       zoomBy(e.movementX * (picture.scale * 0.0025))
     }
   }
-  // ipcRenderer.send('console', 'image-window-mouse')
 }
 
 function onBlur(e) {
@@ -505,7 +496,6 @@ function onBlur(e) {
 }
 
 function onFocus(e) {
-  // ipcRenderer.send('console','onFocus')
   startHintTimer()
   setFocused(true)
 }
