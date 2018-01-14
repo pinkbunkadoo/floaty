@@ -33,12 +33,13 @@ let pictureLoadCount = -1
 function createTrayIcon() {
   try {
     let iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray_light.png'
-    let iconPath = app.getAppPath() + '/app/images/' + iconFilename;
+    let iconPath = path.join(app.getAppPath(), './app/images', iconFilename)
+    console.log(iconPath)
 
     tray = new Tray(iconPath)
 
     if (process.platform === 'darwin') {
-      pressedImage = nativeImage.createFromPath(app.getAppPath() + '/app/images/tray_light.png')
+      pressedImage = nativeImage.createFromPath(path.join(app.getAppPath(), './app/images/tray_light.png'))
       tray.setPressedImage(pressedImage)
     }
 
@@ -60,6 +61,14 @@ function createTrayIcon() {
     tray.on('click', () => {
       setIncognito(false)
       // dropWindow.show()
+    })
+
+    let icon = nativeImage.createFromPath(path.join(app.getAppPath(), './app/images/notify.png'))
+
+    tray.displayBalloon({
+      icon: icon,
+      title: 'Message for you, Sir!',
+      content: '\'Ere I am J.H.'
     })
   } catch (e) {
     console.log('Unable to create tray icon!');
