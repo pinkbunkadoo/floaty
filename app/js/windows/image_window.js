@@ -496,7 +496,7 @@ function onBlur(e) {
 }
 
 function onFocus(e) {
-  startHintTimer()
+  if (!incognito) startHintTimer()
   setFocused(true)
 }
 

@@ -6,7 +6,7 @@ menuTemplate = [
     label: 'View',
     submenu: [
       {
-        label: 'Fix Images',
+        label: 'Covert Mode',
         accelerator: '/',
         click: function(item, focusedWindow) {
           ipcRenderer.send('request-incognito')

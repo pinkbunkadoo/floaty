@@ -4,6 +4,7 @@ const { app, nativeImage, ipcMain, globalShortcut } = require('electron')
 const { Tray, dialog } = require('electron')
 const { BrowserWindow } = require('electron')
 const { Menu } = require('electron')
+const { Notification } = require('electron')
 
 const path = require('path')
 const url = require('url')
@@ -34,7 +35,7 @@ function createTrayIcon() {
   try {
     let iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray_light.png'
     let iconPath = path.join(app.getAppPath(), './app/images', iconFilename)
-    console.log(iconPath)
+    // console.log(iconPath)
 
     tray = new Tray(iconPath)
 
@@ -45,7 +46,7 @@ function createTrayIcon() {
 
     contextMenu = Menu.buildFromTemplate([
       {
-        label: 'Reveal', click: (menuItem) => {
+        label: 'Show', click: (menuItem) => {
           setIncognito(false)
         }
       },
@@ -64,15 +65,23 @@ function createTrayIcon() {
     })
 
     let icon = nativeImage.createFromPath(path.join(app.getAppPath(), './app/images/notify.png'))
-
-    tray.displayBalloon({
-      icon: icon,
-      title: 'Message for you, Sir!',
-      content: '\'Ere I am J.H.'
-    })
+    // tray.displayBalloon({
+    //   icon: icon,
+    //   title: 'Message for you, Sir!',
+    //   content: '\'Ere I am J.H.'
+    // })
+    if (Notification.isSupported()) {
+      let note = new Notification({
+        title: 'Covert Mode',
+        body: 'Floaty has been hidden from view. Tap the tray icon to restore visibility.',
+        // icon: icon,
+        silent: true
+      })
+      note.show()
+    }
   } catch (e) {
     console.log('Unable to create tray icon!');
-    console.log(e);
+    // console.log(e);
   }
 }
 
