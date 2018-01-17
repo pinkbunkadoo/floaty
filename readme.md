@@ -1,6 +1,6 @@
 Floaty is an app for displaying images, transparently, above other desktop windows. Each image can be resized and moved as you would a regular window.
 
-Supported image formats include PNG, JPEG and other web browser supported types.
+Supported image formats include PNG, JPEG and other web browser compatible types.
 
 <h3>Installation</h3>
 
