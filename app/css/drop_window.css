@@ -115,7 +115,6 @@ th, td {
   height: 3em;
   min-height: 3em;
   box-sizing: border-box;
-  /* border: 1px solid red; */
 }
 
 .container-title {
@@ -141,6 +140,9 @@ th, td {
 }
 
 #drop-container {
+  background: #2aa2ca;
+  fill: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 #drop-content {
@@ -161,6 +163,7 @@ th, td {
   min-height: 180px;
   width: 180px;
   height: 180px;
+  opacity: 0.4;
 }
 
 #drop-image {
@@ -177,6 +180,7 @@ th, td {
 }
 
 #settings-container {
+  background: #f0f0f0;
 }
 
 #settings-content {
@@ -199,7 +203,7 @@ th, td {
   margin: .4em .2em .4em .2em;
   min-width: 3.2em;
   max-width: 28em;
-  border-radius: .6em;
+  border-radius: .4em;
   background: rgba(0, 0, 0, 0.2);
 }
 
@@ -207,7 +211,7 @@ th, td {
   flex: auto;
   white-space: nowrap;
   overflow: hidden;
-  padding: .1em .4em .1em .4em;
+  padding: .1em .4em .1em .8em;
 }
 
 .picture-list-item-close {
@@ -219,7 +223,6 @@ th, td {
   width: .8em;
   height: .8em;
   margin-left: .4em;
-  background: rgba(255, 255, 255, 0.75);
   fill: black;
 }
 

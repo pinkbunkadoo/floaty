@@ -13,38 +13,32 @@ const fs = require('fs')
 const Picture = require('./picture')
 
 const appName = app.getName()
-
 const layoutFilename = 'default.floaty'
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
-let dropWindow
-let aboutWindow
+let mainWindow, dropWindow, aboutWindow
 let tray
 let bounds
-
 let incognito = false
 let frames = []
 let empties = []
 let pictures = []
 let pictureId = 1
 let pictureLoadCount = -1
+let hasBeenNotified = false
 
 function createTrayIcon() {
   try {
     let iconFilename = process.platform === 'darwin' ? 'tray_dark.png' : 'tray_light.png'
     let iconPath = path.join(app.getAppPath(), './app/images', iconFilename)
-    // console.log(iconPath)
 
     tray = new Tray(iconPath)
 
     if (process.platform === 'darwin') {
-      pressedImage = nativeImage.createFromPath(path.join(app.getAppPath(), './app/images/tray_light.png'))
+      let pressedImage = nativeImage.createFromPath(path.join(app.getAppPath(), './app/images/tray_light.png'))
       tray.setPressedImage(pressedImage)
     }
 
-    contextMenu = Menu.buildFromTemplate([
+    let contextMenu = Menu.buildFromTemplate([
       {
         label: 'Show', click: (menuItem) => {
           setIncognito(false)
@@ -64,20 +58,28 @@ function createTrayIcon() {
       // dropWindow.show()
     })
 
-    let icon = nativeImage.createFromPath(path.join(app.getAppPath(), './app/images/notify.png'))
-    // tray.displayBalloon({
-    //   icon: icon,
-    //   title: 'Message for you, Sir!',
-    //   content: '\'Ere I am J.H.'
-    // })
-    if (Notification.isSupported()) {
-      let note = new Notification({
-        title: 'Covert Mode',
-        body: 'Floaty has been hidden from view. Tap the tray icon to restore visibility.',
-        // icon: icon,
-        silent: true
-      })
-      note.show()
+    if (!hasBeenNotified) {
+      let icon = nativeImage.createFromPath(path.join(app.getAppPath(), './app/images/notify.png'))
+      let title = 'Covert Mode Activated'
+      let message = 'Floaty has been hidden from view. Tap the tray icon to restore visibility.'
+
+      if (process.platform == 'darwin') {
+        if (Notification.isSupported()) {
+          let note = new Notification({
+            title: title,
+            body: message,
+            silent: true
+          })
+          note.show()
+        }
+      } else if (process.platform == 'win32') {
+        tray.displayBalloon({
+          icon: icon,
+          title: title,
+          content: message
+        })
+      }
+      hasBeenNotified = true
     }
   } catch (e) {
     console.log('Unable to create tray icon!');
@@ -117,8 +119,6 @@ function setIncognito(value) {
 }
 
 function openLayoutDialog() {
-  // console.log('openLayout')
-  // console.log(BrowserWindow.getFocusedWindow())
   dialog.showOpenDialog(mainWindow, {
     title: 'Open Layout File...',
     filters: [
