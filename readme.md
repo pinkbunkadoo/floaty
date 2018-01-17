@@ -1,4 +1,4 @@
-Floaty is an app for displaying images, transparently, above other desktop windows.
+Floaty is an app for displaying images, transparently, above other desktop windows. Images can be resized and moved as you would a regular window.
 
 Supported image formats include PNG, JPEG and other web browser supported types.
 
@@ -10,5 +10,6 @@ Supported image formats include PNG, JPEG and other web browser supported types.
 - Tap the tray icon to leave covert mode</li>
 
 * In covert mode images are non-interactive and appear above all other desktop windows
+
 
 Floaty requires Electron https://electronjs.org/ to run at the moment. A standalone build is coming.
