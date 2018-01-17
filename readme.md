@@ -2,6 +2,10 @@ Floaty is an app for displaying images, transparently, above other desktop windo
 
 Supported image formats include PNG, JPEG and other web browser supported types.
 
+<h3>Installation</h3>
+
+Floaty requires Electron https://electronjs.org/ to run at the moment. A standalone build is coming.
+
 <h3>Getting started</h3>
 
 - Drag one or more images onto the drop window
@@ -10,7 +14,3 @@ Supported image formats include PNG, JPEG and other web browser supported types.
 - Tap the tray icon to leave covert mode</li>
 
 <sup>1</sup> In covert mode images are non-interactive and appear above all other desktop windows
-
-<h3>Installation</h3>
-
-Floaty requires Electron https://electronjs.org/ to run at the moment. A standalone build is coming.
