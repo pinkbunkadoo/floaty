@@ -1,10 +1,10 @@
-Floaty is an app for displaying images, transparently, above other desktop windows. Images can be resized and moved as you would a regular window.
+Floaty is an app for displaying images, transparently, above other desktop windows. Each image can be resized and moved as you would a regular window.
 
 Supported image formats include PNG, JPEG and other web browser supported types.
 
 <h3>Installation</h3>
 
-Floaty requires Electron to run, however, a standalone build is coming. If you are not familiar with Electron, see https://electronjs.org/ for further instructions.
+Floaty requires Electron to run. A standalone build is coming soon. If you are not familiar with Electron, see https://electronjs.org/ for further instructions.
 
 <h3>Getting started</h3>
 
