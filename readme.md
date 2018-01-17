@@ -6,10 +6,10 @@ Supported image formats include PNG, JPEG and other web browser supported types.
 
 - Drag one or more images onto the drop window
 - Make the desired adjustments to any images
-- Tap the eye icon or press slash (/) on the keyboard to enter covert mode*
+- Tap the eye icon or press slash (/) on the keyboard to enter covert mode<sup>1</sup>
 - Tap the tray icon to leave covert mode</li>
 
-* In covert mode images are non-interactive and appear above all other desktop windows
+<sup>1</sup> In covert mode images are non-interactive and appear above all other desktop windows
 
 
 Floaty requires Electron https://electronjs.org/ to run at the moment. A standalone build is coming.
