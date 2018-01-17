@@ -4,7 +4,7 @@ Supported image formats include PNG, JPEG and other web browser supported types.
 
 <h3>Installation</h3>
 
-Floaty requires Electron to run at the moment. A standalone build is coming. See https://electronjs.org/ for further instructions.
+Floaty requires Electron to run, however, a standalone build is coming. If you are not familiar with Electron, see https://electronjs.org/ for further instructions.
 
 <h3>Getting started</h3>
 
