@@ -1,14 +1,15 @@
 Floaty is an app for displaying images, transparently, above other desktop windows.
 
-- Drag and drop images onto the receptacle window (dashed border).
+Supported image types include PNG, JPEG and other standard web browser image formats.
 
-- Images can be resized as you would a standard window
+<div>Getting started</div>
+<ol>
+  <li>Drag one or more images onto the drop window</li>
+  <li>Make the desired adjustments to any images</li>
+  <li>Tap the eye icon or press slash (/) on the keyboard to enter covert mode*</li>
+  <li>Tap the tray icon to leave covert mode</li>
+</ol>
+<sub>* In covert mode images are non-interactive and appear above all other desktop windows</sub>
 
-- The opacity of the images can be adjusted using '+' or '-'
-
-- Use '/' to fix the images in place, making them non-interactive. To
-  unfix the images simply click on the Floaty program icon
-
-- Supports PNG, JPEG and other standard web browser compatible formats
 
 Floaty requires Electron https://electronjs.org/
