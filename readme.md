@@ -2,11 +2,21 @@ Floaty is an app for displaying images, transparently, above other desktop windo
 
 Supported image formats include PNG, JPEG and other web browser compatible types.
 
-<h3>Installation</h3>
+## Installation
 
-Floaty requires you have Electron installed, in order to run it. A standalone build is coming soon. If you are not familiar with Electron, see https://electronjs.org/ for further information.
+Floaty requires Node.js and Electron.
 
-<h3>Getting started</h3>
+```sh
+npm install
+```
+
+## Running
+
+```sh
+electron .
+```
+
+## Usage Instructions
 
 - Drag one or more images onto the drop window
 - Make the desired adjustments to any images

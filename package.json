@@ -4,7 +4,6 @@
   "description": "",
   "main": "./app/js/main.js",
   "scripts": {
-    "start": "electron ."
   },
   "author": "",
   "license": "ISC",
