@@ -24,3 +24,19 @@ electron .
 - Tap the tray icon to leave covert mode</li>
 
 <sup>1</sup> In covert mode, images are non-interactive and will appear above all other desktop windows
+
+### Global shortcuts
+
+| shortcut | description |
+| ------------- |:-------------:|
+| / | Covert mode |
+| Ctrl + Q | Quit |
+
+### Image Shortcuts
+
+| shortcut | description |
+| ------------- |:-------------:|
+| - | Decrease image opacity |
+| + | Increase image opacity |
+| Shift + Drag | Pan image |
+| Ctrl + Drag | Scale image |
